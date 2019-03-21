@@ -345,6 +345,19 @@ class Core{
         }
     }
     
+    public function clientIsDeveoper()
+    {
+        if (!isset($_SERVER['REMOTE_ADDR']) || empty($this->debugIps)) {
+            return true;
+        }
+        
+        if (in_array($_SERVER['REMOTE_ADDR'], $this->debugIps)) {
+            return true;
+        }
+        
+        return false;
+    }
+    
     /**
      * Locks the page for all users, which are not in the debugIps
      */
