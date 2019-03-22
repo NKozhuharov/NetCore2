@@ -324,19 +324,20 @@
          * Parses the result from a select query
          * Ensures that it is translated and the delimitor separated fields are parsed
          * Ensures that the result will allways be an array 
-         * @param array $resut - the result from a select query
+         * @param $result - the result from a select query
          * @return array
          */
-        private function parseSelectQueryResult(array $result)
+        private function parseSelectQueryResult($result)
         {
             global $Core;
             
-            $result = $this->getTranslation($result, $Core->Language->currentLanguageId);
-            
-            //to do: fix error count fields
-            $result = $this->parseExplodeFields($result);
-
-            return !empty($result) ? $result : array();
+            if (!empty($result)) {
+                //to do: fix error count fields
+                return $this->parseExplodeFields(
+                    $this->getTranslation($result, $Core->Language->currentLanguageId)
+                );
+            }
+            return array();
         }
         
         /**
@@ -347,7 +348,7 @@
          */
         private function parseExplodeFields(array $result)
         {
-            if (!empty($this->explodeFields)) {
+            if (!empty($this->explodeFields) && !empty($result)) {
                 foreach ($this->explodeFields as $field) {
                     foreach ($result as $resultKey => $resultRow) {
                         if (empty($resultRow[$field])) {
@@ -400,7 +401,76 @@
             return $this->parseSelectQueryResult($result);
         }
         
+        /**
+         * Basic method of the Base class
+         * It will select all rows from the table of the model, which contain the provided parentId
+         * It requires the parentField property to be set first!
+         * It will attempt to select all fields from the table of the model (SELECT *)
+         * It will use the default parameters for limiting and ordering of the result
+         * If limit or orderBy is provided, it will override the default parameters
+         * 
+         * @param int $parentId - the id for the parent field
+         * @param int $limit - the limit override
+         * @param string $orderBy - the order by override
+         * @return array
+         */
+        public function getByParentId(int $parentId, int $limit = null, string $orderBy = null)
+        {
+            global $Core;
+            
+            if (empty($this->parentField)) {
+                throw new Exception("Set a parent field first!");
+            }
+            
+            if ($parentId <= 0) {
+                throw new Exception("Parent id should be bigger than 0!");
+            }
+
+            $this->checkTableFields();
+            
+            if (!array_key_exists($this->parentField, $this->tableFields->getFields())) {
+                throw new Exception("The field '{$this->parentField}' does not exist in table '{$this->tableName}'!");
+            }
+
+            $selector = $this->initializeBaseSelector();
+            
+            $selector->where($this->getSelectQueryWherePart("{$this->parentField} = $parentId"));
+            
+            $selector = $this->addSelectQueryOverrides($selector, $limit, $orderBy);
+            
+            $Core->db->query($selector->buildQuery(), $this->queryCacheTime, 'simpleArray', $result);
+                                                         
+            return $this->parseSelectQueryResult($result);
+        }
         
+        /**
+         * Basic method of the Base class
+         * It will select a single rows from the table of the model, which contains the provided id
+         * 
+         * @param int $parentId - the id of the row
+         * @return array
+         */
+        public function getById(int $id)
+        {
+            global $Core;
+            
+            if ($id <= 0) {
+                throw new Exception("Id should be bigger than 0!");
+            }
+            
+            $this->checkTableFields();
+            
+            if (!array_key_exists($this->parentField, $this->tableFields->getFields())) {
+                throw new Exception("The field 'id' does not exist in table '{$this->tableName}'!");
+            }
+            
+            $selector = $this->initializeBaseSelector();
+            $selector->where($this->getSelectQueryWherePart("`id` = $id"));
+            
+            $Core->db->query($selector->buildQuery(), $this->queryCacheTime, 'simpleArray', $result);
+                                                         
+            return $this->parseSelectQueryResult($result);
+        }
         
         /**
          * It will attempt to translate the provided result from a seelct query, using a '<table_name>_lang' 
@@ -417,7 +487,7 @@
         {
             global $Core;
 
-            if ($languageId === null || !$this->isTranslationAvailable()) {
+            if ($languageId === null || !$this->isTranslationAvailable() || empty($result)) {
                 return $result;
             }
             
