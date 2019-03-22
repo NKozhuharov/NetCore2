@@ -30,14 +30,6 @@
          */
         private $fields;
         
-        private $id;
-        
-        /**
-         * @var string
-         * The where clause of the query
-         */
-        private $where;
-        
         /**
          * @var string
          * The order by clause of the query
@@ -87,21 +79,6 @@
             }
         }
         
-        public function id(int $id)
-        {
-            $this->id = $id;
-        }
-        
-        /**
-         * Sets the WHERE clause of the query
-         * @param string $where - the body of the where clause
-         */
-        public function where(string $where)
-        {
-            global $Core;
-            $this->where = trim($Core->db->escape($where));
-        }
-        
         /**
          * Sets the ORDER BY clause of the query
          * It must contain either ASC or DESC (case sensitive)
@@ -129,30 +106,6 @@
                 $this->limit = $limit;
             } else {
                 throw new Exception("LIMIT ({$limit}) must contain only comma separated numbers!");
-            }
-        }
-        
-        /**
-         * Adds the WHERE clause of the query
-         */
-        private function addWherePartToQuery()
-        {
-            if (!empty($this->where)) {
-                if (!strstr($this->query, 'WHERE')) {
-                    $this->query .= " WHERE ";
-                } else {
-                    if (substr($this->where, 0, 3) != 'AND' && substr($this->where, 0, 2) != "OR") {
-                        throw new Exception("Id is already selected. Provide OR/AND to your WHERE statement!");
-                    }
-                }
-                $this->query .= " {$this->where}";
-            }
-        }
-        
-        private function addIdToQuery()
-        {
-            if (!empty($this->id)) {
-                $this->query .= " WHERE `id`={$this->id}";
             }
         }
         

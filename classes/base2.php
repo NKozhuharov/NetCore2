@@ -392,7 +392,7 @@
 
             $selector = $this->initializeBaseSelector();
 
-            $selector->where($this->getSelectQueryWherePart($additional));
+            $selector->whereWithoutEscape($this->getSelectQueryWherePart($additional));
 
             $selector = $this->addSelectQueryOverrides($selector, $limit, $orderBy);
 
@@ -434,7 +434,7 @@
 
             $selector = $this->initializeBaseSelector();
             
-            $selector->where($this->getSelectQueryWherePart("`{$this->parentField}` = {$parentId}"));
+            $selector->whereWithoutEscape($this->getSelectQueryWherePart("`{$this->parentField}` = {$parentId}"));
             
             $selector = $this->addSelectQueryOverrides($selector, $limit, $orderBy);
             
@@ -489,10 +489,8 @@
             $selector->addField("COUNT(*)", 'ct');
             
             if (!empty($additional)) {
-                $selector->where($additional);
+                $selector->whereWithoutEscape($additional);
             }
-            
-            $selector->dumpQuery();
             
             $Core->db->query($selector->buildQuery(), $this->queryCacheTime, 'fetch_assoc', $count);
             
@@ -581,6 +579,74 @@
             
             return $result;
         }
+        
+        public function add(array $input, $autocomplete = null)
+        {
+            
+        }
+        
+        public function insert(array $input, $autocomplete = null)
+        {
+            return $this->add($input, $autocomplete);
+        }
+        
+        public function update(int $ojbectId, array $input)
+        {
+            
+        }
+        
+        public function delete(string $additional)
+        {
+            global $Core;
+            
+            $deleter = new BaseDelete();
+            $deleter->tableName($this->tableName);
+            $deleter->whereWithoutEscape($additional);
+            $deleter->execute();
+        }
+        
+        public function deleteById(int $ojbectId)
+        {
+            global $Core;
+            
+            $deleter = new BaseDelete();
+            $deleter->tableName($this->tableName);
+            $deleter->where("`id` = {$ojbectId}");
+            var_dump($deleter->buildQuery());
+            $Core->dump($deleter);
+            $deleter->execute();
+            #$Core->db->query($deleter->buildQuery());
+        }
+        
+        public function deleteByParetnId(int $parentId)
+        {
+            global $Core;
+            
+            if (empty($this->parentField)) {
+                throw new Exception("Set a parent field first!");
+            }
+            
+            if ($parentId <= 0) {
+                throw new Exception("Parent id should be bigger than 0!");
+            }
+
+            $this->checkTableFields();
+            
+            if (!array_key_exists($this->parentField, $this->tableFields->getFields())) {
+                throw new Exception("The field '{$this->parentField}' does not exist in table '{$this->tableName}'!");
+            }
+            
+            $deleter = new BaseDelete();
+            $deleter->tableName($this->tableName);
+            $deleter->where("`{$this->parentField}` = {$parentId}");
+            
+            var_dump($deleter->buildQuery());
+            $Core->dump($deleter);
+            $deleter->execute();
+            #$Core->db->query($deleter->buildQuery());
+        }
+        
+        
     }
 
 
