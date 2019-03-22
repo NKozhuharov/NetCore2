@@ -16,7 +16,14 @@
          * An instance of TableFields, which has the data for all of the fields in the table for the model
          */
         protected $tableFields;
-
+        
+        /**
+         * @var string
+         * Allows the user to set a parent field for the table for this model
+         * This is usually set to a foreign key field for the table
+         */
+        protected $parentField;
+        
         /**
          * @var string
          * Allows the user to set a default ordering for the select queries
@@ -212,7 +219,30 @@
         }
 
         //PRIVATE ADDITIONAL SELECT FUNCTIONS
-    
+        
+        /**
+         * Initializes a selector for all of the select queries, using BaseSelect class
+         * Sets the table name, the field (*), the additional timestamp fields
+         * 
+         * @return BaseSelect
+         */
+        private function initializeBaseSelector()
+        {
+            $this->checkTableFields();
+
+            $selector = new BaseSelect;
+
+            $selector->tableName($this->tableName);
+
+            $selector->addField('*');
+
+            if ($this->returnTimestamps === true) {
+                $selector = $this->addTimestampFieldsToGetQuery($selector);
+            }
+            
+            return $selector;
+        }
+        
         /**
          * Add all fields of type 'timestamp' to the current select query
          * It will return the current query, containing the additional fields
@@ -232,7 +262,7 @@
 
         /**
          * Parses all the additional fields of the Base class and forms a single WHERE clause
-         * Supports: hidden field and additional value
+         * Supports hidden field and additional value
          *
          * @param string $additional - the addition to the WHERE clause (if any)
          * @return string
@@ -251,6 +281,33 @@
         }
         
         /**
+         * Adds LIMIT and ORDER BY overrides to the selector of a select query
+         * If they are null, it will use the default values from Core (limit) and the model (order by)
+         * @param BaseSelect $selector - the current selector
+         * @param int $limit - the limit override
+         * @param string $orderBy - the order by override
+         * @return BaseSelect
+         */
+        private function addSelectQueryOverrides(BaseSelect $selector, int $limit = null, string $orderBy = null)
+        {
+            global $Core;
+            
+            if ($orderBy === null) {
+                $selector->orderBy("{$this->orderByField} {$this->orderByType}");
+            } else {
+                $selector->orderBy($orderBy);
+            }
+
+            if ($limit === null) {
+                $selector->limit((($Core->rewrite->currentPage - 1) * $Core->itemsPerPage).','.$Core->itemsPerPage);
+            } else {
+                $selector->limit($limit);
+            }
+            
+            return $selector;    
+        }
+        
+        /**
          * Checks if a translation is available for the current model
          * @return bool
          */
@@ -262,7 +319,26 @@
                     !empty($this->translationFields) && 
                     $Core->Language->currentLanguageIsDefaultLanguage();
         }
+        
+        /**
+         * Parses the result from a select query
+         * Ensures that it is translated and the delimitor separated fields are parsed
+         * Ensures that the result will allways be an array 
+         * @param array $resut - the result from a select query
+         * @return array
+         */
+        private function parseSelectQueryResult(array $result)
+        {
+            global $Core;
+            
+            $result = $this->getTranslation($result, $Core->Language->currentLanguageId);
+            
+            //to do: fix error count fields
+            $result = $this->parseExplodeFields($result);
 
+            return !empty($result) ? $result : array();
+        }
+        
         /**
          * Parse the result from a SELECT query for any delimitor seprated fields (explode fields)
          * It will break them down to arrays and will return the parsed array
@@ -295,57 +371,36 @@
 
             return $result;
         }
-
+        
+        //SELECT QUERIES
+        
         /**
          * Basic method of the Base class
          * It will attempt to select all fields from the table of the model (SELECT *)
          * It will use the default parameters for limiting and ordering of the result
          * If limit or orderBy is provided, it will override the default parameters
          * The additional parameter is used to provide additional filtering (custom WHERE clause)
-         * @param int $limit
-         * @param string $additional
-         * @param string $orderBy
+         * @param int $limit - the limit override
+         * @param string $additional - the where clause override
+         * @param string $orderBy - the order by override
          * @return array
          */
         public function getAll(int $limit = null, string $additional = null, string $orderBy = null)
         {
             global $Core;
 
-            $this->checkTableFields();
-
-            $selector = new BaseSelect;
-
-            $selector->tableName($this->tableName);
-
-            $selector->addField('*');
-
-            if ($this->returnTimestamps === true) {
-                $selector = $this->addTimestampFieldsToGetQuery($selector);
-            }
+            $selector = $this->initializeBaseSelector();
 
             $selector->where($this->getSelectQueryWherePart($additional));
 
-            if ($orderBy === null) {
-                $selector->orderBy("{$this->orderByField} {$this->orderByType}");
-            } else {
-                $selector->orderBy($orderBy);
-            }
-
-            if ($limit === null) {
-                $selector->limit((($Core->rewrite->currentPage - 1) * $Core->itemsPerPage).','.$Core->itemsPerPage);
-            } else {
-                $selector->limit($limit);
-            }
+            $selector = $this->addSelectQueryOverrides($selector, $limit, $orderBy);
 
             $Core->db->query($selector->buildQuery(), $this->queryCacheTime, 'simpleArray', $result);
                                                          
-            $result = $this->getTranslation($result, $Core->Language->currentLanguageId);
-            
-            //to do: fix error count fields
-            $result = $this->parseExplodeFields($result);
-
-            return !empty($result) ? $result : array();
+            return $this->parseSelectQueryResult($result);
         }
+        
+        
         
         /**
          * It will attempt to translate the provided result from a seelct query, using a '<table_name>_lang' 
