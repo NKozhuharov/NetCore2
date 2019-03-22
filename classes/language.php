@@ -85,6 +85,11 @@ class Language{
         );
         return true;
     }
+    
+    public function currentLanguageIsDefaultLanguage()
+    {
+        return $this->currentLanguageId != $this->defaultLanguageId;
+    }
 
     public function changeLanguage($language){
         if(in_array(strtolower($language), $this->allowedLanguages)){
@@ -156,10 +161,6 @@ class Language{
             return $this->defaultLanguage;
         }
         return array('id' => $this->defaultLanguageId, 'short' => $this->defaultLanguage);
-    }
-
-    public function useTranslation(){
-        return ($this->defaultLanguageId == $this->currentLanguageId) ? false : true;
     }
 
     public function getAll($translate = true){

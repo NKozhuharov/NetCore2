@@ -92,12 +92,16 @@
         
         private function addOrderByToQuery()
         {
-            $this->query .= " ORDER BY ".$this->orderBy;
+            if (!empty($this->orderBy)) {
+                $this->query .= " ORDER BY ".$this->orderBy;
+            }
         }
 
         private function addLimitToQuery()
         {
-            $this->query .= " LIMIT ".$this->limit;
+            if (!empty($this->limit)) {
+                $this->query .= " LIMIT ".$this->limit;
+            }
         }
         
         public function buildQuery()
@@ -120,7 +124,11 @@
             $this->addLimitToQuery();
             
             return $this->query;
-            
+        }
+        
+        public function dumpQuery()
+        {
+            echo $this->buildQuery();
         }
     }
     
