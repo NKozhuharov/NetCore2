@@ -395,8 +395,6 @@
             $selector->where($this->getSelectQueryWherePart($additional));
 
             $selector = $this->addSelectQueryOverrides($selector, $limit, $orderBy);
-            
-            $selector->limit('1,a');
 
             $Core->db->query($selector->buildQuery(), $this->queryCacheTime, 'simpleArray', $result);
                                                          
