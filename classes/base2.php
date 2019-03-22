@@ -434,7 +434,7 @@
 
             $selector = $this->initializeBaseSelector();
             
-            $selector->where($this->getSelectQueryWherePart("{$this->parentField} = $parentId"));
+            $selector->where($this->getSelectQueryWherePart("`{$this->parentField}` = {$parentId}"));
             
             $selector = $this->addSelectQueryOverrides($selector, $limit, $orderBy);
             
@@ -470,6 +470,65 @@
             $Core->db->query($selector->buildQuery(), $this->queryCacheTime, 'simpleArray', $result);
                                                          
             return $this->parseSelectQueryResult($result);
+        }
+        
+        /**
+         * Basic method of the Base class
+         * It will return the count of all rows in the table
+         * The additional parameter can be used to put a where clause on the query
+         * @param string $additional - the where clause override
+         * @return array
+         */
+        public function getCount(string $additional = null)
+        {
+            global $Core;
+            
+            $selector = new BaseSelect;
+            $selector->tableName($this->tableName);
+            
+            $selector->addField("COUNT(*)", 'ct');
+            
+            if (!empty($additional)) {
+                $selector->where($additional);
+            }
+            
+            $selector->dumpQuery();
+            
+            $Core->db->query($selector->buildQuery(), $this->queryCacheTime, 'fetch_assoc', $count);
+            
+            return $count['ct'];
+        }
+        
+        /**
+         * Basic method of the Base class
+         * It will return the count of all rows in the table, which contain the provided parentId
+         * It requires the parentField property to be set first!
+         * The additional parameter can be used to put an additional where clause on the query
+         * @param int $parentId - the id for the parent field
+         * @param string $additional - the where clause override
+         * @return array
+         */
+        public function getCountByParentId(int $parentId, string $additional = null)
+        {
+            if (empty($this->parentField)) {
+                throw new Exception("Set a parent field first!");
+            }
+            
+            if ($parentId <= 0) {
+                throw new Exception("Parent id should be bigger than 0!");
+            }
+
+            $this->checkTableFields();
+            
+            if (!array_key_exists($this->parentField, $this->tableFields->getFields())) {
+                throw new Exception("The field '{$this->parentField}' does not exist in table '{$this->tableName}'!");
+            }
+            
+            if (!empty($additional)) {
+                $additional = " AND {$additional}";
+            }
+            
+            return $this->getCount("`{$this->parentField}` = {$parentId}{$additional}");
         }
         
         /**
