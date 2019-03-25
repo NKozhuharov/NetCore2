@@ -2,6 +2,7 @@
     final class BaseSelect extends BaseQuery
     {
         use BaseWhere;
+        use BaseOrderBy;
         use BaseLimit;
 
         const DEFAULT_SELECTED_FIELDS = '*';
@@ -11,12 +12,6 @@
          * A collection of fields for the query
          */
         private $fields;
-
-        /**
-         * @var string
-         * The order by clause of the query
-         */
-        private $orderBy;
         
         /**
          * @var string
@@ -29,7 +24,6 @@
          * Allows the user to set a cache time for all the select queries
          */
         private $cacheTime = 0;
-    
     
         /**
          * Creates a new instance of the BaseSelect class
@@ -112,31 +106,6 @@
         }
 
         /**
-         * Sets the ORDER BY clause of the query
-         * It must contain either ASC or DESC (case sensitive)
-         * @param string $where - the body of the order by clause
-         * @throws Exception
-         */
-        public function setOrderBy(string $orderBy)
-        {
-            if (!strstr($orderBy, self::ORDER_ASC) && !strstr($orderBy, self::ORDER_DESC)) {
-                throw new Exception("Invalid order provided! Order must contain ASC or DESC!");
-            }
-
-            $this->orderBy = $orderBy;
-        }
-
-        /**
-         * Adds the ORDER BY clause of the query
-         */
-        private function addOrderByToQuery()
-        {
-            if (!empty($this->orderBy)) {
-                $this->query .= " ORDER BY ".$this->orderBy;
-            }
-        }
-
-        /**
          * Builds the query from all of it's parts
          * @return string
          */
@@ -144,17 +113,13 @@
         {
             global $Core;
 
-            if (empty($this->tableName)) {
-                throw new Exception("Provide a table name!");
-            }
-
             $this->query = 'SELECT ';
             $this->query .= empty($this->fields) ? self::DEFAULT_SELECTED_FIELDS : implode(',', $this->fields);
             $this->query .= ' FROM ';
 
             $this->query .= "`".(empty($this->dbName) ? $Core->dbName : $this->dbName)."`.`{$this->tableName}`";
 
-            $this->addWherePartToQuery();
+            $this->addWhereToQuery();
             $this->addOrderByToQuery();
             $this->addLimitToQuery();
 

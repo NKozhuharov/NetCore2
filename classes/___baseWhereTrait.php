@@ -19,7 +19,7 @@
         /**
          * Adds the WHERE clause of the query
          */
-        protected function addWherePartToQuery()
+        protected function addWhereToQuery()
         {
             if (!empty($this->where)) {
                 $this->query .= " WHERE {$this->where}";

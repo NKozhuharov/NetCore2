@@ -265,7 +265,7 @@
          * @param string $additional - the addition to the WHERE clause (if any)
          * @return string
          */
-        private function getSelectQueryWherePart(string $additional = null)
+        private function getSelectQueryWhereClause(string $additional = null)
         {
             $where = array();
             if (array_key_exists($this->hiddenFieldName, $this->tableFields->getFields()) && !$this->showHiddenRows) {
@@ -390,7 +390,7 @@
 
             $selector = $this->initializeBaseSelector();
 
-            $selector->setWhere($this->getSelectQueryWherePart($additional));
+            $selector->setWhere($this->getSelectQueryWhereClause($additional));
 
             $selector = $this->addSelectQueryOverrides($selector, $limit, $orderBy);
             
@@ -430,7 +430,7 @@
 
             $selector = $this->initializeBaseSelector();
 
-            $selector->setWhere($this->getSelectQueryWherePart("`{$this->parentField}` = {$parentId}"));
+            $selector->setWhere($this->getSelectQueryWhereClause("`{$this->parentField}` = {$parentId}"));
 
             $selector = $this->addSelectQueryOverrides($selector, $limit, $orderBy);
             
@@ -461,7 +461,7 @@
             }
 
             $selector = $this->initializeBaseSelector();
-            $selector->setWhere($this->getSelectQueryWherePart("`id` = $rowId"));
+            $selector->setWhere($this->getSelectQueryWhereClause("`id` = $rowId"));
 
             $Core->db->query($selector->build(), $this->queryCacheTime, 'simpleArray', $result);
             
@@ -575,21 +575,6 @@
 
             return $result;
         }
-
-        public function add(array $input, $autocomplete = null)
-        {
-
-        }
-
-        public function insert(array $input, $autocomplete = null)
-        {
-            return $this->add($input, $autocomplete);
-        }
-
-        public function update(int $ojbectId, array $input)
-        {
-
-        }
         
         /**
          * Deletes all rows in the table of the model that match the provided where override
@@ -668,7 +653,22 @@
 
             return $deleter->execute();
         }
+        
+        
+        public function insert(array $input, $autocomplete = null)
+        {
+            
+        }
+        
+        public function insertTranslation()
+        {
+            
+        }
 
+        public function update(int $ojbectId, array $input)
+        {
+
+        }
 
     }
 

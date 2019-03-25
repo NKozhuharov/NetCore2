@@ -44,7 +44,7 @@
             $this->query = 'DELETE FROM ';
             $this->query .= "`".(empty($this->dbName) ? $Core->dbName : $this->dbName)."`.`{$this->tableName}`";
 
-            $this->addWherePartToQuery();
+            $this->addWhereToQuery();
             $this->addLimitToQuery();
 
             return $this->query;
