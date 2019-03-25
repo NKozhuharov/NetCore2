@@ -654,10 +654,131 @@
             return $deleter->execute();
         }
         
+        /**
+         * Checks insert or update query input the field 'id'
+         * Throws BaseException if the field is present
+         * @param array $input - the input of query
+         * @throws BaseException
+         */
+        private function checkInputForFieldId(array $input)
+        {
+            if (isset($input['id'])) {
+                throw new BaseException("Field `id` is not allowed!", null, get_class($this));
+            }
+        }
+        
+        /**
+         * Checks insert or update query input for missing fields
+         * Throws BaseException if a missing field is found
+         * @param array $input - the input of query
+         * @throws BaseException
+         */
+        private function checkForMissingFields(array $input) 
+        {
+            $missingFields = array();
+            foreach ($this->tableFields->getRequiredFields() as $requiredField) {
+                if (!isset($input[$requiredField])) {
+                    $missingFields[] = $requiredField;
+                }
+            }
+            
+            if (!empty($missingFields)) {
+                throw new BaseException("Required fields missing", $missingFields, get_class($this));
+            }
+        }
+        
+        /**
+         * Checks insert or update query input for fields, which do not exist in the table
+         * Throws BaseException if such a field is found
+         * @param array $input - the input of query
+         * @throws BaseException
+         */
+        private function checkForFieldsThatDoNotExistInTheTable(array $input)
+        {
+            $unexistingFields = array();
+            
+            foreach ($input as $field => $value) {
+                if (!array_key_exists($field, $this->tableFields->getFields())) {
+                    $unexistingFields[] = $field;
+                }
+            }
+            
+            if (!empty($unexistingFields)) {
+                throw new BaseException("The field/s does not exist in the table", $unexistingFields, get_class($this));
+            }
+        }
+        
+        /**
+         * Validates an integer field size for an update or insert query
+         * Returns the text of the error (or empty string)
+         * @param string $fieldName - the id of the field
+         * @param int $value - the value of the field
+         * @return string
+         * 
+         * @todo DEXTER
+         */
+        private function validateIntegerField(string $fieldName, int $value)
+        {
+            //todo -dexeter
+            //https://dev.mysql.com/doc/refman/8.0/en/integer-types.html
+            return 'exceeds the maximum number allowed';
+        }
+        
+        /**
+         * Validates an varchar field length for an update or insert query
+         * Returns the text of the error (or empty string)
+         * @param string $fieldName - the id of the field
+         * @param int $value - the value of the field
+         * @return string
+         * 
+         * @todo DEXTER
+         */
+        private function validateVarcharField(string $fieldName, string $value)
+        {
+            
+            return 'exceeds the maximum field length';
+        }
+        
+        private function validateInputValues(array $input)
+        {
+            $inputErrors = array();
+            
+            foreach ($input as $fieldName => $value) {
+                $fieldType = $this->tableFields->getFieldType($fieldName);
+                if ((stristr($fieldType, 'int') || $fieldType === 'double' || $fieldType === 'float')) {
+                    if (!is_numeric($value)) {
+                        $inputErrors[$fieldName] = "must be a numeric value";
+                    } else if ($error = $this->validateIntegerField($fieldName, $value)) {
+                        $inputErrors[$fieldName] = $error;
+                    }
+                } else if ($fieldType === 'date') {
+                    $t = explode('-', $value);
+                    if (count($t) < 3 || !checkdate($t[1], $t[2], $t[0])) {
+                        $inputErrors[$fieldName] = "must be a date with MySQL format";
+                    }
+                    unset($t);
+                } else if ($fieldType === 'varchar' && $error = $this->validateVarcharField($fieldName, $value)) {
+                    $inputErrors[$fieldName] = $error;
+                }
+                unset($fieldType);
+            }
+            
+            if (!empty($inputErrors)) {
+                throw new BaseException("The following fields are not valid", $inputErrors, get_class($this));
+            }
+        }
         
         public function insert(array $input, $autocomplete = null)
         {
+            $this->checkTableFields();
             
+            $this->checkInputForFieldId($input);
+            
+            $this->checkForMissingFields($input);
+            
+            $this->checkForFieldsThatDoNotExistInTheTable($input);
+            
+            $this->validateInputValues($input);
         }
         
         public function insertTranslation()
@@ -668,6 +789,130 @@
         public function update(int $ojbectId, array $input)
         {
 
+        }
+        
+        private function prepareQueryArray($input){
+            global $Core;
+            if(empty($input) || !is_array($input)){
+                throw new Exception($Core->language->error_input_must_be_a_non_empty_array);
+            }
+            $allowedFields = $this->getTableFields();
+            $temp = array();
+
+            $parentFunction = debug_backtrace()[1]['function'];
+            if((stristr($parentFunction,'add') || $parentFunction == 'insert')){
+                $requiredBuffer = $this->requiredFields;
+            }
+            else{
+                $requiredBuffer = array();
+                if(stristr($parentFunction,'translate')){
+                    $allowedFields = $this->translationFields;
+                }
+            }
+
+            foreach ($input as $k => $v){
+                if(
+                       ($k === 'added' && !$this->allowFieldAdded)
+                    || ($k === 'id')
+                    || (!isset($allowedFields[$k]) && !in_array($k,$allowedFields))
+
+                ){
+                    throw new Exception($Core->language->the_field." `{$k}` ".$Core->language->is_not_allowed);
+                }
+
+                if(is_string($v)){
+                    $v = trim($v);
+                }
+
+                if(!empty($v) || ((is_numeric($v) && intval($v) === 0))){
+                    if(!empty($requiredBuffer) && ($key = array_search($k, $requiredBuffer)) !== false) {
+                        unset($requiredBuffer[$key]);
+                    }
+                    $fieldType = $this->tableFields[$k]['type'];
+                    if(stristr($fieldType,'int') || stristr($fieldType,'double')){
+                        if(!is_numeric($v)){
+                            $k = str_ireplace('_id','',$k);
+                            throw new Exception ($Core->language->error_field.' `'.$Core->language->$k.'` '.$Core->language->error_must_be_a_numeric_value);
+                        }
+                        $temp[$k] = $Core->db->escape($v);
+                    }
+                    elseif($fieldType == 'date'){
+                        $t = explode('-',$v);
+                        if(count($t) < 3 || !checkdate($t[1],$t[2],$t[0])){
+                            $k = str_ireplace('_id','',$k);
+                            throw new Exception ($Core->language->error_field.' `'.$Core->language->$k.'` '.$Core->language->error_must_be_a_date_with_format);
+                        }
+                        $temp[$k] = $Core->db->escape($v);
+                        unset($t);
+                    }
+                    elseif($this->autoFormatTime && in_array($fieldType ,array('timestamp', 'datetime'))){
+                        $temp[$k] = $this->toMysqlTimestamp($v);
+                    }
+                    else{
+                        if(in_array($k,$this->explodeFields)){
+                            if(is_object($v)){
+                                $v = (array)$v;
+                            }
+                            else if(!is_array($v)){
+                                $v = array($v);
+                            }
+
+                            if($k == 'languages'){
+                                $tt = array();
+                                foreach($v as $lang){
+                                    if(empty($lang)){
+                                        throw new Exception ($Core->language->error_language_cannot_be_empty);
+                                    }
+                                    $langMap = $Core->language->getLanguageMap(false);
+
+                                    if(!isset($langMap[$lang])){
+                                        throw new Exception ($Core->language->error_undefined_or_inactive_language);
+                                    }
+                                    if(!is_numeric($lang)){
+                                        $lang = $langMap[$lang]['id'];
+                                    }
+                                    $tt[] = $lang;
+                                }
+                                $v = '|'.implode('|',$tt).'|';
+                            }
+                            else{
+                                $tt = '';
+                                foreach($v as $t){
+                                    if(!empty($t)){
+                                        $tt .= str_replace($this->explodeDelimiter,'_',$t).$this->explodeDelimiter;
+                                    }
+                                }
+                                $v = substr($tt, 0, -strlen($this->explodeDelimiter));
+                                unset($tt,$t);
+                            }
+                        }
+                        else if(is_array($v)){
+                            $k = str_ireplace('_id','',$k);
+                            throw new Exception($Core->language->error_field.' `'.$Core->language->$k.'` '.$Core->language->error_must_be_alphanumeric_string);
+                        }
+                        $temp[$k] = $Core->db->escape($v);
+                    }
+                }
+                else{
+                    if(stristr($parentFunction,'update') && isset($this->requiredFields[$k])){
+                        $k = str_ireplace('_id','',$k);
+                        throw new Exception($Core->language->error_enter.' `'.$Core->language->$k.'`');
+                    }
+                    else $temp[$k] = '';
+                }
+            }
+
+            if(!empty($requiredBuffer)){
+                $temp = array();
+                foreach($requiredBuffer as $r){
+                    $r = str_ireplace('_id','',$r);
+                    $temp[] = mb_strtolower($Core->language->$r);
+                }
+
+                throw new Exception($Core->language->error_enter." ".implode(', ',$temp));
+            }
+
+            return $temp;
         }
 
     }

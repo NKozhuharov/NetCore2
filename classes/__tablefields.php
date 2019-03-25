@@ -35,15 +35,34 @@
             return $this->requiredFields;
         }
         
+        public function getFieldType(string $fieldName)
+        {
+            if (!isset($this->tableFields[$fieldName])) {
+                throw new Exception("This field does not exist!");
+            }
+            
+            return $this->tableFields[$fieldName]['type'];
+        }
+        
+        public function getFieldInfo(string $fieldName)
+        {
+            if (!isset($this->tableFields[$fieldName])) {
+                throw new Exception("This field does not exist!");
+            }
+            
+            return $this->tableFields[$fieldName]['field_info'];
+        }
+        
         private function getTableInfo(bool $noCache = null)
         {
             global $Core;
 
             $Core->db->query(
                 "SELECT 
-                    COLUMN_NAME AS 'column_temp_id', 
-                    DATA_TYPE AS 'type', 
-                    IS_NULLABLE AS 'allow_null', 
+                    COLUMN_NAME AS 'column_temp_id',
+                    DATA_TYPE AS 'type',
+                    TRIM(REPLACE(REPLACE(REPLACE(COLUMN_TYPE, DATA_TYPE,''),')',''),'(','')) AS 'field_info',
+                    IS_NULLABLE AS 'allow_null',
                     COLUMN_DEFAULT AS 'default'
                 FROM 
                     INFORMATION_SCHEMA.COLUMNS
