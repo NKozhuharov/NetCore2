@@ -16,14 +16,14 @@
          * An instance of TableFields, which has the data for all of the fields in the table for the model
          */
         protected $tableFields;
-        
+
         /**
          * @var string
          * Allows the user to set a parent field for the table for this model
          * This is usually set to a foreign key field for the table
          */
         protected $parentField;
-        
+
         /**
          * @var string
          * Allows the user to set a default ordering for the select queries
@@ -37,12 +37,12 @@
          * This is the order type
          */
         protected $orderByType = 'ASC';
-        
+
         /**
          * @var int
          * Allows the user to set a cache time for all the select queries
          */
-        protected $queryCacheTime = 0;
+        private $queryCacheTime = 0;
 
         //additional field settings
         /**
@@ -170,7 +170,7 @@
         {
             $this->orderByType = self::ORDER_DESC;
         }
-        
+
         /**
          * This will attempt to translate all select queries from now on
          */
@@ -178,7 +178,7 @@
         {
             $this->translateResult = true;
         }
-        
+
         /**
          * This will attempt to translate all select queries from now on
          */
@@ -186,7 +186,7 @@
         {
             $this->translateResult = false;
         }
-        
+
         /**
          * It will reset the cache for all select queries from now on
          */
@@ -194,15 +194,15 @@
         {
             $this->queryCacheTime = -1;
         }
-        
+
         /**
          * It will turn off the cache for all select queries from now on
          */
-        public function turnOffQueryCahce()
+        public function turnOffQueryCache()
         {
             $this->queryCacheTime = 0;
         }
-        
+
         /**
          * It will turn on the cache for all select queries from now on
          * It will throw Exception if the provided parameter is <= 0
@@ -214,35 +214,33 @@
             if ($cacheTime <= 0) {
                 throw new Exception("Query cache time should be bigger than 0");
             }
-            
+
             $this->queryCacheTime = $cacheTime;
         }
 
         //PRIVATE ADDITIONAL SELECT FUNCTIONS
-        
+
         /**
          * Initializes a selector for all of the select queries, using BaseSelect class
          * Sets the table name, the field (*), the additional timestamp fields
-         * 
+         *
          * @return BaseSelect
          */
         private function initializeBaseSelector()
         {
             $this->checkTableFields();
 
-            $selector = new BaseSelect;
-
-            $selector->tableName($this->tableName);
+            $selector = new BaseSelect($this->tableName);
 
             $selector->addField('*');
 
             if ($this->returnTimestamps === true) {
                 $selector = $this->addTimestampFieldsToGetQuery($selector);
             }
-            
+
             return $selector;
         }
-        
+
         /**
          * Add all fields of type 'timestamp' to the current select query
          * It will return the current query, containing the additional fields
@@ -279,7 +277,7 @@
 
             return implode(" AND ", $where);
         }
-        
+
         /**
          * Adds LIMIT and ORDER BY overrides to the selector of a select query
          * If they are null, it will use the default values from Core (limit) and the model (order by)
@@ -291,22 +289,22 @@
         private function addSelectQueryOverrides(BaseSelect $selector, int $limit = null, string $orderBy = null)
         {
             global $Core;
-            
+
             if ($orderBy === null) {
-                $selector->orderBy("{$this->orderByField} {$this->orderByType}");
+                $selector->setOrderBy("{$this->orderByField} {$this->orderByType}");
             } else {
-                $selector->orderBy($orderBy);
+                $selector->setOrderBy($orderBy);
             }
 
             if ($limit === null) {
-                $selector->limit((($Core->rewrite->currentPage - 1) * $Core->itemsPerPage).','.$Core->itemsPerPage);
+                $selector->setLimit((($Core->rewrite->currentPage - 1) * $Core->itemsPerPage), $Core->itemsPerPage);
             } else {
-                $selector->limit($limit);
+                $selector->setLimit($limit);
             }
-            
-            return $selector;    
+
+            return $selector;
         }
-        
+
         /**
          * Checks if a translation is available for the current model
          * @return bool
@@ -314,23 +312,23 @@
         private function isTranslationAvailable()
         {
             global $Core;
-            
-            return $this->translateResult !== false && 
-                    !empty($this->translationFields) && 
+
+            return $this->translateResult !== false &&
+                    !empty($this->translationFields) &&
                     $Core->Language->currentLanguageIsDefaultLanguage();
         }
-        
+
         /**
          * Parses the result from a select query
          * Ensures that it is translated and the delimitor separated fields are parsed
-         * Ensures that the result will allways be an array 
+         * Ensures that the result will allways be an array
          * @param $result - the result from a select query
          * @return array
          */
         private function parseSelectQueryResult($result)
         {
             global $Core;
-            
+
             if (!empty($result)) {
                 //to do: fix error count fields
                 return $this->parseExplodeFields(
@@ -339,7 +337,7 @@
             }
             return array();
         }
-        
+
         /**
          * Parse the result from a SELECT query for any delimitor seprated fields (explode fields)
          * It will break them down to arrays and will return the parsed array
@@ -372,9 +370,9 @@
 
             return $result;
         }
-        
+
         //SELECT QUERIES
-        
+
         /**
          * Basic method of the Base class
          * It will attempt to select all fields from the table of the model (SELECT *)
@@ -392,15 +390,15 @@
 
             $selector = $this->initializeBaseSelector();
 
-            $selector->whereWithoutEscape($this->getSelectQueryWherePart($additional));
+            $selector->setWhere($this->getSelectQueryWherePart($additional));
 
             $selector = $this->addSelectQueryOverrides($selector, $limit, $orderBy);
-
-            $Core->db->query($selector->buildQuery(), $this->queryCacheTime, 'simpleArray', $result);
-                                                         
-            return $this->parseSelectQueryResult($result);
+            
+            $selector->setCacheTime($this->queryCacheTime);
+            
+            return $this->parseSelectQueryResult($selector->execute());
         }
-        
+
         /**
          * Basic method of the Base class
          * It will select all rows from the table of the model, which contain the provided parentId
@@ -408,7 +406,7 @@
          * It will attempt to select all fields from the table of the model (SELECT *)
          * It will use the default parameters for limiting and ordering of the result
          * If limit or orderBy is provided, it will override the default parameters
-         * 
+         *
          * @param int $parentId - the id for the parent field
          * @param int $limit - the limit override
          * @param string $orderBy - the order by override
@@ -416,62 +414,62 @@
          */
         public function getByParentId(int $parentId, int $limit = null, string $orderBy = null)
         {
-            global $Core;
-            
             if (empty($this->parentField)) {
                 throw new Exception("Set a parent field first!");
             }
-            
+
             if ($parentId <= 0) {
                 throw new Exception("Parent id should be bigger than 0!");
             }
 
             $this->checkTableFields();
-            
+
             if (!array_key_exists($this->parentField, $this->tableFields->getFields())) {
                 throw new Exception("The field '{$this->parentField}' does not exist in table '{$this->tableName}'!");
             }
 
             $selector = $this->initializeBaseSelector();
-            
-            $selector->whereWithoutEscape($this->getSelectQueryWherePart("`{$this->parentField}` = {$parentId}"));
-            
+
+            $selector->setWhere($this->getSelectQueryWherePart("`{$this->parentField}` = {$parentId}"));
+
             $selector = $this->addSelectQueryOverrides($selector, $limit, $orderBy);
             
-            $Core->db->query($selector->buildQuery(), $this->queryCacheTime, 'simpleArray', $result);
-                                                         
-            return $this->parseSelectQueryResult($result);
+            $selector->setCacheTime($this->queryCacheTime);
+
+            return $this->parseSelectQueryResult($selector->execute());
         }
-        
+
         /**
          * Basic method of the Base class
          * It will select a single rows from the table of the model, which contains the provided id
-         * 
-         * @param int $parentId - the id of the row
+         *
+         * @param int $rowId - the id of the row
          * @return array
          */
-        public function getById(int $id)
+        public function getById(int $rowId)
         {
             global $Core;
-            
-            if ($id <= 0) {
+
+            if ($rowId <= 0) {
                 throw new Exception("Id should be bigger than 0!");
             }
-            
+
             $this->checkTableFields();
-            
+
             if (!array_key_exists($this->parentField, $this->tableFields->getFields())) {
                 throw new Exception("The field 'id' does not exist in table '{$this->tableName}'!");
             }
-            
+
             $selector = $this->initializeBaseSelector();
-            $selector->where($this->getSelectQueryWherePart("`id` = $id"));
+            $selector->setWhere($this->getSelectQueryWherePart("`id` = $rowId"));
+
+            $Core->db->query($selector->build(), $this->queryCacheTime, 'simpleArray', $result);
             
-            $Core->db->query($selector->buildQuery(), $this->queryCacheTime, 'simpleArray', $result);
-                                                         
-            return $this->parseSelectQueryResult($result);
+            $result = $this->parseSelectQueryResult($result);
+            
+            return !empty($result) ? current($result) : array();
         }
-        
+
         /**
          * Basic method of the Base class
          * It will return the count of all rows in the table
@@ -481,22 +479,20 @@
          */
         public function getCount(string $additional = null)
         {
-            global $Core;
-            
-            $selector = new BaseSelect;
-            $selector->tableName($this->tableName);
-            
+            $selector = new BaseSelect($this->tableName);
+
             $selector->addField("COUNT(*)", 'ct');
-            
+
             if (!empty($additional)) {
-                $selector->whereWithoutEscape($additional);
+                $selector->setWhere($additional);
             }
             
-            $Core->db->query($selector->buildQuery(), $this->queryCacheTime, 'fetch_assoc', $count);
+            $selector->setCacheTime($this->queryCacheTime);
+            $selector->setGlobalTemplate('fetch_assoc');
             
-            return $count['ct'];
+            return $selector->execute()['ct'];
         }
-        
+
         /**
          * Basic method of the Base class
          * It will return the count of all rows in the table, which contain the provided parentId
@@ -511,31 +507,31 @@
             if (empty($this->parentField)) {
                 throw new Exception("Set a parent field first!");
             }
-            
+
             if ($parentId <= 0) {
                 throw new Exception("Parent id should be bigger than 0!");
             }
 
             $this->checkTableFields();
-            
+
             if (!array_key_exists($this->parentField, $this->tableFields->getFields())) {
                 throw new Exception("The field '{$this->parentField}' does not exist in table '{$this->tableName}'!");
             }
-            
+
             if (!empty($additional)) {
                 $additional = " AND {$additional}";
             }
-            
+
             return $this->getCount("`{$this->parentField}` = {$parentId}{$additional}");
         }
-        
+
         /**
-         * It will attempt to translate the provided result from a seelct query, using a '<table_name>_lang' 
+         * It will attempt to translate the provided result from a seelct query, using a '<table_name>_lang'
          * table from the database, where <table_name> is the name of the table, which is used to initialize the model.
          * The result MUST contain a column 'id', which will be used to determine the object id for the translation
          * The '<table_name>_lang' MUST contain a column 'object_id', which will be used to link the original value
          * and it's translation.
-         * 
+         *
          * @param array $result - the result from a select query
          * @param int $languageId - the id of the language
          * @return array
@@ -547,22 +543,22 @@
             if ($languageId === null || !$this->isTranslationAvailable() || empty($result)) {
                 return $result;
             }
-            
+
             $resultObjectIds = array_column($result, 'id');
-            
+
             if (empty($resultObjectIds)) {
                 throw new Exception ("Cannot translate query results, which do not contain the id column!");
             }
-            
+
             $selector = new BaseSelect();
             $selector->tableName("{$this->tableName}_lang");
-            $selector->where("`object_id` IN (".(implode(', ', $resultObjectIds)).") AND `lang_id`={$languageId}");
-            
-            $Core->db->query($selector->buildQuery(), $this->queryCacheTime, 'fillArray', $translations, 'object_id');
-            
+            $selector->setWhere("`object_id` IN (".(implode(', ', $resultObjectIds)).") AND `lang_id`={$languageId}");
+
+            $Core->db->query($selector->build(), $this->queryCacheTime, 'fillArray', $translations, 'object_id');
+
             if (!empty($translations)) {
                 $fieldIds = array_flip($resultObjectIds);
-                
+
                 foreach ($translations as $objectId => $row) {
                     $resultKey = $fieldIds[$objectId];
                     if (isset($result[$resultKey])) {
@@ -576,77 +572,104 @@
                     }
                 }
             }
-            
+
             return $result;
         }
-        
+
         public function add(array $input, $autocomplete = null)
         {
-            
+
         }
-        
+
         public function insert(array $input, $autocomplete = null)
         {
             return $this->add($input, $autocomplete);
         }
-        
+
         public function update(int $ojbectId, array $input)
         {
-            
+
         }
         
+        /**
+         * Deletes all rows in the table of the model that match the provided where override
+         * Returns the number of deleted rows
+         * @param string $additional - the where clause override
+         * @return int
+         */
         public function delete(string $additional)
         {
-            global $Core;
+            if (empty($additional)) {
+                throw new Exception("A delete query without where parameter is not allowed! Use deleteAll instead!");
+            }
+
+            $deleter = new BaseDelete($this->tableName);
+            $deleter->setWhere($additional);
             
-            $deleter = new BaseDelete();
-            $deleter->tableName($this->tableName);
-            $deleter->whereWithoutEscape($additional);
-            $deleter->execute();
+            return $deleter->execute();
         }
         
-        public function deleteById(int $ojbectId)
+        /**
+         * Deletes all rows in the table of the model
+         * Returns the number of deleted rows
+         * @return int
+         */
+        public function deleteAll()
         {
-            global $Core;
+            $deleter = new BaseDelete($this->tableName);
             
-            $deleter = new BaseDelete();
-            $deleter->tableName($this->tableName);
-            $deleter->where("`id` = {$ojbectId}");
-            var_dump($deleter->buildQuery());
-            $Core->dump($deleter);
-            $deleter->execute();
-            #$Core->db->query($deleter->buildQuery());
+            return $deleter->execute();
         }
         
-        public function deleteByParetnId(int $parentId)
+        /**
+         * Deletes all rows in the table of the model that match the provided id
+         * Returns the number of deleted rows
+         * @param int $id - the id of the row
+         * @return int
+         */
+        public function deleteById(int $rowId)
+        {
+            if ($rowId <= 0) {
+                throw new Error("Object id must be bigger than 0!");
+            }
+            
+            $deleter = new BaseDelete($this->tableName);
+            $deleter->setWhere("`id` = {$rowId}");
+            
+            return $deleter->execute();
+        }
+        
+        /**
+         * Deletes all rows in the table of the model that match the provided parent id
+         * Returns the number of deleted rows
+         * @param int $id - the parent id of the rows
+         * @return int
+         */
+        public function deleteByParentId(int $parentId)
         {
             global $Core;
-            
+
             if (empty($this->parentField)) {
                 throw new Exception("Set a parent field first!");
             }
-            
+
             if ($parentId <= 0) {
                 throw new Exception("Parent id should be bigger than 0!");
             }
 
             $this->checkTableFields();
-            
+
             if (!array_key_exists($this->parentField, $this->tableFields->getFields())) {
                 throw new Exception("The field '{$this->parentField}' does not exist in table '{$this->tableName}'!");
             }
-            
-            $deleter = new BaseDelete();
-            $deleter->tableName($this->tableName);
-            $deleter->where("`{$this->parentField}` = {$parentId}");
-            
-            var_dump($deleter->buildQuery());
-            $Core->dump($deleter);
-            $deleter->execute();
-            #$Core->db->query($deleter->buildQuery());
+
+            $deleter = new BaseDelete($this->tableName);
+            $deleter->setWhere("`{$this->parentField}` = {$parentId}");
+
+            return $deleter->execute();
         }
-        
-        
+
+
     }
 
 
