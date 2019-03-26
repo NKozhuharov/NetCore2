@@ -4,12 +4,52 @@
         use BaseInputQuery;
         
         /**
+         * @var bool
+         * Set the query to ON DUPLICATE KEY UPDATE query
+         */
+        protected $updateOnDuplicate = false;
+        
+        /**
          * Creates a new instance of the BaseInsert class
          * @param string $tableName - the name for the table
          */
         public function __construct(string $tableName)
         {
             parent::__construct($tableName);
+        }
+        
+        /**
+         * Set the query to ON DUPLICATE KEY UPDATE query (or not)
+         * It will throw exception if INSERT IGNORE QUERY is already chosen
+         * @param bool $onDuplicateKeyUpdate - set the query to ON DUPLICATE KEY UPDATE query (or not)
+         * @throws Exception
+         */
+        public function setUpdateOnDuplicate(bool $onDuplicateKeyUpdate)
+        {
+            if ($onDuplicateKeyUpdate && $this->ignore) {
+                throw new Exception("INSERT IGNORE query already selected! Choose between INSERT INGORE or ON DUPLICATE KEY UPDATE!");
+            }
+            
+            $this->updateOnDuplicate = $onDuplicateKeyUpdate;
+        }
+        
+        /**
+         * Add the ON DUPLICATE KEY UPDATE statement to the query
+         */
+        private function addOnDuplicateKeyUpdateToQuery()
+        {
+            if ($this->updateOnDuplicate) {
+                $this->query .= " ON DUPLICATE KEY UPDATE ";
+                $this->fields = array_values($this->fields);
+                $this->values = array_values($this->values);
+                
+                for ($i = 0; $i < count($this->fields); $i++) {
+                    $this->query .= "`{$this->fields[$i]}` = ";
+                    $this->addAValueToQuery($this->values[$i]);
+                }
+                
+                $this->query = substr($this->query, 0, -2);
+            }
         }
         
         /**
@@ -44,6 +84,8 @@
             $this->query = substr($this->query, 0, -2);
             
             $this->query .= ")";
+            
+            $this->addOnDuplicateKeyUpdateToQuery();
 
             return $this->query;
         }

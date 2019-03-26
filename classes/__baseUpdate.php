@@ -53,7 +53,7 @@
             $this->fields = array_values($this->fields);
             $this->values = array_values($this->values);
             
-            for ($i=0; $i < count($this->fields); $i++) {
+            for ($i = 0; $i < count($this->fields); $i++) {
                 $this->query .= "`{$this->fields[$i]}` = ";
                 $this->addAValueToQuery($this->values[$i]);
             }

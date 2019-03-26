@@ -2,19 +2,19 @@
     class TableFields
     {
         const CACHE_TIME = 60;
-        
+
         protected $tableName;
         protected $tableFields;
         protected $requiredFields;
-        
+
         public function __construct(string $tableName)
         {
             global $Core;
-            
+
             $this->tableName = $tableName;
             $this->getTableInfo($Core->clientIsDeveoper());
         }
-        
+
         //get a list of the table fields
         public function getFields(){
             if(empty($this->tableFields))
@@ -34,41 +34,41 @@
 
             return $this->requiredFields;
         }
-        
+
         public function getFieldType(string $fieldName)
         {
             if (!isset($this->tableFields[$fieldName])) {
-                throw new Exception("This field does not exist!");
+                throw new Exception("The field $fieldName does not exist!");
             }
-            
+
             return $this->tableFields[$fieldName]['type'];
         }
-        
+
         public function getFieldInfo(string $fieldName)
         {
             if (!isset($this->tableFields[$fieldName])) {
-                throw new Exception("This field does not exist!");
+                throw new Exception("The field $fieldName does not exist!");
             }
-            
+
             return $this->tableFields[$fieldName]['field_info'];
         }
-        
+
         private function getTableInfo(bool $noCache = null)
         {
             global $Core;
 
             $Core->db->query(
-                "SELECT 
+                "SELECT
                     COLUMN_NAME AS 'column_temp_id',
                     DATA_TYPE AS 'type',
                     TRIM(REPLACE(REPLACE(REPLACE(COLUMN_TYPE, DATA_TYPE,''),')',''),'(','')) AS 'field_info',
                     IS_NULLABLE AS 'allow_null',
                     COLUMN_DEFAULT AS 'default'
-                FROM 
+                FROM
                     INFORMATION_SCHEMA.COLUMNS
-                WHERE 
-                    `table_schema` = '{$Core->dbName}' 
-                AND 
+                WHERE
+                    `table_schema` = '{$Core->dbName}'
+                AND
                     `table_name` = '{$this->tableName}'"
                 ,$noCache ? 0 : self::CACHE_TIME, 'fillArray', $columnsInfo, 'column_temp_id'
             );
