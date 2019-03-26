@@ -89,7 +89,7 @@
          * If is set to true the results from the outupt functions will be translated if they have translation table
          */
         protected $translateResult = true;
-
+        
         /**
          * Ensures that tableFields variable is initialized; if not it will initialize it
          * Throws Exception if the table name is not provided
@@ -317,11 +317,7 @@
          */
         private function isTranslationAvailable()
         {
-            global $Core;
-
-            return $this->translateResult !== false &&
-                    !empty($this->translationFields) &&
-                    $Core->Language->currentLanguageIsDefaultLanguage();
+            return $this->translateResult !== false && !empty($this->translationFields) ;
         }
 
         /**
@@ -525,19 +521,22 @@
             if ($languageId === null || !$this->isTranslationAvailable() || empty($result)) {
                 return $result;
             }
-
+            
+            if (isset($result['id'])) {
+                $result = array($result);
+            }
+            
             $resultObjectIds = array_column($result, 'id');
-
+            
             if (empty($resultObjectIds)) {
                 throw new Exception ("Cannot translate query results, which do not contain the id column");
             }
-
-            $selector = new BaseSelect();
-            $selector->tableName("{$this->tableName}_lang");
+            
+            $selector = new BaseSelect("{$this->tableName}_lang");
             $selector->setWhere("`object_id` IN (".(implode(', ', $resultObjectIds)).") AND `lang_id`={$languageId}");
 
             $Core->db->query($selector->build(), $this->queryCacheTime, 'fillArray', $translations, 'object_id');
-
+            
             if (!empty($translations)) {
                 $fieldIds = array_flip($resultObjectIds);
 
@@ -928,6 +927,10 @@
             }
 
             foreach ($input as $fieldName => $value) {
+                if (empty($fieldName)) {
+                    throw new Exception("Field names cannot be empty");
+                }
+                
                 if (is_array($fieldName) || is_object($fieldName)) {
                     throw new Exception("Field names cannot be arrays or objects");
                 }
@@ -1036,8 +1039,6 @@
          * @param string $additional - the where clause override
          * @throws Exception
          * @return int
-         *
-         * @todo DEXTER
          */
         public function updateByParentId(int $parentId, array $input, string $additional = null)
         {
@@ -1056,151 +1057,118 @@
          * @param string $additional - the where clause override
          * @throws Exception
          * @return int
-         *
-         * @todo DEXTER
          */
         public function updateAll(array $input)
         {
-
+            $updater = new BaseUpdate($this->tableName);
+            $updater->setFieldsAndValues($this->validateAndPrepareInputArray($input));
+            
+            return $updater->execute();
         }
-
+        
+        /**
+         * If there are any explode fields, it will validate the input array for a translate funtion
+         * Makes sure all the parts are available and not empty
+         * @param array $input - the input for a translate function
+         * @param array $objectInfo - the object, which is going to be translated
+         * @throws Exception
+         * @thorws BaseException
+         */
+        private function validateTranslateExplodeFields(array $input, array $objectInfo)
+        {
+            if (!empty($this->explodeFields)) {
+                foreach ($input as $fieldName => $value) {
+                    if (in_array($fieldName, $this->explodeFields)) {
+                        if (count($objectInfo[$fieldName]) != count ($value)) {
+                            throw new Exception("Field `{$fieldName}` does not have the same number of parts as the original object in model `".get_class($this)."`");
+                        }
+                        
+                        $emptyFields = array();
+                        foreach ($value as $valueKey => $valuePart) {
+                            $valuePart = trim($valuePart);
+                            if (empty($valuePart)) {
+                                $emptyFields[] = $valueKey;
+                            }
+                        }
+                        
+                        if (!empty($emptyFields)) {
+                            $errorText = "Translation missing for ";
+                            foreach ($emptyFields as $emptyFieldId) {
+                                $errorText .= "`".$objectInfo[$fieldName][$emptyFieldId].'`, ';
+                            }
+                            throw new BaseException(
+                                "The following fields are not valid", 
+                                array($fieldName => substr($errorText, 0, -2)), 
+                                get_class($this)
+                            );
+                        }
+                        unset($emptyFields);
+                    }
+                }
+            }
+        }
+        
         /**
          * Inserts or updates a translation for the provided object
+         * Returns the number of affected rows or the id of the new row
          * @param int $objectId - the id of the row where the translated object is
+         * @param int $languageId - the language id to translate to
          * @param array $input - the translated object data
-         *
-         * @todo DEXTER
+         * @return int
          */
-        public function translate(int $objectId, array $input)
+        public function translate(int $objectId, int $languageId, array $input)
         {
-
-        }
-
-        /**
-         * DELETED!!
-         */
-        private function prepareQueryArray($input){
             global $Core;
-            if(empty($input) || !is_array($input)){
-                throw new Exception($Core->language->error_input_must_be_a_non_empty_array);
+            
+            if (empty($this->translationFields)) {
+                throw new Exception("You cannot translate an object, without any translation fields!");
             }
-            $allowedFields = $this->getTableFields();
-            $temp = array();
-
-            $parentFunction = debug_backtrace()[1]['function'];
-            if((stristr($parentFunction,'add') || $parentFunction == 'insert')){
-                $requiredBuffer = $this->requiredFields;
+            
+            if ($objectId <= 0) {
+                throw new Exception("Object id should be bigger than 0 in model `".get_class($this)."`");
             }
-            else{
-                $requiredBuffer = array();
-                if(stristr($parentFunction,'translate')){
-                    $allowedFields = $this->translationFields;
-                }
+            
+            if ($languageId <= 0) {
+                throw new Exception("Language id should be bigger than 0 in model `".get_class($this)."`");
             }
-
-            foreach ($input as $k => $v){
-                if(
-                       ($k === 'added' && !$this->allowFieldAdded)
-                    || ($k === 'id')
-                    || (!isset($allowedFields[$k]) && !in_array($k,$allowedFields))
-
-                ){
-                    throw new Exception($Core->language->the_field." `{$k}` ".$Core->language->is_not_allowed);
-                }
-
-                if(is_string($v)){
-                    $v = trim($v);
-                }
-
-                if(!empty($v) || ((is_numeric($v) && intval($v) === 0))){
-                    if(!empty($requiredBuffer) && ($key = array_search($k, $requiredBuffer)) !== false) {
-                        unset($requiredBuffer[$key]);
-                    }
-                    $fieldType = $this->tableFields[$k]['type'];
-                    if(stristr($fieldType,'int') || stristr($fieldType,'double')){
-                        if(!is_numeric($v)){
-                            $k = str_ireplace('_id','',$k);
-                            throw new Exception ($Core->language->error_field.' `'.$Core->language->$k.'` '.$Core->language->error_must_be_a_numeric_value);
-                        }
-                        $temp[$k] = $Core->db->escape($v);
-                    }
-                    elseif($fieldType == 'date'){
-                        $t = explode('-',$v);
-                        if(count($t) < 3 || !checkdate($t[1],$t[2],$t[0])){
-                            $k = str_ireplace('_id','',$k);
-                            throw new Exception ($Core->language->error_field.' `'.$Core->language->$k.'` '.$Core->language->error_must_be_a_date_with_format);
-                        }
-                        $temp[$k] = $Core->db->escape($v);
-                        unset($t);
-                    }
-                    elseif($this->autoFormatTime && in_array($fieldType ,array('timestamp', 'datetime'))){
-                        $temp[$k] = $this->toMysqlTimestamp($v);
-                    }
-                    else{
-                        if(in_array($k,$this->explodeFields)){
-                            if(is_object($v)){
-                                $v = (array)$v;
-                            }
-                            else if(!is_array($v)){
-                                $v = array($v);
-                            }
-
-                            if($k == 'languages'){
-                                $tt = array();
-                                foreach($v as $lang){
-                                    if(empty($lang)){
-                                        throw new Exception ($Core->language->error_language_cannot_be_empty);
-                                    }
-                                    $langMap = $Core->language->getLanguageMap(false);
-
-                                    if(!isset($langMap[$lang])){
-                                        throw new Exception ($Core->language->error_undefined_or_inactive_language);
-                                    }
-                                    if(!is_numeric($lang)){
-                                        $lang = $langMap[$lang]['id'];
-                                    }
-                                    $tt[] = $lang;
-                                }
-                                $v = '|'.implode('|',$tt).'|';
-                            }
-                            else{
-                                $tt = '';
-                                foreach($v as $t){
-                                    if(!empty($t)){
-                                        $tt .= str_replace($this->explodeDelimiter,'_',$t).$this->explodeDelimiter;
-                                    }
-                                }
-                                $v = substr($tt, 0, -strlen($this->explodeDelimiter));
-                                unset($tt,$t);
-                            }
-                        }
-                        else if(is_array($v)){
-                            $k = str_ireplace('_id','',$k);
-                            throw new Exception($Core->language->error_field.' `'.$Core->language->$k.'` '.$Core->language->error_must_be_alphanumeric_string);
-                        }
-                        $temp[$k] = $Core->db->escape($v);
-                    }
-                }
-                else{
-                    if(stristr($parentFunction,'update') && isset($this->requiredFields[$k])){
-                        $k = str_ireplace('_id','',$k);
-                        throw new Exception($Core->language->error_enter.' `'.$Core->language->$k.'`');
-                    }
-                    else $temp[$k] = '';
-                }
+            
+            if (!array_key_exists($languageId, $Core->Language->getActiveLanguages())) {
+                throw new Exception("Language id should be the id of an active language in model `".get_class($this)."`");
             }
-
-            if(!empty($requiredBuffer)){
-                $temp = array();
-                foreach($requiredBuffer as $r){
-                    $r = str_ireplace('_id','',$r);
-                    $temp[] = mb_strtolower($Core->language->$r);
-                }
-
-                throw new Exception($Core->language->error_enter." ".implode(', ',$temp));
+            
+            $currentTranslation = $this->translateResult;
+            $this->translateResult = false;
+            
+            $objectInfo = $this->getById($objectId);
+            
+            $this->translateResult = $currentTranslation;
+            
+            if (empty($objectInfo)) {
+                throw new Exception("The object you are trying to translate does not exist in model `".get_class($this)."`");
             }
-
-            return $temp;
+            
+            $this->validateTranslateExplodeFields($input, $objectInfo);
+                        
+            //temp variable to store the current info for the validations
+            $currentTableFields = $this->tableFields;
+            
+            try {
+                $this->tableFields = new BaseTableFields("{$this->tableName}_lang");
+            } catch (Exception $ex) {
+                throw new Exception ("Table {$this->tableName}_lang does not exist in model `".get_class($this)."`");
+            }
+            
+            $input['object_id'] = $objectId;
+            $input['lang_id'] = $languageId;
+            
+            $translator = new BaseInsert("{$this->tableName}_lang");
+            $translator->setFieldsAndValues($this->validateAndPrepareInputArray($input));
+            $translator->setUpdateOnDuplicate(true);
+            
+            $this->tableFields = $currentTableFields;
+            unset($currentTableFields);
+            
+            return $translator->execute();
         }
     }
 
