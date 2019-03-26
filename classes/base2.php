@@ -633,13 +633,13 @@
         /**
          * Deletes all rows in the table of the model that match the provided parent id
          * Returns the number of deleted rows
+         * It will throw Exception if a parentField is not set for the model, the provided parent id is empty or invalid
          * @param int $id - the parent id of the rows
+         * @throws Exception
          * @return int
          */
         public function deleteByParentId(int $parentId)
         {
-            global $Core;
-
             if (empty($this->parentField)) {
                 throw new Exception("Set a parent field first in model `".get_class($this)."`");
             }
@@ -720,8 +720,6 @@
          * @param string $fieldName - the name of the field
          * @param int $value - the value of the field
          * @return string
-         *
-         * @todo DEXTER
          */
         private function validateIntegerField(string $fieldName, int $value)
         {
@@ -861,7 +859,14 @@
                 throw new BaseException("The following fields are not valid", $inputErrors, get_class($this));
             }
         }
-
+        
+        /**
+         * Search for explode fields in the input array; if there are some, it will convert them to string,
+         * using the specified explodeDelimiter of the model.
+         * It will return the parsed input
+         * @param array $input - the input for a insert/update query
+         * @return array
+         */
         private function parseInputExplodeFields(array $input)
         {
             if (!empty($this->explodeFields)) {
@@ -880,6 +885,14 @@
             return $input;
         }
         
+        /**
+         * Validates the structure of the input array for an insert/update query
+         * It will throw Exception if the input is empty
+         * It will throw Exception if a field name is an array or object
+         * It will throw Exception if a field value is an array or object and the value is not an explode field
+         * @param array $input - the input for a insert/update query
+         * @throws Exception
+         */
         private function validateInputStructure(array $input)
         {
             if (empty($input)) {
@@ -899,6 +912,12 @@
             }
         }
         
+        /**
+         * All validations for the field names and values for an input array for an insert/update query
+         * It will return the validated and prepared input
+         * @param array $input - the input for a insert/update query
+         * @return array
+         */
         private function validateAndPrepareInputArray(array $input)
         {
             $this->checkTableFields();
@@ -934,22 +953,37 @@
         }
         
         /**
-         * Inserts
-         */
-        public function insertTranslation(int $objectId, array $input)
-        {
-            
-        }
-        
-        /**
-         * Updates a rows into the model table
+         * Updates a rows into the model table by the provided where override
          * Returns the number of affected rows
+         * It will throw Exception if a where override is not provided
+         * It will throw Exception if there is a problem with the provided input
          * @param int $objectId - the id of the row to be updated
          * @param array $input - it must contain the field names => values
          * @param string $additional - the where clause override
+         * @throws Exception
+         * @return int
+         * 
+         * @todo DEXTER
+         */
+        public function update(string $additional, array $input)
+        {
+            if (empty($additional)) {
+                throw new Exception("An update query without where parameter is not allowed. Use updateAll instead. Model: `".get_class($this)."`");
+            }
+        }
+        
+        /**
+         * Updates a rows into the model table by it's id
+         * Returns the number of affected rows
+         * It will throw Exception if the provided objectId is empty
+         * It will throw Exception if there is a problem with the provided input
+         * @param int $objectId - the id of the row to be updated
+         * @param array $input - it must contain the field names => values
+         * @param string $additional - the where clause override
+         * @throws Exception
          * @return int
          */
-        public function update(int $ojbectId, array $input, string $additional = null)
+        public function updateById(int $ojbectId, array $input, string $additional = null)
         {
             if (empty($ojbectId)) {
                 throw new Exception("Id of the updated row cannot be empty");
@@ -966,7 +1000,66 @@
             
             return $updater->execute();
         }
+        
+        /**
+         * Updates a rows into the model table by it's id
+         * Returns the number of affected rows
+         * It will throw Exception if a parentField is not set for the model, the provided parent id is empty or invalid
+         * It will throw Exception if there is a problem with the provided input
+         * @param int $parentId - the id of the parent field
+         * @param array $input - it must contain the field names => values
+         * @param string $additional - the where clause override
+         * @throws Exception
+         * @return int
+         * 
+         * @todo DEXTER
+         */
+        public function updateByParentId(int $parentId, array $input, string $additional = null)
+        {
+            if (empty($this->parentField)) {
+                throw new Exception("Set a parent field first in model `".get_class($this)."`");
+            }
 
+            if ($parentId <= 0) {
+                throw new Exception("Parent id should be bigger than 0 in model `".get_class($this)."`");
+            }
+
+            $this->checkTableFields();
+
+            if (!array_key_exists($this->parentField, $this->tableFields->getFields())) {
+                throw new Exception("The field `{$this->parentField}` does not exist in table `{$this->tableName}`");
+            }
+        }
+        
+        /**
+         * Updates all fields in the table with the provided input
+         * It will throw Exception if there is a problem with the provided input
+         * @param string $additional - the where clause override
+         * @throws Exception
+         * @return int
+         * 
+         * @todo DEXTER
+         */
+        public function updateAll(array $input)
+        {
+            
+        }
+        
+        /**
+         * Inserts or updates a translation for the provided object
+         * @param int $objectId - the id of the row where the translated object is
+         * @param array $input - the translated object data
+         * 
+         * @todo DEXTER
+         */
+        public function translate(int $objectId, array $input)
+        {
+            
+        }
+            
+        /**
+         * DELETED!!
+         */
         private function prepareQueryArray($input){
             global $Core;
             if(empty($input) || !is_array($input)){
