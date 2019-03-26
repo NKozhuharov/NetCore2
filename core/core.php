@@ -1,7 +1,6 @@
 <?php
 class Core{
     //PLATFORM VAIRABLES
-    //system
     /**
      * @var db
      * An instance of the Database class
@@ -109,6 +108,7 @@ class Core{
     public $generalErrorText = 'Sorry There has been some kind of an error with your request. If this persists please Contact Us.';
     
     /**
+     * @var array
      * A list of IPs, considered as developer IPs
      */
     public $debugIps = array();
@@ -453,4 +453,3 @@ class Core{
         $this->ajax = $isAjax;
     }
 }
-?>
