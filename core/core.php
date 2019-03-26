@@ -147,10 +147,12 @@ class Core{
             (isset($AJAX) && $AJAX == true)
         ) ? true : false;
         
+        //require base query builder
+        $this->requireAllPHPFilesFromFolder(GLOBAL_PATH.'platform/basequery');
+        //require base classes
+        $this->requireAllPHPFilesFromFolder(GLOBAL_PATH.'platform/baseclasses');
         //require all Core classes
-        foreach (glob(GLOBAL_PATH.'platform/classes/*.php') as $coreClass) {
-            require_once($coreClass);
-        }
+        $this->requireAllPHPFilesFromFolder(GLOBAL_PATH.'platform/classes');
         
         //initialize all core module directories
         foreach (glob(GLOBAL_PATH.'platform/classes/*', GLOB_ONLYDIR) as $moduleDirectory) {
@@ -178,6 +180,17 @@ class Core{
             foreach ($classesTree as $child => $parent) {
                 $this->classesRequriementTree[strtolower($child)] = strtolower($parent);
             } 
+        }
+    }
+    
+    /**
+     * Requires all PHP files from the provided directory
+     * @param string $path - the path to search for files
+     */
+    private function requireAllPHPFilesFromFolder(string $path)
+    {
+        foreach (glob($path.'/*.php') as $class) {
+            require_once($class);
         }
     }
     

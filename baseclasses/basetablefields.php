@@ -1,5 +1,5 @@
 <?php
-    class TableFields
+    class BaseTableFields
     {
         const CACHE_TIME = 60;
 
