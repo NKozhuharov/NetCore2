@@ -44,7 +44,6 @@
          */
         private $queryCacheTime = 0;
 
-        //additional field settings
         /**
          * @var bool
          * Allows the user to select all timestamp fields as UNIX_TIMESTAMPs
@@ -71,17 +70,24 @@
          * This is a list of the fields
          */
         protected $explodeFields = array();
+
         /**
          * @var string
          * Allows the user to automatically store and get data in delimiter separated fields
          * This is the delmiter of the fields
          */
-        protected $explodeDelimiter = '|';
+        protected $explodeDelimiter = '~';
 
+        /**
+         * @var array
+         * Fields in the table, which has translations in the {table}_lang
+         */
+        protected $translationFields = array();
 
-        //translations
-        protected $translationFields = array();     //fields in the table, which has translations in the {table}_lang
-
+        /**
+         * @var bool
+         * If is set to true the results from the outupt functions will be translated if they have translation table
+         */
         protected $translateResult = true;
 
         /**
@@ -92,7 +98,7 @@
         private function checkTableFields()
         {
             if (empty($this->tableName)) {
-                throw new Exception("Provide a table name for the model!");
+                throw new Exception("Provide a table name for model `".get_class($this)."`");
             }
 
             if (empty($this->tableFields)) {
@@ -117,7 +123,7 @@
         public function changeTableName(string $name)
         {
             if (empty($name)) {
-                throw new Exception("Error in ".get_class($this).": Empty table name!");
+                throw new Exception("Empty table name in model `".get_class($this)."`");
             }
             $this->tableName = $name;
             $this->tableFields = new TableFields($this->tableName);
@@ -150,7 +156,7 @@
         public function changeOrderByField(string $field)
         {
             if (!array_key_exists($field, $this->tableFields->getFields())) {
-                throw new Exception("This field does not exist!");
+                throw new Exception("The field `$field` does not exist in table `{$this->tableName}`");
             }
             $this->orderByField = $field;
         }
@@ -212,7 +218,7 @@
         public function turnOnQueryCache(int $cacheTime)
         {
             if ($cacheTime <= 0) {
-                throw new Exception("Query cache time should be bigger than 0");
+                throw new Exception("Query cache time should be bigger than 0 in model `".get_class($this)."`");
             }
 
             $this->queryCacheTime = $cacheTime;
@@ -358,7 +364,7 @@
 
                             $explodedArray = array();
 
-                            foreach(explode($this->explodeDelimiter, $resultRow[$field]) as $key => $value){
+                            foreach (explode($this->explodeDelimiter, $resultRow[$field]) as $key => $value) {
                                 $explodedArray[$key] = trim($value);
                             }
                             $resultRow[$field] = $explodedArray;;
@@ -393,9 +399,9 @@
             $selector->setWhere($this->getSelectQueryWhereClause($additional));
 
             $selector = $this->addSelectQueryOverrides($selector, $limit, $orderBy);
-            
+
             $selector->setCacheTime($this->queryCacheTime);
-            
+
             return $this->parseSelectQueryResult($selector->execute());
         }
 
@@ -415,17 +421,17 @@
         public function getByParentId(int $parentId, int $limit = null, string $orderBy = null)
         {
             if (empty($this->parentField)) {
-                throw new Exception("Set a parent field first!");
+                throw new Exception("Set a parent field in model `".get_class($this)."`");
             }
 
             if ($parentId <= 0) {
-                throw new Exception("Parent id should be bigger than 0!");
+                throw new Exception("Parent id should be bigger than 0 in model `".get_class($this)."`");
             }
 
             $this->checkTableFields();
 
             if (!array_key_exists($this->parentField, $this->tableFields->getFields())) {
-                throw new Exception("The field '{$this->parentField}' does not exist in table '{$this->tableName}'!");
+                throw new Exception("The field `{$this->parentField}` does not exist in table `{$this->tableName}`");
             }
 
             $selector = $this->initializeBaseSelector();
@@ -433,7 +439,7 @@
             $selector->setWhere($this->getSelectQueryWhereClause("`{$this->parentField}` = {$parentId}"));
 
             $selector = $this->addSelectQueryOverrides($selector, $limit, $orderBy);
-            
+
             $selector->setCacheTime($this->queryCacheTime);
 
             return $this->parseSelectQueryResult($selector->execute());
@@ -451,22 +457,22 @@
             global $Core;
 
             if ($rowId <= 0) {
-                throw new Exception("Id should be bigger than 0!");
+                throw new Exception("Id should be bigger than 0 in model `".get_class($this)."`");
             }
 
             $this->checkTableFields();
 
-            if (!array_key_exists($this->parentField, $this->tableFields->getFields())) {
-                throw new Exception("The field 'id' does not exist in table '{$this->tableName}'!");
+            if (!array_key_exists('id', $this->tableFields->getFields())) {
+                throw new Exception("The field `id` does not exist in table `{$this->tableName}`");
             }
 
             $selector = $this->initializeBaseSelector();
             $selector->setWhere($this->getSelectQueryWhereClause("`id` = $rowId"));
 
             $Core->db->query($selector->build(), $this->queryCacheTime, 'simpleArray', $result);
-            
+
             $result = $this->parseSelectQueryResult($result);
-            
+
             return !empty($result) ? current($result) : array();
         }
 
@@ -486,10 +492,10 @@
             if (!empty($additional)) {
                 $selector->setWhere($additional);
             }
-            
+
             $selector->setCacheTime($this->queryCacheTime);
             $selector->setGlobalTemplate('fetch_assoc');
-            
+
             return $selector->execute()['ct'];
         }
 
@@ -505,17 +511,17 @@
         public function getCountByParentId(int $parentId, string $additional = null)
         {
             if (empty($this->parentField)) {
-                throw new Exception("Set a parent field first!");
+                throw new Exception("Set a parent field in model `".get_class($this)."`");
             }
 
             if ($parentId <= 0) {
-                throw new Exception("Parent id should be bigger than 0!");
+                throw new Exception("Parent id should be bigger than 0 in model `".get_class($this)."`");
             }
 
             $this->checkTableFields();
 
             if (!array_key_exists($this->parentField, $this->tableFields->getFields())) {
-                throw new Exception("The field '{$this->parentField}' does not exist in table '{$this->tableName}'!");
+                throw new Exception("The field `{$this->parentField}` does not exist in table `{$this->tableName}`");
             }
 
             if (!empty($additional)) {
@@ -547,7 +553,7 @@
             $resultObjectIds = array_column($result, 'id');
 
             if (empty($resultObjectIds)) {
-                throw new Exception ("Cannot translate query results, which do not contain the id column!");
+                throw new Exception ("Cannot translate query results, which do not contain the id column");
             }
 
             $selector = new BaseSelect();
@@ -575,7 +581,7 @@
 
             return $result;
         }
-        
+
         /**
          * Deletes all rows in the table of the model that match the provided where override
          * Returns the number of deleted rows
@@ -585,15 +591,15 @@
         public function delete(string $additional)
         {
             if (empty($additional)) {
-                throw new Exception("A delete query without where parameter is not allowed! Use deleteAll instead!");
+                throw new Exception("A delete query without where parameter is not allowed. Use deleteAll instead. Model: `".get_class($this)."`");
             }
 
             $deleter = new BaseDelete($this->tableName);
             $deleter->setWhere($additional);
-            
+
             return $deleter->execute();
         }
-        
+
         /**
          * Deletes all rows in the table of the model
          * Returns the number of deleted rows
@@ -602,10 +608,10 @@
         public function deleteAll()
         {
             $deleter = new BaseDelete($this->tableName);
-            
+
             return $deleter->execute();
         }
-        
+
         /**
          * Deletes all rows in the table of the model that match the provided id
          * Returns the number of deleted rows
@@ -615,15 +621,15 @@
         public function deleteById(int $rowId)
         {
             if ($rowId <= 0) {
-                throw new Error("Object id must be bigger than 0!");
+                throw new Exception("Object id must be bigger than 0 in model `".get_class($this)."`");
             }
-            
+
             $deleter = new BaseDelete($this->tableName);
             $deleter->setWhere("`id` = {$rowId}");
-            
+
             return $deleter->execute();
         }
-        
+
         /**
          * Deletes all rows in the table of the model that match the provided parent id
          * Returns the number of deleted rows
@@ -635,17 +641,17 @@
             global $Core;
 
             if (empty($this->parentField)) {
-                throw new Exception("Set a parent field first!");
+                throw new Exception("Set a parent field first in model `".get_class($this)."`");
             }
 
             if ($parentId <= 0) {
-                throw new Exception("Parent id should be bigger than 0!");
+                throw new Exception("Parent id should be bigger than 0 in model `".get_class($this)."`");
             }
 
             $this->checkTableFields();
 
             if (!array_key_exists($this->parentField, $this->tableFields->getFields())) {
-                throw new Exception("The field '{$this->parentField}' does not exist in table '{$this->tableName}'!");
+                throw new Exception("The field `{$this->parentField}` does not exist in table `{$this->tableName}`");
             }
 
             $deleter = new BaseDelete($this->tableName);
@@ -653,7 +659,7 @@
 
             return $deleter->execute();
         }
-        
+
         /**
          * Checks insert or update query input the field 'id'
          * Throws BaseException if the field is present
@@ -663,17 +669,17 @@
         private function checkInputForFieldId(array $input)
         {
             if (isset($input['id'])) {
-                throw new BaseException("Field `id` is not allowed!", null, get_class($this));
+                throw new BaseException("Field `id` is not allowed", null, get_class($this));
             }
         }
-        
+
         /**
          * Checks insert or update query input for missing fields
          * Throws BaseException if a missing field is found
          * @param array $input - the input of query
          * @throws BaseException
          */
-        private function checkForMissingFields(array $input) 
+        private function checkForMissingFields(array $input)
         {
             $missingFields = array();
             foreach ($this->tableFields->getRequiredFields() as $requiredField) {
@@ -681,12 +687,12 @@
                     $missingFields[] = $requiredField;
                 }
             }
-            
+
             if (!empty($missingFields)) {
                 throw new BaseException("Required fields missing", $missingFields, get_class($this));
             }
         }
-        
+
         /**
          * Checks insert or update query input for fields, which do not exist in the table
          * Throws BaseException if such a field is found
@@ -696,101 +702,271 @@
         private function checkForFieldsThatDoNotExistInTheTable(array $input)
         {
             $unexistingFields = array();
-            
+
             foreach ($input as $field => $value) {
                 if (!array_key_exists($field, $this->tableFields->getFields())) {
                     $unexistingFields[] = $field;
                 }
             }
-            
+
             if (!empty($unexistingFields)) {
-                throw new BaseException("The field/s does not exist in the table", $unexistingFields, get_class($this));
+                throw new BaseException("The field/s does not exist", $unexistingFields, get_class($this));
             }
         }
-        
+
         /**
          * Validates an integer field size for an update or insert query
          * Returns the text of the error (or empty string)
-         * @param string $fieldName - the id of the field
+         * @param string $fieldName - the name of the field
          * @param int $value - the value of the field
          * @return string
-         * 
+         *
          * @todo DEXTER
          */
         private function validateIntegerField(string $fieldName, int $value)
         {
-            //todo -dexeter
-            //https://dev.mysql.com/doc/refman/8.0/en/integer-types.html
-            return 'exceeds the maximum number allowed';
+            $type = $this->tableFields->getFieldType($fieldName);
+            $info = $this->tableFields->getFieldInfo($fieldName);
+
+            if ($type === 'int') {
+                if (stristr($info, 'unsigned')) {
+                    if (strlen($value) > 10 || $value < 0 || $value > 4294967295) {
+                        return 'Should be between 0 and 4294967295';
+                    }
+                } else {
+                    if (strlen($value) > 11 ||$value < -2147483648 || $value > 2147483647) {
+                        return 'Should be between -2147483648 and 2147483647';
+                    }
+                }
+            } else if ($type === 'tinyint') {
+                if (stristr($info, 'unsigned')) {
+                    if (strlen($value) > 3 || $value < 0 || $value > 255) {
+                        return 'Should be between 0 and 255';
+                    }
+                } else {
+                    if (strlen($value) > 4 || $value < -128 || $value > 127) {
+                        return 'Should be between -128 and 127';
+                    }
+                }
+            } else if ($type === 'bigint') {
+                if (stristr($info, 'unsigned')) {
+                    if (strlen($value) > 20 || $value < 0 || $value > 18446744073709551615) {
+                        return 'Should be between 0 and 65535';
+                    }
+                } else {
+                    if (strlen($value) > 20 || $value < -9223372036854775808 || $value > 9223372036854775807) {
+                        return 'Should be between -9223372036854775808 and 9223372036854775807';
+                    }
+                }
+            }  else if ($type === 'smallint') {
+                if (stristr($info, 'unsigned')) {
+                    if (strlen($value) > 6 || $value < 0 || $value > 65535) {
+                        return 'Should be between 0 and 65535';
+                    }
+                } else {
+                    if (strlen($value) > 6 || $value < -32768 || $value > 32767) {
+                        return 'Should be between -32768 and 32767';
+                    }
+                }
+            } else if ($type === 'mediumint') {
+                if (stristr($info, 'unsigned')) {
+                    if (strlen($value) > 8 || $value < 0 || $value > 16777215) {
+                        return 'Should be between 0 and 16777215';
+                    }
+                } else {
+                    if (strlen($value) > 8 || $value < -8388608 || $value > 8388607) {
+                        return 'Should be between -8388608 and 8388607';
+                    }
+                }
+            }
         }
-        
+
         /**
          * Validates an varchar field length for an update or insert query
          * Returns the text of the error (or empty string)
-         * @param string $fieldName - the id of the field
+         * @param string $fieldName - the name of the field
          * @param int $value - the value of the field
          * @return string
-         * 
+         *
          * @todo DEXTER
          */
         private function validateVarcharField(string $fieldName, string $value)
         {
-            
-            return 'exceeds the maximum field length';
+            #return 'Exceeded the maximum field length';
         }
         
+        /**
+         * Validates a date field for a correct format
+         * @param string $fieldName - the name of the field
+         * @return string
+         */
+        private function validateDateField(string $value)
+        {
+            $t = explode('-', $value);
+            if (count($t) < 3 || !checkdate($t[1], $t[2], $t[0])) {
+                return "Must be a date with MySQL format";
+            }
+            
+            return '';
+        }
+        
+        /**
+         * Validates an array for an input query
+         * Returns an array, field name => error text
+         * @param array $input - the input for the query
+         * @return array
+         */
         private function validateInputValues(array $input)
         {
             $inputErrors = array();
-            
+
             foreach ($input as $fieldName => $value) {
                 $fieldType = $this->tableFields->getFieldType($fieldName);
                 if ((stristr($fieldType, 'int') || $fieldType === 'double' || $fieldType === 'float')) {
                     if (!is_numeric($value)) {
-                        $inputErrors[$fieldName] = "must be a numeric value";
-                    } else if ($error = $this->validateIntegerField($fieldName, $value)) {
+                        $inputErrors[$fieldName] = "Must be a numeric value";
+                    } else if (stristr($fieldType, 'int') && $error = $this->validateIntegerField($fieldName, $value)) {
                         $inputErrors[$fieldName] = $error;
                     }
-                } else if ($fieldType === 'date') {
-                    $t = explode('-', $value);
-                    if (count($t) < 3 || !checkdate($t[1], $t[2], $t[0])) {
-                        $inputErrors[$fieldName] = "must be a date with MySQL format";
-                    }
-                    unset($t);
-                } else if ($fieldType === 'varchar' && $error = $this->validateVarcharField($fieldName, $value)) {
+                } else if ($fieldType === 'date' && $error = $this->validateIntegerField($value)) {
                     $inputErrors[$fieldName] = $error;
+                } else if ($fieldType === 'varchar') {
+                    if (is_array($value)) {
+                        $error = $this->validateVarcharField($fieldName, implode($this->explodeDelimiter, $value));
+                    } else {
+                        $error = $this->validateVarcharField($fieldName, $value);
+                    }
+                    if (!empty($error)) {                    
+                        $inputErrors[$fieldName] = $error;
+                    }
                 }
                 unset($fieldType);
+                
+                if (!isset($inputErrors[$fieldName]) && !empty($this->explodeFields) && in_array($fieldName, $this->explodeFields)) {
+                    if (is_object($value)) {
+                        $value = (array)$value;
+                    } else if (!is_array($value)) {
+                        $value = array($value);
+                    }
+                    
+                    foreach ($value as $explodeFieldKey => $explodeFieldValue) {
+                        if (strstr($explodeFieldValue, $this->explodeDelimiter)) {
+                            $inputErrors[$fieldName] = "The following `{$this->explodeDelimiter}` is not allowed for an explode field";
+                        }
+                    }
+                }
             }
-            
+
             if (!empty($inputErrors)) {
                 throw new BaseException("The following fields are not valid", $inputErrors, get_class($this));
             }
         }
+
+        private function parseInputExplodeFields(array $input)
+        {
+            if (!empty($this->explodeFields)) {
+                foreach ($input as $fieldName => $value) {
+                    if (in_array($fieldName, $this->explodeFields)) {
+                        if (is_object($value)) {
+                            $value = (array)$value;
+                        } else if (!is_array($value)) {
+                            $value = array($value);
+                        }
+                        
+                        $input[$fieldName] = implode($this->explodeDelimiter, $value);
+                    }   
+                }
+            }
+            return $input;
+        }
         
-        public function insert(array $input, $autocomplete = null)
+        private function validateInputStructure(array $input)
+        {
+            if (empty($input)) {
+                throw new Exception("Input cannot be empty");
+            }
+            
+            foreach ($input as $fieldName => $value) {
+                if (is_array($fieldName) || is_object($fieldName)) {
+                    throw new Exception("Field names cannot be arrays or objects");
+                }
+                
+                if (is_array($value) || is_object($value)) {
+                    if (!in_array($fieldName, $this->explodeFields)) {
+                        throw new Exception("{$fieldName} must not be array or object");
+                    }
+                }
+            }
+        }
+        
+        private function validateAndPrepareInputArray(array $input)
         {
             $this->checkTableFields();
             
+            $this->validateInputStructure($input);
+
             $this->checkInputForFieldId($input);
-            
+
             $this->checkForMissingFields($input);
-            
+
             $this->checkForFieldsThatDoNotExistInTheTable($input);
-            
+
             $this->validateInputValues($input);
+            
+            return $this->parseInputExplodeFields($input);
         }
         
-        public function insertTranslation()
+        /**
+         * Inserts a rows into the model table
+         * Returns the id of the inserted row
+         * @param array $input - it must contain the field names => values
+         * @return int
+         */
+        public function insert(array $input)
+        {
+            $input = $this->validateAndPrepareInputArray($input);
+            
+            $inserter = new BaseInsert($this->tableName);
+            $inserter->setFieldsAndValues($input);
+            $inserter->setUpdateOnDuplicate(true);
+
+            return $inserter->execute();
+        }
+        
+        /**
+         * Inserts
+         */
+        public function insertTranslation(int $objectId, array $input)
         {
             
         }
-
-        public function update(int $ojbectId, array $input)
-        {
-
-        }
         
+        /**
+         * Updates a rows into the model table
+         * Returns the number of affected rows
+         * @param int $objectId - the id of the row to be updated
+         * @param array $input - it must contain the field names => values
+         * @param string $additional - the where clause override
+         * @return int
+         */
+        public function update(int $ojbectId, array $input, string $additional = null)
+        {
+            if (empty($ojbectId)) {
+                throw new Exception("Id of the updated row cannot be empty");
+            }
+            
+            $input = $this->validateAndPrepareInputArray($input);
+            
+            $updater = new BaseUpdate($this->tableName);
+            $updater->setFieldsAndValues($input);
+            
+            $additional = " `id` = {$ojbectId} ".(!empty($additional) ? " AND {$additional}" : "");
+            
+            $updater->setWhere($additional);
+            
+            return $updater->execute();
+        }
+
         private function prepareQueryArray($input){
             global $Core;
             if(empty($input) || !is_array($input)){
