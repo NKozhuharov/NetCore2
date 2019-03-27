@@ -332,7 +332,7 @@ class GlobalFunctions{
     }
 
     //strips the HTML tags all fields in an array
-    public function stripAllFields(&$fields, $donot = false){
+    public function stripTagsOfArray(&$fields, $donot = false){
         foreach ($fields as $key => $value) {
             if($donot){
                 if(is_array($donot) && in_array($key, $donot)){
@@ -342,7 +342,7 @@ class GlobalFunctions{
                 }
             }
             if(is_array($fields[$key])){
-                $this->stripAllFields($fields[$key], $donot);
+                $this->stripTagsOfArray($fields[$key], $donot);
             }else{
                 $fields[$key] = strip_tags($value);
             }

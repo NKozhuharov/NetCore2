@@ -12,7 +12,7 @@
          * A collection of fields for the query
          */
         private $fields;
-        
+
         /**
          * @var string
          * The name for the GlobalTemplates function, used to get the data from the query
@@ -24,7 +24,7 @@
          * Allows the user to set a cache time for all the select queries
          */
         private $cacheTime = 0;
-    
+
         /**
          * Creates a new instance of the BaseSelect class
          * @param string $tableName - the name for the table
@@ -33,7 +33,7 @@
         {
             parent::__construct($tableName);
         }
-    
+
         /**
          * It will reset the cache for all select queries from now on
          */
@@ -64,7 +64,7 @@
 
             $this->cacheTime = $cacheTime;
         }
-        
+
         /**
          * Sets the cache time to the provided value
          *  @param int $cacheTime - allows to set the specific cache time (in minutes)
@@ -73,7 +73,7 @@
         {
             $this->cacheTime = $cacheTime;
         }
-        
+
         /**
          * Set the name for the GlobalTemplates function, used to get the data from the query
          * @param string $globalTemplate - the name of the template
@@ -125,7 +125,7 @@
 
             return $this->query;
         }
-        
+
         /**
          * Executes a select query, using the query body, the cacheTime property and globalTemplate property
          * @return array
@@ -135,7 +135,7 @@
             global $Core;
 
             $Core->db->query($this->build(), $this->cacheTime, $this->globalTemplate, $result);
-            
+
             return !empty($result) ? $result : array();
         }
     }

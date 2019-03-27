@@ -5,25 +5,30 @@
          * All validations for the field names and values for an input array for an insert/update query
          * It will return the validated and prepared input
          * @param array $input - the input for a insert/update query
+         * @param bool $isUpdate - the input query is an update query
          * @return array
          */
-        private function validateAndPrepareInputArray(array $input)
+        private function validateAndPrepareInputArray(array $input, bool $isUpdate = null)
         {
             $this->checkTableFields();
 
             $this->validateInputStructure($input);
 
             $this->checkInputForFieldId($input);
-
-            $this->checkForMissingFields($input);
-
+            
             $this->checkForFieldsThatDoNotExistInTheTable($input);
-
+            
+            if (empty($isUpdate)) {
+                $this->checkForMissingFields($input);
+            } else {
+                $this->checkRequiredFieldsForEmptyValues($input);
+            }
+            
             $this->validateInputValues($input);
 
             return $this->parseInputExplodeFields($input);
         }
-        
+
         /**
          * Validates the structure of the input array for an insert/update query
          * It will throw Exception if the input is empty
@@ -42,7 +47,7 @@
                 if (empty($fieldName)) {
                     throw new Exception("Field names cannot be empty");
                 }
-                
+
                 if (is_array($fieldName) || is_object($fieldName)) {
                     throw new Exception("Field names cannot be arrays or objects");
                 }
@@ -54,7 +59,7 @@
                 }
             }
         }
-        
+
         /**
          * Checks insert or update query input the field 'id'
          * Throws BaseException if the field is present
@@ -67,7 +72,7 @@
                 throw new BaseException("Field `id` is not allowed", null, get_class($this));
             }
         }
-        
+
         /**
          * Checks insert or update query input for missing fields
          * Throws BaseException if a missing field is found
@@ -77,17 +82,51 @@
         private function checkForMissingFields(array $input)
         {
             $missingFields = array();
+            
             foreach ($this->tableFields->getRequiredFields() as $requiredField) {
                 if (!isset($input[$requiredField])) {
-                    $missingFields[] = $requiredField;
+                    $missingFields[$requiredField] = 'Is required';
+                } else {
+                    if (!is_array($input[$requiredField])) {
+                        $input[$requiredField] = trim($input[$requiredField]);
+                    }
+                    
+                    if (empty($input[$requiredField])) {
+                        $missingFields[$requiredField] = 'Is required';
+                    }
                 }
             }
 
             if (!empty($missingFields)) {
-                throw new BaseException("Required fields missing", $missingFields, get_class($this));
+                throw new BaseException("The following fields are not valid", $missingFields, get_class($this));
             }
         }
         
+        /**
+         * Checks the input array for required values, which are empty
+         * Throws BaseException if an empty value is found
+         * @param array $input - the input of query
+         * @throws BaseException
+         */
+        private function checkRequiredFieldsForEmptyValues(array $input)
+        {
+            $emptyFields = array();
+            
+            foreach ($this->tableFields->getRequiredFields() as $requiredField) {
+                if (isset($input[$requiredField])) {
+                    $input[$requiredField] = trim($input[$requiredField]);
+                    
+                    if (empty($input[$requiredField])) {
+                        $emptyFields[] = $requiredField;
+                    }
+                }
+            }
+
+            if (!empty($emptyFields)) {
+                throw new BaseException("The field/s must not be empty", $emptyFields, get_class($this));
+            }
+        }
+
         /**
          * Checks insert or update query input for fields, which do not exist in the table
          * Throws BaseException if such a field is found
@@ -108,7 +147,7 @@
                 throw new BaseException("The field/s does not exist", $unexistingFields, get_class($this));
             }
         }
-        
+
         /**
          * Validates an array for an input query
          * Returns an array, field name => error text
@@ -120,11 +159,15 @@
             $inputErrors = array();
 
             foreach ($input as $fieldName => $value) {
+                if (empty($value)) {
+                    continue;
+                }
+                
                 $fieldType = $this->tableFields->getFieldType($fieldName);
 
                 if ((strstr($fieldType, 'int') || $fieldType === 'double' || $fieldType === 'float')) {
                     if (!is_numeric($value)) {
-                        $inputErrors[$fieldName] = "Must be a numeric value";
+                        $inputErrors[$fieldName] = "Must be a number";
                     } else if (strstr($fieldType, 'int') && $error = $this->validateIntegerField($fieldName, $value)) {
                         $inputErrors[$fieldName] = $error;
                     }
@@ -170,7 +213,32 @@
                 throw new BaseException("The following fields are not valid", $inputErrors, get_class($this));
             }
         }
-        
+
+        /**
+         * Search for explode fields in the input array; if there are some, it will convert them to string,
+         * using the specified explodeDelimiter of the model.
+         * It will return the parsed input
+         * @param array $input - the input for a insert/update query
+         * @return array
+         */
+        private function parseInputExplodeFields(array $input)
+        {
+            if (!empty($this->explodeFields)) {
+                foreach ($input as $fieldName => $value) {
+                    if (in_array($fieldName, $this->explodeFields)) {
+                        if (is_object($value)) {
+                            $value = (array)$value;
+                        } else if (!is_array($value)) {
+                            $value = array($value);
+                        }
+
+                        $input[$fieldName] = implode($this->explodeDelimiter, $value);
+                    }
+                }
+            }
+            return $input;
+        }
+
         /**
          * Validates an integer field size for an update or insert query
          * Returns the text of the error (or empty string)
@@ -312,32 +380,30 @@
                         if (count($objectInfo[$fieldName]) != count ($value)) {
                             throw new Exception("Field `{$fieldName}` does not have the same number of parts as the original object in model `".get_class($this)."`");
                         }
-                        
+
                         $emptyFields = array();
+
                         foreach ($value as $valueKey => $valuePart) {
                             $valuePart = trim($valuePart);
                             if (empty($valuePart)) {
-                                $emptyFields[] = $valueKey;
+                                $emptyFields[$objectInfo[$fieldName][$valueKey]] = 'Translation missing';
                             }
                         }
-                        
+
                         if (!empty($emptyFields)) {
-                            $errorText = "Translation missing for ";
-                            foreach ($emptyFields as $emptyFieldId) {
-                                $errorText .= "`".$objectInfo[$fieldName][$emptyFieldId].'`, ';
-                            }
                             throw new BaseException(
-                                "The following fields are not valid", 
-                                array($fieldName => substr($errorText, 0, -2)), 
+                                "The following fields are not valid",
+                                $emptyFields,
                                 get_class($this)
                             );
                         }
+
                         unset($emptyFields);
                     }
                 }
             }
         }
-        
+
         /**
          * Checks if the parent field in current model is set and the given value is valid
          * Throws Exception if the field is not set or not valid

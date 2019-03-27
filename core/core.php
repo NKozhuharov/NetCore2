@@ -5,19 +5,19 @@ class Core{
      * @var db
      * An instance of the Database class
      */
-    public $db;
+    private $db;
     
     /**
      * @var mc
      * An instance of the Memcache class
      */
-    public $mc;
+    private $mc;
     
     /**
      * @var string
      * The name of the database
      */
-    public $dbName;
+    private $dbName;
     
     /**
      * @var array
@@ -35,83 +35,99 @@ class Core{
      * @var string
      * The main directory with the project files
      */
-    public $projectDir;
+    private $projectDir;
     
     /**
      * @var string
      * The directory with the controllers
      */
-    public $controllersDir;
+    private $controllersDir;
     
     /**
      * @var string
      * The directory with the views
      */
-    public $viewsDir;
+    private $viewsDir;
     
     /**
      * @var string
      * The timezone of the project
      * For a list of supported timezones - http://php.net/manual/en/timezones.php
      */
-    public $timezone = 'Europe/Sofia';
+    private $timezone = 'Europe/Sofia';
     
     /**
      * @var int
      * Query cache time; set to -1 for recache
      */
-    public $cacheTime = 0;
+    private $cacheTime = 0;
     
     /**
      * @var bool
      * Shows if the request is ajax
      * If it is, the platfornm won't include header and footer
      */
-    public $ajax = false; 
+    private $ajax = false; 
     
-    public $doNotStrip                = false;          //do not strip these parameters
-    public $pageNotFoundLocation      = '/not-found';   //moust not be numeric so the rwrite can work
-    public $allowFirstPage            = false;          //if allowed url like "/1" won't redirect to $pageNotFoundLocation
-    public $isBot                     = false;          //current script is bot
+    /**
+     * @var string
+     * The name of the global exception handler class
+     */
+    private $exceptionHandlerName = 'ExceptionHandler';
+    
+    /**
+     * @var object
+     * An instance of the gloal exception handler class
+     */
+    private $exceptionhandler;
+    
+    private $doNotStrip                = false;          //do not strip these parameters
+    private $pageNotFoundLocation      = '/not-found';   //moust not be numeric so the rwrite can work
+    private $allowFirstPage            = false;          //if allowed url like "/1" won't redirect to $pageNotFoundLocation
+    private $isBot                     = false;          //current script is bot
     //domain
-    public $siteDomain;
-    public $siteName;
+    private $siteDomain;
+    private $siteName;
     //rewrite override
-    public $rewriteOverride           = array('' => 'index');
+    private $rewriteOverride           = array('' => 'index');
     //user model name
-    public $userModel                 = false;
+    private $userModel                 = false;
     //menu model name
-    public $menuModel                 = false;
+    private $menuModel                 = false;
     //notifications(messages) model name
-    public $messagesModel             = false;
+    private $messagesModel             = false;
     //limits
-    public $folderLimit               = 30000;
+    private $folderLimit               = 30000;
     //pagination limits
-    public $itemsPerPage              = 25;
-    public $numberOfPagesInPagination = 5;
+    private $itemsPerPage              = 25;
+    private $numberOfPagesInPagination = 5;
     //images
-    public $imagesStorage             = 'images_org/'; //original images not web accessible
-    public $imagesDir                 = 'images/';
-    public $imagesWebDir              = '/images/';
+    private $imagesStorage             = 'images_org/'; //original images not web accessible
+    private $imagesDir                 = 'images/';
+    private $imagesWebDir              = '/images/';
     //files
-    public $filesDir                  = 'files/';
-    public $filesWebDir               = '/files/';
+    private $filesDir                  = 'files/';
+    private $filesWebDir               = '/files/';
     //mail config
-    public $mailConfig                = array(
+    private $mailConfig                = array(
         'Username'   => 'noreply@site.bg',
         'Password'   => 'pass',
         'Host'       => 'mail.site.bg',
         'SMTPSecure' => 'ssl',
-        'Port'       => '465'
+        'Port'       => '465',
     );
     
-    public $generalErrorText = 'Sorry There has been some kind of an error with your request. If this persists please Contact Us.';
+    /**
+     * @var string
+     * The text to show when unhandled exception occurs
+     */
+    private $generalErrorText = 'Sorry There has been some kind of an error with your request. If this persists please Contact Us.';
     
     /**
      * @var array
      * A list of IPs, considered as developer IPs
      */
-    public $debugIps = array();
+    private $debugIps = array();
     
     //API VARIABLES
     
@@ -120,14 +136,14 @@ class Core{
      * Use the platform as API, it will return all no superglobals or constants that are set as JSON
      * If the requiredFiles have variables same as in the controller they will be overwritten like in the script
      */
-    public $isAPI = false;   
+    private $isAPI = false;   
     
     /**
      * @var array
      * Files that should be included before the current controller, array or string
      * $Core->projectDir(like /var/www/sitename/admin/) will be concatenated in the start and .php on the end
      */         
-    public $APIRequiredFiles = array(); 
+    private $APIRequiredFiles = array(); 
     
     /**
      * Creates an instance of the Core class
@@ -137,6 +153,8 @@ class Core{
      * @throws Exception
      */
     public function __construct(array $info, array $classesTree = null){
+        global $_DELETE, $_PUT, $_PATCH;
+        
         if (!isset($info['db']) || empty($info['db']) || !isset($info['mc']) || empty($info['mc'])) {
             throw new Exception ("'db' and 'mc' variables are required for a Core instance!");
         }
@@ -181,6 +199,21 @@ class Core{
                 $this->classesRequriementTree[strtolower($child)] = strtolower($parent);
             } 
         }
+        
+        date_default_timezone_set($this->timezone);
+        //set locale for date functions
+
+        $this->GlobalFunctions->stripTagsOfArray($_POST, $this->doNotStrip);
+        $this->GlobalFunctions->stripTagsOfArray($_GET, $this->doNotStrip);
+        $this->GlobalFunctions->stripTagsOfArray($_REQUEST, $this->doNotStrip);
+        $this->GlobalFunctions->stripTagsOfArray($_DELETE, $this->doNotStrip);
+        $this->GlobalFunctions->stripTagsOfArray($_PUT, $this->doNotStrip);
+        $this->GlobalFunctions->stripTagsOfArray($_PATCH, $this->doNotStrip);
+
+        //WARNING: REWRITE NGNIX IN ORDER FOR IMAGES AND FILES TO WORK
+        $this->imagesStorage = GLOBAL_PATH.SITE_PATH.$this->imagesStorage;
+        $this->imagesDir     = GLOBAL_PATH.SITE_PATH.$this->imagesDir;
+        $this->filesDir      = GLOBAL_PATH.SITE_PATH.$this->filesDir;
     }
     
     /**
@@ -310,7 +343,19 @@ class Core{
      */
     public function __get(string $varName)
     {
+        if (isset($this->$varName)) {
+            return $this->$varName;    
+        }
+        
         $varName = strtolower($varName);
+
+        if ($varName === 'exceptionhandler') {
+            if (empty($this->exceptionhandler)) {
+                return $this->requireModel(strtolower($this->exceptionHandlerName));
+            } else {
+                return $this->exceptionhandler;
+            }
+        }
         
         if (!isset($this->$varName)) {
             if (isset($this->classesRequriementTree[$varName])) {
@@ -331,29 +376,14 @@ class Core{
         }
         return false;
     }
-
-    //IMPORTANT! CALL INIT FUNCTION RIGHT AFTER CORE CONSTRUCTOR!
-    public function init()
+    
+    /**
+     * TEMP
+     * @todo
+     */
+    public function setLocale()
     {
-        global $_DELETE, $_PUT, $_PATCH;
-
-        date_default_timezone_set($this->timezone);
-        //set locale for date functions
-        setlocale(LC_ALL, mb_strtolower($this->language->currentLanguage).'_'.mb_strtoupper($this->language->currentLanguage).'.utf8');
-
-        $this->globalFunctions->stripAllFields($_POST, $this->doNotStrip);
-        $this->globalFunctions->stripAllFields($_GET, $this->doNotStrip);
-        $this->globalFunctions->stripAllFields($_REQUEST, $this->doNotStrip);
-        $this->globalFunctions->stripAllFields($_DELETE, $this->doNotStrip);
-        $this->globalFunctions->stripAllFields($_PUT, $this->doNotStrip);
-        $this->globalFunctions->stripAllFields($_PATCH, $this->doNotStrip);
-
-        //WARNING: REWRITE NGNIX IN ORDER FOR IMAGES AND FILES TO WORK
-        $this->imagesStorage = GLOBAL_PATH.SITE_PATH.$this->imagesStorage;
-        $this->imagesDir     = GLOBAL_PATH.SITE_PATH.$this->imagesDir;
-        $this->filesDir      = GLOBAL_PATH.SITE_PATH.$this->filesDir;
-
-        return true;
+        setlocale(LC_ALL, mb_strtolower($this->Language->currentLanguage).'_'.mb_strtoupper($this->Language->currentLanguage).'.utf8');
     }
     
     /**
@@ -464,5 +494,19 @@ class Core{
         }
         
         $this->ajax = $isAjax;
+    }
+    
+    /**
+     * Set a new items per page count, must be bigger than 0
+     * @param int $itemsPerPage - the new items per page
+     * @throws Expetion
+     */
+    public function setItemsPerPage(int $itemsPerPage)
+    {
+        if ($itemsPerPage <= 0) {
+            throw new Exeption("Items per page must be bigger than 0");
+        }
+        
+        $this->itemsPerPage = $itemsPerPage;
     }
 }

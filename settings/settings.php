@@ -1,10 +1,10 @@
 <?php
     if(!defined('SITE_PATH')){
-        exit("Please define a SITE_PATH global variable!");
+        exit("Define a SITE_PATH global variable");
     }
 
     if(!defined('SITE_NAME')){
-        exit("Please define a SITE_NAME global variable!");
+        exit("Define a SITE_NAME global variable");
     }
 
     if(!is_file(GLOBAL_PATH.SITE_PATH."settings/".SITE_NAME.".php")){
@@ -43,13 +43,13 @@
     //require current site settings
     require_once(GLOBAL_PATH.SITE_PATH."settings/".SITE_NAME.".php");
     require_once(GLOBAL_PATH.SITE_PATH."settings/classestree.php");
-    
+
     if (!isset($info) || empty($info) || !is_array($info)) {
         exit('Variable $info must be present in the site config file and must be a non-empty array!');
     }
 
     $platformFiles = array('class.mc','class.db','globalTemplates','core');
-    
+
     foreach ($platformFiles as $file) {
         if (!is_file(GLOBAL_PATH.'platform/core/'.$file.".php")) {
             exit("File $file.php is missing!");

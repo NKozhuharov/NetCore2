@@ -1,8 +1,13 @@
 <?php
+//TO DO
+//templates
+//auto format date time
+//to do: fix error count fields
+
     class Base2
     {
         use InputValidations;
-        
+
         const ORDER_ASC = 'ASC';
         const ORDER_DESC = 'DESC';
 
@@ -91,7 +96,7 @@
          * If is set to true the results from the outupt functions will be translated if they have translation table
          */
         protected $translateResult = true;
-        
+
         /**
          * Ensures that tableFields variable is initialized; if not it will initialize it
          * Throws Exception if the table name is not provided
@@ -127,6 +132,7 @@
             if (empty($name)) {
                 throw new Exception("Empty table name in model `".get_class($this)."`");
             }
+
             $this->tableName = $name;
             $this->tableFields = new BaseTableFields($this->tableName);
         }
@@ -523,22 +529,22 @@
             if ($languageId === null || !$this->isTranslationAvailable() || empty($result)) {
                 return $result;
             }
-            
+
             if (isset($result['id'])) {
                 $result = array($result);
             }
-            
+
             $resultObjectIds = array_column($result, 'id');
-            
+
             if (empty($resultObjectIds)) {
                 throw new Exception ("Cannot translate query results, which do not contain the id column");
             }
-            
+
             $selector = new BaseSelect("{$this->tableName}_lang");
             $selector->setWhere("`object_id` IN (".(implode(', ', $resultObjectIds)).") AND `lang_id`={$languageId}");
 
             $Core->db->query($selector->build(), $this->queryCacheTime, 'fillArray', $translations, 'object_id');
-            
+
             if (!empty($translations)) {
                 $fieldIds = array_flip($resultObjectIds);
 
@@ -625,33 +631,6 @@
             return $deleter->execute();
         }
 
-        
-
-        /**
-         * Search for explode fields in the input array; if there are some, it will convert them to string,
-         * using the specified explodeDelimiter of the model.
-         * It will return the parsed input
-         * @param array $input - the input for a insert/update query
-         * @return array
-         */
-        private function parseInputExplodeFields(array $input)
-        {
-            if (!empty($this->explodeFields)) {
-                foreach ($input as $fieldName => $value) {
-                    if (in_array($fieldName, $this->explodeFields)) {
-                        if (is_object($value)) {
-                            $value = (array)$value;
-                        } else if (!is_array($value)) {
-                            $value = array($value);
-                        }
-
-                        $input[$fieldName] = implode($this->explodeDelimiter, $value);
-                    }
-                }
-            }
-            return $input;
-        }
-
         /**
          * Inserts a rows into the model table
          * Returns the id of the inserted row
@@ -685,7 +664,7 @@
             }
 
             $updater = new BaseUpdate($this->tableName);
-            $updater->setFieldsAndValues($this->validateAndPrepareInputArray($input));
+            $updater->setFieldsAndValues($this->validateAndPrepareInputArray($input, true));
             $updater->setWhere($additional);
 
             return $updater->execute();
@@ -709,7 +688,7 @@
             }
 
             $updater = new BaseUpdate($this->tableName);
-            $updater->setFieldsAndValues($this->validateAndPrepareInputArray($input));
+            $updater->setFieldsAndValues($this->validateAndPrepareInputArray($input, true));
             $updater->setWhere(" `id` = {$ojbectId} ".(!empty($additional) ? " AND {$additional}" : ""));
 
             return $updater->execute();
@@ -731,9 +710,9 @@
             $this->validateParentField($parentId);
 
             $updater = new BaseUpdate($this->tableName);
-            $updater->setFieldsAndValues($this->validateAndPrepareInputArray($input));
+            $updater->setFieldsAndValues($this->validateAndPrepareInputArray($input, true));
             $updater->setWhere(" `{$this->parentField}` = {$parentId} ".(!empty($additional) ? " AND {$additional}" : ""));
-
+            
             return $updater->execute();
         }
 
@@ -747,11 +726,11 @@
         public function updateAll(array $input)
         {
             $updater = new BaseUpdate($this->tableName);
-            $updater->setFieldsAndValues($this->validateAndPrepareInputArray($input));
-            
+            $updater->setFieldsAndValues($this->validateAndPrepareInputArray($input, true));
+
             return $updater->execute();
         }
-        
+
         /**
          * Inserts or updates a translation for the provided object
          * Returns the number of affected rows or the id of the new row
@@ -763,55 +742,55 @@
         public function translate(int $objectId, int $languageId, array $input)
         {
             global $Core;
-            
+
             if (empty($this->translationFields)) {
                 throw new Exception("You cannot translate an object, without any translation fields!");
             }
-            
+
             if ($objectId <= 0) {
                 throw new Exception("Object id should be bigger than 0 in model `".get_class($this)."`");
             }
-            
+
             if ($languageId <= 0) {
                 throw new Exception("Language id should be bigger than 0 in model `".get_class($this)."`");
             }
-            
+
             if (!array_key_exists($languageId, $Core->Language->getActiveLanguages())) {
                 throw new Exception("Language id should be the id of an active language in model `".get_class($this)."`");
             }
-            
+
             $currentTranslation = $this->translateResult;
             $this->translateResult = false;
-            
+
             $objectInfo = $this->getById($objectId);
-            
+
             $this->translateResult = $currentTranslation;
-            
+
             if (empty($objectInfo)) {
                 throw new Exception("The object you are trying to translate does not exist in model `".get_class($this)."`");
             }
             
             $this->validateTranslateExplodeFields($input, $objectInfo);
-                        
+
             //temp variable to store the current info for the validations
             $currentTableFields = $this->tableFields;
-            
+
             try {
                 $this->tableFields = new BaseTableFields("{$this->tableName}_lang");
             } catch (Exception $ex) {
                 throw new Exception ("Table {$this->tableName}_lang does not exist in model `".get_class($this)."`");
             }
-            
+
             $input['object_id'] = $objectId;
             $input['lang_id'] = $languageId;
-            
+
             $translator = new BaseInsert("{$this->tableName}_lang");
             $translator->setFieldsAndValues($this->validateAndPrepareInputArray($input));
             $translator->setUpdateOnDuplicate(true);
-            
+
             $this->tableFields = $currentTableFields;
             unset($currentTableFields);
-            
+
             return $translator->execute();
         }
     }

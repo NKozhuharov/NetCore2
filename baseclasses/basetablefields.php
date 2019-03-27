@@ -90,6 +90,7 @@
                 unset($v['column_temp_id']);
                 $this->tableFields[$k] = $v;
             }
+
             unset($columnsInfo, $this->requiredFields['id']);
         }
     }
