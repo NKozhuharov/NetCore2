@@ -1,5 +1,5 @@
 <?php
-class Language extends Base2
+class Language extends Base
 {
     /**
      * @var string

@@ -70,6 +70,19 @@ class Core{
     private $ajax = false; 
     
     /**
+     * @var bool
+     * Allows the platform to dump the controller variables in JSON format
+     */
+    private $json = false;
+    
+    /**
+    * @var array
+    * Files that should be included before the current controller, array
+    * $Core->projectDir(like /var/www/sitename/admin/) will be concatenated in the start and .php on the end
+    */         
+    private $jsonAdditionalFiles = array(); 
+    
+    /**
      * @var string
      * The name of the global exception handler class
      */
@@ -141,22 +154,6 @@ class Core{
      */
     private $debugIps = array();
     
-    //API VARIABLES
-    
-    /**
-     * @var bool
-     * Use the platform as API, it will return all no superglobals or constants that are set as JSON
-     * If the requiredFiles have variables same as in the controller they will be overwritten like in the script
-     */
-    private $isAPI = false;   
-    
-    /**
-     * @var array
-     * Files that should be included before the current controller, array or string
-     * $Core->projectDir(like /var/www/sitename/admin/) will be concatenated in the start and .php on the end
-     */         
-    private $APIRequiredFiles = array(); 
-    
     /**
      * Creates an instance of the Core class
      * Throws Exception if info does not contain 'db' or 'mc'
@@ -176,6 +173,8 @@ class Core{
             (isset($_REQUEST['ajax'])) ||
             (isset($AJAX) && $AJAX == true)
         ) ? true : false;
+        
+        $this->json = (isset($_REQUEST['json']) && !empty($_REQUEST['json'])) ? true : false;
         
         //require base query builder
         $this->requireAllPHPFilesFromFolder(GLOBAL_PATH.'platform/basequery');

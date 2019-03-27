@@ -1,5 +1,6 @@
 <?php
-    class Sphinx extends Base{
+    class Sphinx extends Base
+    {
         private $instance = false;
         private $emptyResult = array(
             'info' => array(),
