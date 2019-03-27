@@ -49,7 +49,7 @@
          * @var int
          * Allows the user to set a cache time for all the select queries
          */
-        private $queryCacheTime = 0;
+        protected $queryCacheTime = 0;
 
         /**
          * @var bool
@@ -342,7 +342,7 @@
             if (!empty($result)) {
                 //to do: fix error count fields
                 return $this->parseExplodeFields(
-                    $this->getTranslation($result, $Core->Language->currentLanguageId)
+                    $this->getTranslation($result, $Core->Language->getCurrentLanguageId())
                 );
             }
             return array();

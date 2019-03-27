@@ -81,6 +81,18 @@ class Core{
      */
     private $exceptionhandler;
     
+    /**
+     * @var string
+     * The short name of the default language
+     */
+    private $defaultLanguage = 'bg';
+    
+    /**
+     * @var int
+     * The id of the default language
+     */
+    private $defaultLanguageId = 24;
+    
     private $doNotStrip                = false;          //do not strip these parameters
     private $pageNotFoundLocation      = '/not-found';   //moust not be numeric so the rwrite can work
     private $allowFirstPage            = false;          //if allowed url like "/1" won't redirect to $pageNotFoundLocation
@@ -375,15 +387,6 @@ class Core{
             return $this->$varName;
         }
         return false;
-    }
-    
-    /**
-     * TEMP
-     * @todo
-     */
-    public function setLocale()
-    {
-        setlocale(LC_ALL, mb_strtolower($this->Language->currentLanguage).'_'.mb_strtoupper($this->Language->currentLanguage).'.utf8');
     }
     
     /**

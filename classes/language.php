@@ -1,56 +1,116 @@
 <?php
-class Language{
-    private $defaultLanguage   = 'bg';
-    private $defaultLanguageId = 24;
-
-    public  $currentLanguage   = false;
-    public  $currentLanguageId = false;
-
-    public  $phrases           = array();
-    public  $phrasesText       = array();
-
-    public  $langMap           = array();
-    public  $allowedLanguages  = array();
-
-    public function __construct(){
+class Language extends Base2
+{
+    /**
+     * @var string
+     * The short name of the current language
+     */
+    private $currentLanguage = null;
+    
+    /**
+     * @var int
+     * The id of the current language
+     */
+    private $currentLanguageId = null;
+    
+    /**
+     * @var array
+     * A collection of translation phrases from the `phrases` table
+     */
+    private $phrases = null;
+    
+    /**
+     * @var array
+     * A collection of long translation phrases from the `phrases_text` table
+     */
+    private $phrasesText = null;
+    
+    /**
+     * @var array
+     * Maps the active languages, id => name and name => id
+     */
+    private $activeLangMap = null;
+    
+    /**
+     * @var array
+     * Maps the allowed languaes id => name
+     */
+    private $allowedLanguages = null;
+    
+    /**
+     * Creates an instance of the Language class
+     * Makes a query to the databse to get a list of the allowed languages
+     * Sets the PHP locale to the current language
+     * Throws Exception if no languages are allowed
+     * @throws Exception
+     */
+    public function __construct()
+    {
         global $Core;
-
+        
+        $this->tableName = 'languages';
+        $this->translationFields = array('name');
+        
         $Core->db->query(
-            "SELECT `id`,LOWER(`short`) AS 'sh' FROM `{$Core->dbName}`.`languages` WHERE `active` = 1",
-            0,'fillArraySingleField', $this->allowedLanguages, 'id', 'sh'
+            "SELECT 
+                `id`,
+                LOWER(`short`) AS 'short' 
+            FROM 
+                `{$Core->dbName}`.`languages` 
+            WHERE `active` = 1",
+            $this->queryCacheTime,
+            'fillArraySingleField',
+            $this->allowedLanguages,
+            'id',
+            'short'
         );
 
-        if(!$this->allowedLanguages){
-            throw new Error("No allowed languages");
+        if (!$this->allowedLanguages) {
+            throw new Exception("No allowed languages");
         }
 
-        $this->getLanguage();
-        $this->getPhrases();
-        $this->getLanguageMap();
+        $this->getCurrentLanguageFromRequestOrCookie();
+        
+        setlocale(LC_ALL, mb_strtolower($this->currentLanguage).'_'.mb_strtoupper($this->currentLanguage).'.utf8');
     }
-
-    public function __get($phrase){
-        if(isset($this->phrases[$phrase])){
-            return $this->phrases[$phrase];
+    
+    /**
+     * Magic method to get a phrase from the translation tables
+     * It will return the given phrase value if no translation is available
+     */
+    public function __get(string $phrase)
+    {
+        if ($this->phrases === null) {
+            $this->getPhrases();
         }
-        else if(isset($this->phrasesText[$phrase])){
+        
+        if (isset($this->phrases[$phrase])) {
+            return $this->phrases[$phrase];
+        } else if (isset($this->phrasesText[$phrase])) {
             return $this->phrasesText[$phrase];
         }
-        else return $phrase;
+        return $phrase;
     }
-
-    private function getLanguage(){
+    
+    /**
+     * Gets the current language, using the request or cookie
+     * If the language is in the request, it will set a cookie with it
+     * After that it will redirect to the same page, removing language parameter from the url
+     */
+    private function getCurrentLanguageFromRequestOrCookie()
+    {
         global $Core;
 
-        if(isset($_REQUEST['language']) && in_array($_REQUEST['language'], $this->allowedLanguages)){
+        if (isset($_REQUEST['language']) && in_array($_REQUEST['language'], $this->allowedLanguages)) {
             $this->currentLanguage = $_REQUEST['language'];
+            $this->currentLanguageId = array_search($this->currentLanguage, $this->allowedLanguages);
             setcookie('language', $_REQUEST['language'], time()+86400, '/');
-
-            if(isset($_SERVER['HTTP_REFERER'])){
+            
+            if (isset($_SERVER['HTTP_REFERER'])) {
                 $location = $_SERVER['HTTP_REFERER'];
-            }elseif(isset($_SERVER['REQUEST_URI'])){
+            } elseif (isset($_SERVER['REQUEST_URI'])) {
                 $location = $_SERVER['REQUEST_URI'];
-            }else{
+            } else {
                 $location = '/';
             }
 
@@ -58,126 +118,214 @@ class Language{
             $location = str_replace('?language='.$_REQUEST['language'], '', $location);
 
             $Core->redirect($location);
-        }elseif(isset($_COOKIE['language']) && in_array($_COOKIE['language'], $this->allowedLanguages)){
+        } else if (isset($_COOKIE['language']) && in_array($_COOKIE['language'], $this->allowedLanguages)) {
             $this->currentLanguage = $_COOKIE['language'];
-        }else{
-            $this->currentLanguage   = $this->defaultLanguage;
-            $this->currentLanguageId = $this->defaultLanguageId;
+            $this->currentLanguageId = array_search($this->currentLanguage, $this->allowedLanguages);
+        } else {
+            $this->currentLanguage   = $Core->defaultLanguage;
+            $this->currentLanguageId = $Core->defaultLanguageId;
         }
-        return true;
     }
-
-    private function getPhrases(){
+    
+    /**
+     * Gets the collection of phrases from the `phrases` and `phrases_text` tables in the databse
+     */
+    private function getPhrases()
+    {
         global $Core;
 
         $Core->db->query(
-            "SELECT `phrase`,
-            IF(`".$this->currentLanguage."` IS NULL OR `".$this->currentLanguage."` = '', `".$this->defaultLanguage."`, `".$this->currentLanguage."`) AS `translation`
-            FROM `{$Core->dbName}`.`phrases`"
-            ,0 , 'fillArraySingleField', $this->phrases, 'phrase', 'translation'
+            "SELECT 
+                `phrase`,
+                IF(`".$this->currentLanguage."` IS NULL OR `".$this->currentLanguage."` = '', `".$Core->defaultLanguage."`, `".$this->currentLanguage."`) AS `translation`
+            FROM 
+                `{$Core->dbName}`.`phrases`",
+            $this->queryCacheTime,
+            'fillArraySingleField',
+            $this->phrases,
+            'phrase',
+            'translation'
         );
 
         $Core->db->query(
-            "SELECT `phrase`,
-            IF(`".$this->currentLanguage."` IS NULL OR `".$this->currentLanguage."` = '', `".$this->defaultLanguage."`, `".$this->currentLanguage."`) AS `translation`
-            FROM `{$Core->dbName}`.`phrases_text`"
-            ,0 , 'fillArraySingleField', $this->phrasesText, 'phrase', 'translation'
+            "SELECT 
+                `phrase`,
+                IF(`".$this->currentLanguage."` IS NULL OR `".$this->currentLanguage."` = '', `".$Core->defaultLanguage."`, `".$this->currentLanguage."`) AS `translation`
+            FROM 
+                `{$Core->dbName}`.`phrases_text`",
+            $this->queryCacheTime,
+            'fillArraySingleField',
+            $this->phrasesText,
+            'phrase',
+            'translation'
         );
-        return true;
     }
     
+    /**
+     * Checks if the current language is different from the default language
+     * @return bool
+     */
     public function currentLanguageIsDefaultLanguage()
     {
-        return $this->currentLanguageId != $this->defaultLanguageId;
+        global $Core;
+        
+        return $this->currentLanguageId != $Core->defaultLanguageId;
     }
-
-    public function changeLanguage($language){
-        if(in_array(strtolower($language), $this->allowedLanguages)){
+    
+    /**
+     * Allows the user to manually change the current language
+     * @param string $language - the short name of the language
+     */
+    public function changeLanguage(string $language)
+    {
+        if (in_array(strtolower($language), $this->allowedLanguages)) {
             $this->currentLanguage = $language;
             $this->currentLanguageId = $this->getLanguageMap()[$this->currentLanguage]['id'];
             setcookie('language', $language, time()+86400, '/');
             $this->getPhrases();
+        } else {
+            throw new Exception("This language does not exist or not allowed");
         }
-
-        return true;
     }
-
-    public function getLanguageMap($active = true){
+    
+    /**
+     * Gets a map of all languages
+     * @param bool $onlyActive - if set to false, it will return all languages; otherwise it will return only the active
+     * @return array
+     */
+    public function getLanguageMap(bool $onlyActive = null)
+    {
         global $Core;
 
-        if(!empty($this->langMap) && $active){
-            return $this->langMap;
+        if (!empty($this->activeLangMap) && ($onlyActive === true || $onlyActive === null)) {
+            return $this->activeLangMap;
         }
 
         $Core->db->query(
-            "SELECT `id`,`name`,`native_name`,`short`,LOWER(`short`) AS 'lower' FROM `{$Core->dbName}`.`languages`"
-            .(($active) ? "WHERE `active` = 1" : '')
-            , 0, 'fillArray', $langMap
+            "SELECT 
+                `id`,
+                `name`,
+                `native_name`,
+                `short`,
+                LOWER(`short`) AS 'lower' 
+            FROM 
+                `{$Core->dbName}`.`languages`"
+            .(($onlyActive) ? "WHERE `active` = 1" : ''), 
+            $this->queryCacheTime, 
+            'fillArray', 
+            $langMap
         );
 
-        if(!$langMap){
-            if($active){
-                throw new Error("No active languages");
-            }else{
-                throw new Error("No languages");
+        if (empty($langMap)) {
+            if ($onlyActive) {
+                throw new Exception("No active languages");
+            } else {
+                throw new Exception("No languages");
             }
         }
 
         $result = array();
-        foreach($langMap as $m){
-            $result[$m['id']] = $m;
-            $result[$m['short']] = $m;
-            $result[$m['lower']] = $m;
-            if(empty($this->currentLanguageId) && $m['lower'] == $this->currentLanguage){
-                $this->currentLanguageId = $m['id'];
+        foreach ($langMap as $lang) {
+            $result[$lang['id']] = $lang;
+            $result[$lang['short']] = $lang;
+            $result[$lang['lower']] = $lang;
+            if(empty($this->currentLanguageId) && $lang['lower'] == $this->currentLanguage){
+                $this->currentLanguageId = $lang['id'];
             }
         }
-        unset($langMap,$m);
-        if($active){
-            $this->langMap = $result;
+        unset($langMap, $lang);
+        if ($onlyActive) {
+            $this->activeLangMap = $result;
         }
         return $result;
     }
-
-    public function getActiveLanguages($lower = false){
-        if(empty($this->langMap)){
-            $this->getLanguageMap();
+    
+    /**
+     * Gets a map of all active languages
+     * @return array
+     */
+    public function getActiveLanguages()
+    {
+        if (empty($this->activeLangMap)) {
+            return $this->getLanguageMap(true);
         }
-
-        $result = array();
-        foreach($this->langMap as $k => $m){
-            if(is_numeric($k)){
-                $result[$k] = ($lower) ? mb_strtolower($m['short']) : $m['short'];
-            }
-        }
-        return $result;
+        
+        return $this->activeLangMap;
     }
-
-    public function getDefaultLanguage($what = false){
-        if($what == 'id'){
-            return $this->defaultLanguageId;
-        }
-        if($what == 'short'){
-            return $this->defaultLanguage;
-        }
-        return array('id' => $this->defaultLanguageId, 'short' => $this->defaultLanguage);
-    }
-
-    public function getAll($translate = true){
+    
+    /**
+     * Returns the default language id and short name
+     * @return array
+     */
+    public function getDefaultLanguage()
+    {
         global $Core;
-
-        $Core->db->query("SELECT `id`,`name` FROM `{$Core->dbName}`.`languages` ORDER BY `name` ASC", 0, 'fillArraySingleField', $temp, 'id', 'name');
-        if($translate){
-            $langs = array();
-            foreach($temp as $k => $v){
-                $langs[$k] = isset($this->phrases[$v]) ? $this->phrases[$v] : $v;
-            }
-            unset($temp);
-            asort($langs);
-            return $langs;
+        
+        return array(
+            'id' => $Core->defaultLanguageId, 
+            'short' => $Core->defaultLanguage
+        );
+    }
+    
+    /**
+     * Returns the default language id
+     * @return int
+     */
+    public function getDefaultLanguageId()
+    {
+        global $Core;
+        
+        return $Core->defaultLanguageId;
+    }
+    
+    /**
+     * Returns the default language short name
+     * @return string
+     */
+    public function getDefaultLanguageShortName()
+    {
+        global $Core;
+        
+        return $Core->defaultLanguage;
+    }
+    
+    /**
+     * Returns the current language id and short name
+     * @return array
+     */
+    public function getCurrentLanguage()
+    {
+        if ($this->currentLanguageId === null) {
+            return $this->getDefaultLanguage();
         }
-
-        return $temp;
+    	return array(
+    		'id' => $this->currentLanguageId, 
+    		'short' => $this->currentLanguage
+    	);
+    }
+    
+    /**
+     * Returns the current language id
+     * @return int
+     */
+    public function getCurrentLanguageId()
+    {   
+        if ($this->currentLanguageId === null) {
+            return $this->getDefaultLanguageId();
+        }
+    	return $this->currentLanguageId;
+    }
+    
+    /**
+     * Returns the current language short name
+     * @return string
+     */
+    public function getCurrentLanguageShortName()
+    {
+        if ($this->currentLanguageId === null) {
+            return $this->getDefaultLanguageName();
+        }
+    	return $this->currentLanguage;
     }
 }
 ?>

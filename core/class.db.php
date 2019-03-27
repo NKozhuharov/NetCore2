@@ -222,7 +222,7 @@
                         return mysqli_affected_rows($this->insert);
                     }
                 }else{
-                    throw new Exception("Insert is phorbitten at the current moment.");
+                    throw new Exception("Insert is prohibited at the current moment.");
                 }
             }
         }
