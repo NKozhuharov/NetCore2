@@ -57,7 +57,6 @@ class User extends Base{
 
         setcookie($this->cookieName, $uniqid, time() + $this->sessionTime, "/");
         $this->sessionKey = $this->tableName.$_SERVER['REMOTE_ADDR'].$_SERVER['HTTP_USER_AGENT'].$uniqid;
-        $this->loggedIn = true;
         return true;
     }
 
@@ -110,14 +109,14 @@ class User extends Base{
 
         if(empty($username) || !is_string($username)){
             if($this->usernameRequired){
-                throw new Error($Core->language->error_enter_username);
+                throw new BaseException($Core->language->error_enter_username);
             }else{
-                throw new Error($Core->language->error_enter_email);
+                throw new BaseException($Core->language->error_enter_email);
             }
         }
 
         if(empty($password) || !is_string($password)){
-            throw new Error($Core->language->error_enter_password);
+            throw new BaseException($Core->language->error_enter_password);
         }
 
         $username = $Core->db->escape(trim($username));
@@ -125,11 +124,11 @@ class User extends Base{
 
         if($typeId){
             if(!$this->usersTypesTableName){
-                throw new Error($Core->language->error_users_types_table_is_not_set);
+                throw new BaseException($Core->language->error_users_types_table_is_not_set);
             }
 
             if(!is_numeric($typeId) || !isset($this->getUserTypes()[$typeId])){
-                throw new Error($Core->language->error_invalid_user_type);
+                throw new BaseException($Core->language->error_invalid_user_type);
             }
 
             $typeId = " AND `type_id` = '".($Core->db->escape($typeId))."' ";
@@ -144,9 +143,9 @@ class User extends Base{
             }
         }else{
             if($this->usernameRequired){
-                throw new Error($Core->language->error_username_or_password_is_invalid);
+                throw new BaseException($Core->language->error_username_or_password_is_invalid);
             }else{
-                throw new Error($Core->language->error_email_addres_or_password_is_invalid);
+                throw new BaseException($Core->language->error_email_addres_or_password_is_invalid);
             }
         }
         return true;
@@ -168,7 +167,7 @@ class User extends Base{
 
         $id = intval($id);
         if(empty($id)){
-            throw new exception($Core->languge->error_invalid_id);
+            throw new Exception($Core->languge->error_invalid_id);
         }
 
         if($this->usersLevelTableName){
@@ -211,7 +210,7 @@ class User extends Base{
             ON
                 `{$Core->dbName}`.`{$this->pagesTableName}`.`level_id` = `{$Core->dbName}`.`{$this->usersLevelTableName}`.`id`
             WHERE
-                `{$Core->dbName}`.`{$this->pagesTableName}`.`url` = '".$Core->db->escape($Core->rewrite->URL)."'"
+                `{$Core->dbName}`.`{$this->pagesTableName}`.`url` = '".$Core->db->escape($Core->rewrite->url)."'"
             , 0,'fetch_assoc', $mainPage))
         {
             $this->pageLevel = intval($mainPage['level']);
@@ -281,7 +280,7 @@ class User extends Base{
         global $Core;
 
         if(empty($id) || !is_numeric($id)){
-            throw new Error($Core->language->error_invalid_id);
+            throw new BaseException($Core->language->error_invalid_id);
         }
 
         $userInfo = $this->getUserInfo($id);
@@ -294,7 +293,7 @@ class User extends Base{
             }
         }
         else{
-            throw new Error($Core->language->error_this_id_does_not_exist);
+            throw new BaseException($Core->language->error_this_id_does_not_exist);
         }
 
         return true;
@@ -304,16 +303,16 @@ class User extends Base{
         global $Core;
 
         if(stristr($username,' ')){
-            throw new Error($Core->language->error_no_spaces_are_allowed_in_the_username);
+            throw new BaseException($Core->language->error_no_spaces_are_allowed_in_the_username);
         }
         if(!is_string($username) || empty($username)){
-            throw new Error($Core->language->error_provide_username);
+            throw new BaseException($Core->language->error_provide_username);
         }
         if(!empty($min) && strlen($username) < $min){
-            throw new Error($Core->language->error_username_must_be_minimum.' '.$this->userNameMinLen.' '.$Core->language->symbols);
+            throw new BaseException($Core->language->error_username_must_be_minimum.' '.$this->userNameMinLen.' '.$Core->language->symbols);
         }
         if(!empty($max) && strlen($username) > $max){
-            throw new Error($Core->language->error_username_must_be_maximum.' '.$this->userNameMaxLen.' '.$Core->language->symbols);
+            throw new BaseException($Core->language->error_username_must_be_maximum.' '.$this->userNameMaxLen.' '.$Core->language->symbols);
         }
         //multyaccount
         if($typeId){
@@ -323,7 +322,7 @@ class User extends Base{
         $username = $Core->db->escape($username);
 
         if($Core->db->result("SELECT `id` FROM `{$Core->dbName}`.`{$this->tableName}` WHERE `username` = '$username' $typeId")){
-            throw new Error($Core->language->error_this_username_is_already_taken);
+            throw new BaseException($Core->language->error_this_username_is_already_taken);
         }
 
         return $username;
@@ -333,7 +332,7 @@ class User extends Base{
         global $Core;
 
         if(!is_string($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)){
-            throw new Error($Core->language->error_email_is_not_valid);
+            throw new BaseException($Core->language->error_email_is_not_valid);
         }
         //if update
         if($userId){
@@ -347,7 +346,7 @@ class User extends Base{
         $email = $Core->db->escape($email);
 
         if($Core->db->result("SELECT `id` FROM `{$Core->dbName}`.`{$this->tableName}` WHERE `email` = '$email' $userId $typeId")){
-            throw new Error($Core->language->error_this_email_is_already_taken);
+            throw new BaseException($Core->language->error_this_email_is_already_taken);
         }
 
         return $email;
@@ -357,31 +356,31 @@ class User extends Base{
         global $Core;
 
         if(empty($pass)){
-            throw new Error($Core->language->error_provide_password);
+            throw new BaseException($Core->language->error_provide_password);
         }
         if(stristr($pass,' ')){
-            throw new Error($Core->language->error_no_spaces_are_allowed_in_the_password);
+            throw new BaseException($Core->language->error_no_spaces_are_allowed_in_the_password);
         }
         if($this->passMinLen && strlen($pass) < $this->passMinLen){
-            throw new Error($Core->language->error_password_must_be_minimum.' '.$this->passMinLen.' '.$Core->language->symbols);
+            throw new BaseException($Core->language->error_password_must_be_minimum.' '.$this->passMinLen.' '.$Core->language->symbols);
         }
         if($this->passMaxLen && strlen($pass) > $this->passMaxLen){
-            throw new Error($Core->language->error_password_must_be_maximum.' '.$this->passMaxLen.' '.$Core->language->symbols);
+            throw new BaseException($Core->language->error_password_must_be_maximum.' '.$this->passMaxLen.' '.$Core->language->symbols);
         }
         if($this->passNumbersRequired && !preg_match("#[0-9]+#", $pass)){
-            throw new Error($Core->language->error_password_must_contain_a_number);
+            throw new BaseException($Core->language->error_password_must_contain_a_number);
         }
         if($this->passCapitalsRequired && !preg_match("#[A-Z]+#", $pass)){
-            throw new Error($Core->language->error_password_must_contain_a_capital_letter);
+            throw new BaseException($Core->language->error_password_must_contain_a_capital_letter);
         }
         if($this->passCapitalsRequired && !preg_match("#\W+#", $pass)){
-            throw new Error($Core->language->error_password_must_contain_a_symbol);
+            throw new BaseException($Core->language->error_password_must_contain_a_symbol);
         }
         if(empty($repeatPass)){
-            throw new Error($Core->language->error_repeat_password);
+            throw new BaseException($Core->language->error_repeat_password);
         }
         if($pass !== $repeatPass){
-            throw new Error($Core->language->error_passwords_do_not_match);
+            throw new BaseException($Core->language->error_passwords_do_not_match);
         }
 
         return $pass;
@@ -392,17 +391,17 @@ class User extends Base{
         global $Core;
 
         if($currentPass !== false && !$currentPass){
-            throw new Error($Core->language->error_enter_current_password);
+            throw new BaseException($Core->language->error_enter_current_password);
         }
 
         $this->validatePassword($newPass, $repeatPass);
 
         $chPass = $Core->db->result("SELECT `password` FROM `{$Core->dbName}`.`{$this->tableName}` WHERE `id` = $userId");
         if(empty($chPass)){
-            throw new Error($Core->language->error_this_user_does_not_exist);
+            throw new BaseException($Core->language->error_this_user_does_not_exist);
         }
         if($currentPass !== false && $this->hashPassword($currentPass) != $chPass){
-            throw new Error($Core->language->error_current_password_is_incorrect);
+            throw new BaseException($Core->language->error_current_password_is_incorrect);
         }
         unset($chPass);
 
@@ -419,15 +418,15 @@ class User extends Base{
         global $Core;
 
         if($this->usersLevelTableName && (!$levelId || !is_numeric($levelId)) || !isset($this->getUserLevels()[$levelId])){
-            throw new Error($Core->language->error_invalid_user_level);
+            throw new BaseException($Core->language->error_invalid_user_level);
         }
 
         if($this->usersTypesTableName && (!$typeId || !is_numeric($typeId) || !isset($this->getUserTypes()[$typeId]))){
-            throw new Error($Core->language->error_user_type_id_is_not_valid);
+            throw new BaseException($Core->language->error_user_type_id_is_not_valid);
         }
 
         if($this->usernameRequired == false && $this->emailRequired == false){
-            throw new Error($Core->language->error_at_least_username_required_or_email_required_must_be_true);
+            throw new BaseException($Core->language->error_at_least_username_required_or_email_required_must_be_true);
         }
 
         if($this->usernameRequired){
@@ -477,7 +476,7 @@ class User extends Base{
         global $Core;
 
         if(empty($email)){
-            throw new Error($Core->language->error_enter_email);
+            throw new BaseException($Core->language->error_enter_email);
         }
 
         if($typeId){
@@ -489,7 +488,7 @@ class User extends Base{
         $Core->db->query("SELECT `username` FROM `{$Core->dbName}`.`{$this->tableName}` WHERE `email` = '$email' $typeId",0,'fetch_assoc',$user);
 
         if(empty($user)){
-            throw new Error($Core->language->error_this_user_does_not_exist);
+            throw new BaseException($Core->language->error_this_user_does_not_exist);
         }
 
         if($body === false){
@@ -517,13 +516,13 @@ class User extends Base{
         global $Core;
 
         if(empty($email)){
-            throw new Error($Core->language->error_enter_email);
+            throw new BaseException($Core->language->error_enter_email);
         }
 
         $Core->validations->validateEmail($email);
 
         if(empty($email)){
-            throw new Error($Core->language->error_enter_email);
+            throw new BaseException($Core->language->error_enter_email);
         }
 
         if($typeId){
@@ -535,7 +534,7 @@ class User extends Base{
         $Core->db->query("SELECT `id`,`username` FROM `{$Core->dbName}`.`{$this->tableName}` WHERE `email` = '$email' $typeId",0,'fetch_assoc',$user);
 
         if(empty($user)){
-            throw new Error($Core->language->error_this_email_does_not_exist);
+            throw new BaseException($Core->language->error_this_email_does_not_exist);
         }
 
         //check for existing token
@@ -596,7 +595,7 @@ class User extends Base{
         global $Core;
 
         if(empty($token)){
-            throw new Error($Core->language->error_invalid_token);
+            throw new BaseException($Core->language->error_invalid_token);
         }
 
         $token = $Core->db->escape($token);
@@ -610,7 +609,7 @@ class User extends Base{
         $userId = $Core->db->result("SELECT `user_id` FROM `{$Core->dbName}`.`{$this->usersRecoveryTableName}` WHERE `token` = '$token' $and");
 
         if(empty($userId)){
-            throw new Error($Core->language->error_invalid_token);
+            throw new BaseException($Core->language->error_invalid_token);
         }
 
         $Core->db->query("SELECT * FROM `{$Core->dbName}`.`{$this->tableName}` WHERE `id` = $userId",0,'fetch_assoc',$user);
