@@ -1,15 +1,14 @@
 <?php
+if (!defined('PROJECT_PATH')) {
+    exit("Define a PROJECT_PATH global variable");
+}
 
 if (!defined('SITE_PATH')) {
     exit("Define a SITE_PATH global variable");
 }
 
-if (!defined('SITE_NAME')) {
-    exit("Define a SITE_NAME global variable");
-}
-
-if (!is_file(GLOBAL_PATH.SITE_PATH."settings/".SITE_NAME.".php")) {
-    exit('No configuration file found for site "'.SITE_PATH.SITE_NAME.'"');
+if (!is_file(GLOBAL_PATH.PROJECT_PATH."settings/".SITE_PATH.".php")) {
+    exit('No configuration file found for site "'.PROJECT_PATH.SITE_PATH.'"');
 }
 
 //old php version fix
@@ -44,8 +43,7 @@ if (isset($_SERVER['REQUEST_METHOD'])) {
 
 try {
     //require current site settings
-    require_once (GLOBAL_PATH.SITE_PATH."settings/".SITE_NAME.".php");
-    require_once (GLOBAL_PATH.SITE_PATH."settings/classestree.php");
+    require_once (GLOBAL_PATH.PROJECT_PATH."settings/".SITE_PATH.".php");
 
     if (!isset($info) || empty($info) || !is_array($info)) {
         exit('Variable $info must be present in the site config file and must be a non-empty array!');
@@ -64,10 +62,12 @@ try {
         require_once (GLOBAL_PATH.'platform/core/'.$file.'.php');
     }
 
-    $Core = new Core($info, $classesTree);
-    
-    //init users class
-    //$Core->siteuser->init();
+    $Core = new Core($info);
+
+    //init users class if present
+    if ($Core->{$Core->userModel}) {
+        $Core->{$Core->userModel}->init();
+    }
 
     //get required files
     $Core->Rewrite->getFiles();
