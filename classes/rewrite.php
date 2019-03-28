@@ -6,37 +6,37 @@ class Rewrite
      * The name of the controller
      */
     private $controller;
-    
+
     /**
      * @var string
      * The name of the view (usually same as controller)
      */
     private $view;
-    
+
     /**
      * @var array
      * A breakdown of all parts of the URL (on /) without GET parameters
      */
     private $urlBreakdown;
-    
+
     /**
      * @var string
      * The entire url without the domain and the get request
      */
     private $url;
-    
+
     /**
      * @var string
      * The part of the url after ? (get request)
      */
     private $urlGetPart = '';
-    
+
     /**
      * @var int
      * The current page for the pagination
      */
     private $currentPage = 1;
-    
+
     /**
      * Creates an instance of the Rewrite class
      * It will parse the current URL and determine the current controller and view and the current page
@@ -70,16 +70,16 @@ class Rewrite
         if (isset($_REQUEST['page']) && is_numeric($_REQUEST['page']) && intval($_REQUEST['page']) !== 1) {
             $this->currentPage = $_REQUEST['page'];
         } else if (
-            isset($matches[count($matches) - 1]) && 
-            is_numeric($matches[count($matches) - 1]) && 
+            isset($matches[count($matches) - 1]) &&
+            is_numeric($matches[count($matches) - 1]) &&
             intval($matches[count($matches) -1]) !== 1
         ) {
             $this->currentPage = $matches[count($matches) - 1];
             unset($matches[count($matches) - 1]);
         } else if (
-            $Core->allowFirstPage && 
-            isset($matches[count($matches) - 1]) && 
-            is_numeric($matches[count($matches) - 1]) && 
+            $Core->allowFirstPage &&
+            isset($matches[count($matches) - 1]) &&
+            is_numeric($matches[count($matches) - 1]) &&
             intval($matches[count($matches) - 1]) === 1
         ) {
             unset($matches[count($matches) - 1]);
@@ -94,14 +94,14 @@ class Rewrite
 
         if (isset($Core->rewriteOverride[$path])) {
             $path = $Core->rewriteOverride[$path];
-        } elseif (in_array($path, $Core->rewriteOverride)) {
+        } elseif (!empty($Core->rewriteOverride) && in_array($path, $Core->rewriteOverride)) {
             $this->showPageNotFound();
         }
 
         $this->controller = $path;
         $this->view = $path;
     }
-    
+
     /**
      * Access to the local variable
      * @string $varName - the name of the variable
@@ -112,7 +112,7 @@ class Rewrite
             return $this->$varName;
         }
     }
-    
+
     /**
      * Local function for showing 'page not found'
      */
@@ -125,7 +125,7 @@ class Rewrite
         $this->getFiles();
         die;
     }
-    
+
     /**
      * Allows to dump the output of the current controller as JSON
      * It allows additional files to be loaded before the controller using the $Core->jsonAdditionalFiles
@@ -133,26 +133,26 @@ class Rewrite
     public function controllerAsJson()
     {
         global $Core, $_DELETE, $_PUT, $_PATCH;
-        
+
         header("Access-Control-Allow-Methods: POST, GET, OPTIONS, PUT, PATCH, DELETE");
         header("Access-Control-Allow-Origin: *");
         header("Access-Control-Allow-Headers: *");
         header('Content-Type: application/json');
-        
+
         $jsonAdditionalFiles = $Core->jsonAdditionalFiles;
-        
+
         if (!is_array($jsonAdditionalFiles)) {
             throw new Exception("jsonAdditionalFiles must be an array");
         }
-        
+
         foreach ($jsonAdditionalFiles as $kRequired => $requiredFile) {
-            $jsonAdditionalFiles[$kRequired] = $Core->projectDir.$requiredFile.'.php';
+            $jsonAdditionalFiles[$kRequired] = $Core->siteDir.$requiredFile.'.php';
         }
-        
+
         unset($kRequired, $requiredFile);
-        
+
         $jsonAdditionalFiles[] = $Core->controllersDir.$this->controller.'.php';
-        
+
         foreach ($jsonAdditionalFiles as $req) {
             if (is_file($req)) {
                 require_once ($req);
@@ -160,13 +160,13 @@ class Rewrite
                 throw new Exception('Required file: '.$req.' does not exists');
             }
         }
-        
+
         $output = array();
-    
+
         foreach ($jsonAdditionalFiles as $requiredFile) {
             if (preg_match_all(
-                '~(?!\$Core|\$_DELETE|\$_PUT|\$_PATCH|\$GLOBALS|\$_SERVER|\$_REQUEST|\$_POST|\$_GET|\$_FILES|\$_ENV|\$_COOKIE|\$_SESSION)\$[A-Za-z0-9-_]+~', 
-                file_get_contents($requiredFile), 
+                '~(?!\$Core|\$_DELETE|\$_PUT|\$_PATCH|\$GLOBALS|\$_SERVER|\$_REQUEST|\$_POST|\$_GET|\$_FILES|\$_ENV|\$_COOKIE|\$_SESSION)\$[A-Za-z0-9-_]+~',
+                file_get_contents($requiredFile),
                 $vars)
             ) {
                     unset($requiredFile);
@@ -184,22 +184,22 @@ class Rewrite
         }
 
         unset($output['output'], $output['vars'], $output['r']);
-        
+
         exit(json_encode($output, JSON_PRETTY_PRINT));
     }
-    
+
     /**
      * Requires the controller and the view.
      * If the request is not AJAX or for JSON dump it will include the header and footer
      */
     public function getFiles()
     {
-        global $Core, $_DELETE, $_PUT, $_PATCH;      
+        global $Core, $_DELETE, $_PUT, $_PATCH;
 
         if ($Core->json === true) {
             $this->controllerAsJson();
         }
-        
+
         if (is_file($Core->controllersDir.$this->controller.'.php')) {
             require_once ($Core->controllersDir.$this->controller.'.php');
         } else {
@@ -217,16 +217,16 @@ class Rewrite
         ob_end_clean();
 
         if (!$Core->ajax) {
-            require_once $Core->projectDir.'/includes/header.php';
+            require_once $Core->siteDir.'/includes/header.php';
         }
 
         echo $page;
 
         if (!$Core->ajax) {
-            require_once $Core->projectDir.'/includes/footer.php';
+            require_once $Core->siteDir.'/includes/footer.php';
         }
     }
-    
+
     /**
      * Allows the user to change the current controller
      * @param string $controller - the new name for the controller
