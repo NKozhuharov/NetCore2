@@ -3,6 +3,12 @@ class Menu
 {
     /**
      * @var string
+     * Path name to display in the header
+     */
+    private $pathName;
+    
+    /**
+     * @var string
      * A copy of the $Core->Rewrite->url
      */
     private $url = '';
@@ -15,43 +21,6 @@ class Menu
         global $Core;
 
         $this->url = $Core->Rewrite->url;
-    }
-
-    /**
-     * Returns translated path to file separated with delimiter
-     * @param array $pages - array of pages from database
-     * @param string $delimiter - delimiter symbol
-     * @return string
-     */
-    public function getFullPathName(array $pages, string $delimiter = null)
-    {
-        global $Core;
-        
-        if ($delimiter === null) {
-            $delimiter = ' / ';
-        }
-
-        $fullPageName = false;
-
-        if ($pages && $pages = $this->buildTree($pages)) {
-            $currentPage = $Core->globalFunctions->arraySearch($pages, 'url', $this->url);
-
-            if (isset($currentPage[0], $currentPage[0]['parentsIds'])) {
-                $parents = $currentPage[0]['parentsIds'];
-
-                foreach ($parents as $p) {
-                    $fullPageName .= $Core->language->{(mb_strtolower(str_replace(' ', '_', $Core->globalFunctions->arraySearch($pages, 'id', $p)[0]['name'])))}.$delimiter;
-                }
-            }
-
-            if (isset($currentPage[0], $currentPage[0]['name'])) {
-                $fullPageName .= $Core->language->{(mb_strtolower(str_replace(' ', '_', $currentPage[0]['name'])))};
-            }
-
-            return $fullPageName;
-        }
-
-        return '';
     }
 
     /**
@@ -177,6 +146,63 @@ class Menu
             <?php
             }
         }
+    }
+    
+    /**
+     * Overrides the default path name
+     * @param string $customPathName - the new path name
+     */
+    public function setCustomPathName(string $customPathName) 
+    {
+        $this->pathName = $customPathName;
+    }
+    
+    /**
+     * Gets the current path name to display in the header
+     * @return string
+     */
+    public function getPathName()
+    {
+        if (empty($this->pathName)) {
+            return $this->getFullPathName();
+        }
+        return $this->pathName;
+    }
+    
+    /**
+     * Returns translated path to file separated with delimiter
+     * @param array $pages - array of pages from database
+     * @param string $delimiter - delimiter symbol
+     * @return string
+     */
+    public function getFullPathName()
+    {
+        global $Core;
+        
+        $delimiter = ' / ';
+        $pages = $Core->{$Core->userModel}->user->pages;
+        
+        $fullPageName = false;
+
+        if ($pages && $pages = $this->buildTree($pages)) {
+            $currentPage = $Core->globalFunctions->arraySearch($pages, 'url', $this->url);
+
+            if (isset($currentPage[0], $currentPage[0]['parentsIds'])) {
+                $parents = $currentPage[0]['parentsIds'];
+
+                foreach ($parents as $p) {
+                    $fullPageName .= $Core->language->{(mb_strtolower(str_replace(' ', '_', $Core->globalFunctions->arraySearch($pages, 'id', $p)[0]['name'])))}.$delimiter;
+                }
+            }
+
+            if (isset($currentPage[0], $currentPage[0]['name'])) {
+                $fullPageName .= $Core->language->{(mb_strtolower(str_replace(' ', '_', $currentPage[0]['name'])))};
+            }
+
+            return $fullPageName;
+        }
+
+        return '';
     }
 
     /**
