@@ -1,6 +1,20 @@
 <?php
 class ExceptionHandler
 {
+    private function getExceptionMessage($exception)
+    {
+        global $Core;
+
+        $message = $exception->getMessage();
+
+        if (empty($message)) {
+            return '';
+        } else if (stristr($message, '<script') && strstr($message, '</script>')) {
+            return $message;
+        }
+        return $Core->language->{str_replace(' ', '_', mb_strtolower($message))};
+    }
+
     /**
      * Handle a Success throwable
      * @param Success $success
@@ -12,12 +26,12 @@ class ExceptionHandler
         header('HTTP/1.1 200 OK', true, 200);
 
         if ($Core->ajax) {
-            echo $this->handleAjaxMessage(str_replace(' ', '_', mb_strtolower($success->getMessage())), true);
+            echo $this->handleAjaxMessage($this->getExceptionMessage($success), true);
         } else {
-            echo str_replace(' ', '_', mb_strtolower($success->getMessage()));
+            echo $this->getExceptionMessage($success);
         }
     }
-    
+
     /**
      * Handle an Error throwable
      * @param Error $error
@@ -27,20 +41,20 @@ class ExceptionHandler
         global $Core;
 
         header('HTTP/1.1 400 Bad Request', true, 400);
-        
+
         $message = $error->__toString();
         $message .= PHP_EOL;
-        $message .= "Thrown in ".$error->getFile()." on line ".$error->getLine();                
-                        
+        $message .= "Thrown in ".$error->getFile()." on line ".$error->getLine();
+
         if ($Core->ajax) {
             echo $this->handleAjaxMessage($message);
         } else {
-            echo '<pre>';            
-            echo $message;            
-            echo '</pre>';            
+            echo '<pre style="font-family: unset;">';
+            echo $message;
+            echo '</pre>';
         }
     }
-    
+
     /**
      * Handle a BaseException throwable
      * @param BaseException $exception
@@ -52,11 +66,11 @@ class ExceptionHandler
         header('HTTP/1.1 400 Bad Request', true, 400);
 
         if ($Core->ajax) {
-            echo $this->handleAjaxMessage(str_replace(' ', '_', mb_strtolower($exception->getMessage())));
+            echo $this->handleAjaxMessage($this->getExceptionMessage($exception));
         } else {
-            echo str_replace(' ', '_', mb_strtolower($exception->getMessage()));
+            echo $this->getExceptionMessage($exception);
         }
-        
+
         if (!empty($exception->getData())) {
             echo ':';
             foreach ($exception->getData() as $k => $v) {
@@ -64,7 +78,7 @@ class ExceptionHandler
             }
         }
     }
-    
+
     /**
      * Handle a Exception throwable
      * @param Exception $exception
@@ -81,7 +95,7 @@ class ExceptionHandler
             echo $exception->getMessage();
         }
     }
-    
+
     /**
      * Shows the throwable message in the site javascript handler
      * Override if necessary
@@ -90,6 +104,8 @@ class ExceptionHandler
      */
     public function handleAjaxMessage(string $message, bool $isSuccess = null)
     {
-        echo '<script>alert("'.$message.'")</script>';
+        ?>
+        <div><div id="alert"><?php echo $message; ?></div></div>
+        <?php
     }
 }
