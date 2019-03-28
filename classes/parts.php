@@ -1,29 +1,42 @@
 <?php
     class Parts
     {
-        const PARTS_PATH = '/parts';
+        const PARTS_PATH = 'parts/';
         
-        public function includePart(string $partName)
+        /**
+         * Requires a file from the parts folder.
+         * Supports PHP and HTML files
+         * Throws Exception if the file does not exist
+         * @param string $partName - the name of the file
+         * @param array $data - optional data to use in the file
+         * @throws Expetion
+         */
+        public function includePart(string $partName, array $data = null)
         {
             global $Core;
             
-            if (is_file($Core->projectDir.self::PARTS_PATH.'/'.$partName.'.html')) {
-                require($Core->projectDir.self::PARTS_PATH.'/'.$partName.'.html');  
-            } else if (is_file($Core->projectDir.self::PARTS_PATH.'/'.$partName.'.php')) {
-                require($Core->projectDir.self::PARTS_PATH.'/'.$partName.'.php');  
+            if (is_file($Core->siteDir.self::PARTS_PATH.$partName.'.html')) {
+                require($Core->siteDir.self::PARTS_PATH.$partName.'.html');  
+            } else if (is_file($Core->siteDir.self::PARTS_PATH.$partName.'.php')) {
+                require($Core->siteDir.self::PARTS_PATH.$partName.'.php');  
             } else {
                 throw new Exception("The `{$partName}` part does not exist");
             }
         }
         
-        public function addPart(string $partName)
+        /**
+         * Aliast of includePart
+         */
+        public function addPart(string $partName, array $data = null)
         {
-            $this->includePart($partName);
+            $this->includePart($partName, $data);
         }     
         
-        
-        public function getPart(string $partName)
+        /**
+         * Aliast of includePart
+         */
+        public function getPart(string $partName, array $data = null)
         {
-            $this->includePart($partName);
+            $this->includePart($partName, $data);
         }
     }
