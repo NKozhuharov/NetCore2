@@ -439,9 +439,10 @@
         /**
          * Basic method of the Base class
          * It will select a single rows from the table of the model, which contains the provided id
-         *
+         * Throws Exception if row id is invalid or this field does not exist of the table in the model
          * @param int $rowId - the id of the row
          * @return array
+         * @throws Exception
          */
         public function getById(int $rowId)
         {
@@ -509,7 +510,21 @@
 
             return $this->getCount("`{$this->parentField}` = {$parentId}{$additional}");
         }
-
+        
+        /**
+         * It will return the value of the parent field of the provided row
+         * @param int $rowId - the id of the row
+         */
+        public function getParentId(int $rowId)
+        {
+            if (empty($this->parentField)) {
+                throw new Exception("Set a parent field in model `".get_class($this)."`");
+            }
+            
+            $object = $this->getById($rowId);
+            return !empty($object) ? $object[$this->parentField] : 0;
+        }
+        
         /**
          * It will attempt to translate the provided result from a seelct query, using a '<table_name>_lang'
          * table from the database, where <table_name> is the name of the table, which is used to initialize the model.
@@ -520,6 +535,7 @@
          * @param array $result - the result from a select query
          * @param int $languageId - the id of the language
          * @return array
+         * @throws Exception
          */
         public function getTranslation(array $result, int $languageId = null)
         {
