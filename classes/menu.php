@@ -1,75 +1,124 @@
 <?php
-class Menu{
-    public $pathName = false;
-    public $url      = '';
-
-    public function __construct(){
+class Menu
+{
+    /**
+     * @var string
+     * A copy of the $Core->Rewrite->url
+     */
+    private $url = '';
+    
+    /**
+     * Creates a new instance of the Menu class
+     */
+    public function __construct()
+    {
         global $Core;
 
-        $this->url = (isset($Core->rewrite->URL) ? $Core->rewrite->URL : '');
+        $this->url = $Core->Rewrite->url;
     }
 
-    public function getFullPathName(array $pages, $delimiter = ' / '){
+    /**
+     * Returns translated path to file separated with delimiter
+     * @param array $pages - array of pages from database
+     * @param string $delimiter - delimiter symbol
+     * @return string
+     */
+    public function getFullPathName(array $pages, string $delimiter = null)
+    {
         global $Core;
+        
+        if ($delimiter === null) {
+            $delimiter = ' / ';
+        }
 
         $fullPageName = false;
 
-        if($pages && $pages = $this->buildTree($pages)){
+        if ($pages && $pages = $this->buildTree($pages)) {
             $currentPage = $Core->globalFunctions->arraySearch($pages, 'url', $this->url);
 
-            if(isset($currentPage[0], $currentPage[0]['parentsIds'])){
+            if (isset($currentPage[0], $currentPage[0]['parentsIds'])) {
                 $parents = $currentPage[0]['parentsIds'];
 
-                foreach($parents as $p){
+                foreach ($parents as $p) {
                     $fullPageName .= $Core->language->{(mb_strtolower(str_replace(' ', '_', $Core->globalFunctions->arraySearch($pages, 'id', $p)[0]['name'])))}.$delimiter;
                 }
             }
 
-            if(isset($currentPage[0], $currentPage[0]['name'])){
+            if (isset($currentPage[0], $currentPage[0]['name'])) {
                 $fullPageName .= $Core->language->{(mb_strtolower(str_replace(' ', '_', $currentPage[0]['name'])))};
             }
+
             return $fullPageName;
         }
-        return false;
+
+        return '';
     }
 
-    public function findParents($tree, $id, $parents = array()){
+    /**
+     * Returns parents of element of array
+     * @param array $tree - formed tree of pages from database
+     * @param int $id - the id of the element
+     * @param array $parents - for function storage
+     * @return array - parents of the element if any
+     */
+    private function findParents(array $tree, int $id, array $parents = array())
+    {
         global $Core;
 
         $parent = $Core->globalFunctions->arraySearch($tree, 'id', $id);
 
-        if(isset($parent[0]['parent_id']) && $parent[0]['parent_id']){
+        if (isset($parent[0]['parent_id']) && $parent[0]['parent_id']) {
             $parents[] =  $parent[0]['parent_id'];
             return $this->findParents($tree, $parent[0]['parent_id'], $parents);
         }
+
         $parents = array_reverse($parents);
+
         return $parents;
     }
 
-    public function findChildren($tree, $id, $children = array()){
+    /**
+     * Returns children of element of array
+     * @param array $tree - formed tree of pages from database
+     * @param int $id - the id of the element
+     * @param array $children - for function storage
+     * @return array - children of the element if any
+     */
+    private function findChildren(array $tree, int $id, array $children = array())
+    {
         global $Core;
 
         $child = $Core->globalFunctions->arraySearch($tree, 'id', $id);
 
-        if(isset($child[0]['children']) && $child[0]['children']){
-            foreach($child[0]['children'] as $c){
+        if (isset($child[0]['children']) && $child[0]['children']) {
+            foreach ($child[0]['children'] as $c) {
                 $children[] = $c['id'];
                 $children = $this->findChildren($tree, $c['id'], $children);
             }
         }
+
         return $children;
     }
 
-    public function buildTree(array $elements, $parentId = 0, $level = 0){
+    /**
+     * Returns formed array of elements by parent id
+     * @param array $elements - array of pages from database
+     * @param int $parentId - only for the function it comes from $elements values
+     * @param int $level - only for the function
+     * @return array - formed tree
+     */
+    private function buildTree(array $elements, $parentId = 0, $level = 0)
+    {
         $branch = array();
         $level++;
 
         foreach ($elements as $k => $element) {
-            if ($element['parent_id'] == $parentId){
+            if ($element['parent_id'] == $parentId) {
                 $children = $this->buildTree($elements, $element['id'], $level);
-                if($children){
+
+                if ($children) {
                     $element['children'] = $children;
-                }else{
+                } else {
                     $element['children'] = array();
                 }
 
@@ -79,37 +128,49 @@ class Menu{
                 $branch[]               = $element;
             }
         }
+
         return $branch;
     }
 
-    public function formTree($row, $isResp = true){
+    /**
+     * Draws menu HTML from formed array of elements
+     * @param array $tree - formed array of elements
+     * @param bool $isResp - determinates if the menu should be responsive
+     */
+    private function formTree(array $tree, bool $isResp = null)
+    {
         global $Core;
+        
+        if ($isResp === null) {
+            $isResp = true;
+        }
 
-        $parents = $Core->globalFunctions->arraySearch($row, 'url', $this->url);
-        if(isset($parents[0], $parents[0]['parentsIds'])){
+        $parents = $Core->globalFunctions->arraySearch($tree, 'url', $this->url);
+
+        if (isset($parents[0], $parents[0]['parentsIds'])) {
             $parents = $parents[0]['parentsIds'];
         }
 
-        foreach($row as $t){
+        foreach($tree as $t) {
             $name = $Core->language->{mb_strtolower(str_replace(' ', '_', $t['name']))};
 
-            if($t['children']){
+            if ($t['children']) {
             ?>
                 <li id="<?php echo $t['id']; ?>" class="hasMenu<?php echo ($t['url'] == $this->url ? ' is-current' : '' ).($isResp ? ' respPad' : '').(in_array($t['id'], $parents) ? ' active' : ''); ?>" title="<?php echo $name; ?>">
-                    <?php if($t['url']){ ?>
+                    <?php if ($t['url']) { ?>
                         <a class="menu-name" href="<?php echo $t['url']; ?>"><?php echo $t['icon']; ?><?php echo $name; ?></a>
-                    <?php }else{ ?>
+                    <?php } else { ?>
                         <div class="menu-name"><?php echo $t['icon']; ?><?php echo $name; ?></div>
                     <?php } ?>
                     <ul class="<?php echo (in_array($t['id'], $parents) ? 'opened' : '').($isResp ? ' resp' : ''); ?>">
                         <?php $this->formTree($t['children'], $isResp); ?>
                     </ul>
                 </li>
-            <?php }else{ ?>
+            <?php } else { ?>
                 <li id="<?php echo $t['id']; ?>" class="noMenu <?php echo $t['url'] == $this->url ? ' is-current' : ''; ?>" title="<?php echo $name; ?>">
-                    <?php if($t['url']){ ?>
+                    <?php if ($t['url']) { ?>
                         <a href="<?php echo $t['url']; ?>"><?php echo $t['icon']; ?><?php echo $name; ?></a>
-                    <?php }else{ ?>
+                    <?php } else { ?>
                         <div class="menu-name"><?php echo $t['icon']; ?><?php echo $name; ?></div>
                     <?php } ?>
                 </li>
@@ -118,20 +179,32 @@ class Menu{
         }
     }
 
-    //if class is false menu will auto expand aside and if menu width is bigger than its parent, elements goes one under another, max width of element is 250px
-    //else every element goes one under another, max width of element is 100%
-    //width comes from the css
-    public function getMenu(array $pages, $class = 'allResp'){
+    /**
+     * If class is false menu will auto expand aside and if menu width is bigger than its parent, elements goes one under another, max width of element is 250px.
+     * Else every element goes one under another, max width of element is 100%.
+     * Width comes from the css.
+     *
+     * Returns the html of menu formed of pages from database by parent id
+     * @param array $pages - array of pages from database
+     * @param string $class - additional class to add to menu; allResp fror responsive menu
+     * @return string
+     */
+    public function getMenu(array $pages, string $class = null)
+    {
         global $Core;
-
+        
+        if ($class === null) {
+            $class = 'allResp';
+        }
+        
         ob_start();
         ?>
         <div class="mega-menu <?php echo $class; ?>">
             <ul class="mega-menu-in">
                 <?php
-                if($pages){
+                if ($pages) {
                     $this->formTree($this->buildTree($pages), $class);
-                }else{
+                } else {
                     echo 'No pages';
                 }
                 ?>
@@ -140,7 +213,7 @@ class Menu{
         <?php
         $menu = ob_get_contents();
         ob_end_clean();
+
         return $menu;
     }
 }
-?>
