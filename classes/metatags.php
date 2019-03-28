@@ -1,36 +1,88 @@
 <?php
     class MetaTags
     {
+        /**
+         * @var string
+         * The meta title
+         */
         private $title;
+        
+        /**
+         * @var string
+         * The meta description
+         */
         private $description;
+        
+        /**
+         * @var string
+         * The meta keywords
+         */
         private $keywords;
+        
+        /**
+         * @var string
+         * The meta open graph title
+         */
         private $og_title;
+        
+        /**
+         * @var string
+         * The meta open graph description
+         */
         private $og_description;
+        
+        /**
+         * @var string
+         * The meta open graph type
+         */
         private $og_type;
+        
+        /**
+         * @var string
+         * The meta open graph url
+         */
         private $og_url;
+        
+        /**
+         * @var string
+         * The meta open graph image
+         */
         private $og_image;
         
-        
-        public function __get(string $var) {
-            $var = strtolower($var);
-            if (isset($this->$var)) {
-                return $this->$var;
+        /**
+         * Attempts to get the a property of the meta class
+         * Retursn empty string if the property is not found
+         * @param string $property - the name of the propery
+         * @return string
+         */
+        public function __get(string $property) 
+        {
+            $property = strtolower($property);
+            if (isset($this->$property)) {
+                return $this->$property;
             }
             return '';
         }
         
-        public function __set(string $var, $value)
+        /**
+         * Sets the meta property value
+         * Throws exception if the property does not exist
+         * @param string $property - the name of the propery
+         * @param string $value - the new value
+         * @throws Exception
+         */
+        public function __set(string $property, string $value)
         {
-            $var = strtolower($var);
-            if (!array_key_exists($var, get_object_vars($this))) {
-                throw new Exception("This variable ({$var}) does not exist!");
+            $property = strtolower($property);
+            if (!array_key_exists($property, get_object_vars($this))) {
+                throw new Exception("This variable ({$property}) does not exist!");
             }
             
-            $this->$var = $value;
+            $this->$property = $value;
         }
         
         /**
-         * Outputs the entire meta tags
+         * Outputs the entire meta tags as HTML
          * Use this in the header
          */
         public function insertMeta()
