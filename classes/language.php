@@ -6,37 +6,37 @@ class Language extends Base
      * The short name of the current language
      */
     private $currentLanguage = null;
-    
+
     /**
      * @var int
      * The id of the current language
      */
     private $currentLanguageId = null;
-    
+
     /**
      * @var array
      * A collection of translation phrases from the `phrases` table
      */
     private $phrases = null;
-    
+
     /**
      * @var array
      * A collection of long translation phrases from the `phrases_text` table
      */
     private $phrasesText = null;
-    
+
     /**
      * @var array
      * Maps the active languages, id => name and name => id
      */
     private $activeLangMap = null;
-    
+
     /**
      * @var array
      * Maps the allowed languaes id => name
      */
     private $allowedLanguages = null;
-    
+
     /**
      * Creates an instance of the Language class
      * Makes a query to the databse to get a list of the allowed languages
@@ -47,16 +47,16 @@ class Language extends Base
     public function __construct()
     {
         global $Core;
-        
+
         $this->tableName = 'languages';
         $this->translationFields = array('name');
-        
+
         $Core->db->query(
-            "SELECT 
+            "SELECT
                 `id`,
-                LOWER(`short`) AS 'short' 
-            FROM 
-                `{$Core->dbName}`.`languages` 
+                LOWER(`short`) AS 'short'
+            FROM
+                `{$Core->dbName}`.`languages`
             WHERE `active` = 1",
             $this->queryCacheTime,
             'fillArraySingleField',
@@ -70,20 +70,20 @@ class Language extends Base
         }
 
         $this->getCurrentLanguageFromRequestOrCookie();
-        
+
         setlocale(LC_ALL, mb_strtolower($this->currentLanguage).'_'.mb_strtoupper($this->currentLanguage).'.utf8');
     }
-    
+
     /**
      * Magic method to get a phrase from the translation tables
      * It will return the given phrase value if no translation is available
      */
     public function __get(string $phrase)
-    {
+    {   
         if ($this->phrases === null) {
             $this->getPhrases();
         }
-        
+
         if (isset($this->phrases[$phrase])) {
             return $this->phrases[$phrase];
         } else if (isset($this->phrasesText[$phrase])) {
@@ -91,7 +91,7 @@ class Language extends Base
         }
         return $phrase;
     }
-    
+
     /**
      * Gets the current language, using the request or cookie
      * If the language is in the request, it will set a cookie with it
@@ -105,7 +105,7 @@ class Language extends Base
             $this->currentLanguage = $_REQUEST['language'];
             $this->currentLanguageId = array_search($this->currentLanguage, $this->allowedLanguages);
             setcookie('language', $_REQUEST['language'], time()+86400, '/');
-            
+
             if (isset($_SERVER['HTTP_REFERER'])) {
                 $location = $_SERVER['HTTP_REFERER'];
             } elseif (isset($_SERVER['REQUEST_URI'])) {
@@ -126,7 +126,7 @@ class Language extends Base
             $this->currentLanguageId = $Core->defaultLanguageId;
         }
     }
-    
+
     /**
      * Gets the collection of phrases from the `phrases` and `phrases_text` tables in the databse
      */
@@ -135,10 +135,10 @@ class Language extends Base
         global $Core;
 
         $Core->db->query(
-            "SELECT 
+            "SELECT
                 `phrase`,
                 IF(`".$this->currentLanguage."` IS NULL OR `".$this->currentLanguage."` = '', `".$Core->defaultLanguage."`, `".$this->currentLanguage."`) AS `translation`
-            FROM 
+            FROM
                 `{$Core->dbName}`.`phrases`",
             $this->queryCacheTime,
             'fillArraySingleField',
@@ -148,10 +148,10 @@ class Language extends Base
         );
 
         $Core->db->query(
-            "SELECT 
+            "SELECT
                 `phrase`,
                 IF(`".$this->currentLanguage."` IS NULL OR `".$this->currentLanguage."` = '', `".$Core->defaultLanguage."`, `".$this->currentLanguage."`) AS `translation`
-            FROM 
+            FROM
                 `{$Core->dbName}`.`phrases_text`",
             $this->queryCacheTime,
             'fillArraySingleField',
@@ -160,7 +160,7 @@ class Language extends Base
             'translation'
         );
     }
-    
+
     /**
      * Checks if the current language is different from the default language
      * @return bool
@@ -168,10 +168,10 @@ class Language extends Base
     public function currentLanguageIsDefaultLanguage()
     {
         global $Core;
-        
+
         return $this->currentLanguageId != $Core->defaultLanguageId;
     }
-    
+
     /**
      * Allows the user to manually change the current language
      * @param string $language - the short name of the language
@@ -187,7 +187,7 @@ class Language extends Base
             throw new Exception("This language does not exist or not allowed");
         }
     }
-    
+
     /**
      * Gets a map of all languages
      * @param bool $onlyActive - if set to false, it will return all languages; otherwise it will return only the active
@@ -202,17 +202,17 @@ class Language extends Base
         }
 
         $Core->db->query(
-            "SELECT 
+            "SELECT
                 `id`,
                 `name`,
                 `native_name`,
                 `short`,
-                LOWER(`short`) AS 'lower' 
-            FROM 
+                LOWER(`short`) AS 'lower'
+            FROM
                 `{$Core->dbName}`.`languages`"
-            .(($onlyActive) ? "WHERE `active` = 1" : ''), 
-            $this->queryCacheTime, 
-            'fillArray', 
+            .(($onlyActive) ? "WHERE `active` = 1" : ''),
+            $this->queryCacheTime,
+            'fillArray',
             $langMap
         );
 
@@ -239,7 +239,7 @@ class Language extends Base
         }
         return $result;
     }
-    
+
     /**
      * Gets a map of all active languages
      * @return array
@@ -249,10 +249,19 @@ class Language extends Base
         if (empty($this->activeLangMap)) {
             return $this->getLanguageMap(true);
         }
-        
+
         return $this->activeLangMap;
     }
-    
+
+    /**
+     * Gets an array of all allowed languages shorts
+     * @return array
+     */
+    public function getAllowedLanguages()
+    {
+        return $this->allowedLanguages;
+    }
+
     /**
      * Returns the default language id and short name
      * @return array
@@ -260,13 +269,13 @@ class Language extends Base
     public function getDefaultLanguage()
     {
         global $Core;
-        
+
         return array(
-            'id' => $Core->defaultLanguageId, 
+            'id' => $Core->defaultLanguageId,
             'short' => $Core->defaultLanguage
         );
     }
-    
+
     /**
      * Returns the default language id
      * @return int
@@ -274,10 +283,10 @@ class Language extends Base
     public function getDefaultLanguageId()
     {
         global $Core;
-        
+
         return $Core->defaultLanguageId;
     }
-    
+
     /**
      * Returns the default language short name
      * @return string
@@ -285,10 +294,10 @@ class Language extends Base
     public function getDefaultLanguageShortName()
     {
         global $Core;
-        
+
         return $Core->defaultLanguage;
     }
-    
+
     /**
      * Returns the current language id and short name
      * @return array
@@ -299,23 +308,23 @@ class Language extends Base
             return $this->getDefaultLanguage();
         }
     	return array(
-    		'id' => $this->currentLanguageId, 
+    		'id' => $this->currentLanguageId,
     		'short' => $this->currentLanguage
     	);
     }
-    
+
     /**
      * Returns the current language id
      * @return int
      */
     public function getCurrentLanguageId()
-    {   
+    {
         if ($this->currentLanguageId === null) {
             return $this->getDefaultLanguageId();
         }
     	return $this->currentLanguageId;
     }
-    
+
     /**
      * Returns the current language short name
      * @return string
