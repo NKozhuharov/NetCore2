@@ -6,13 +6,13 @@ class Menu
      * Path name to display in the header
      */
     private $pathName;
-    
+
     /**
      * @var string
      * A copy of the $Core->Rewrite->url
      */
     private $url = '';
-    
+
     /**
      * Creates a new instance of the Menu class
      */
@@ -109,7 +109,7 @@ class Menu
     private function formTree(array $tree, bool $isResp = null)
     {
         global $Core;
-        
+
         if ($isResp === null) {
             $isResp = true;
         }
@@ -123,6 +123,9 @@ class Menu
         foreach($tree as $t) {
             $name = $Core->language->{mb_strtolower(str_replace(' ', '_', $t['name']))};
 
+            if(empty($name)){
+                continue;
+            }
             if ($t['children']) {
             ?>
                 <li id="<?php echo $t['id']; ?>" class="hasMenu<?php echo ($t['url'] == $this->url ? ' is-current' : '' ).($isResp ? ' respPad' : '').(in_array($t['id'], $parents) ? ' active' : ''); ?>" title="<?php echo $name; ?>">
@@ -147,16 +150,16 @@ class Menu
             }
         }
     }
-    
+
     /**
      * Overrides the default path name
      * @param string $customPathName - the new path name
      */
-    public function setCustomPathName(string $customPathName) 
+    public function setCustomPathName(string $customPathName)
     {
         $this->pathName = $customPathName;
     }
-    
+
     /**
      * Gets the current path name to display in the header
      * @return string
@@ -168,7 +171,7 @@ class Menu
         }
         return $this->pathName;
     }
-    
+
     /**
      * Returns translated path to file separated with delimiter
      * @param array $pages - array of pages from database
@@ -178,10 +181,10 @@ class Menu
     public function getFullPathName()
     {
         global $Core;
-        
+
         $delimiter = ' / ';
-        $pages = $Core->{$Core->userModel}->user->pages;
-        
+        $pages = $Core->{$Core->userModel}->pages;
+
         $fullPageName = false;
 
         if ($pages && $pages = $this->buildTree($pages)) {
@@ -218,11 +221,11 @@ class Menu
     public function getMenu(array $pages, string $class = null)
     {
         global $Core;
-        
+
         if ($class === null) {
             $class = 'allResp';
         }
-        
+
         ob_start();
         ?>
         <div class="mega-menu <?php echo $class; ?>">

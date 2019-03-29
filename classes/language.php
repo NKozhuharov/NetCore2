@@ -338,4 +338,3 @@ class Language extends Base
     	return $this->currentLanguage;
     }
 }
-?>

@@ -1,19 +1,86 @@
 <?php
-class User extends Base{
-    //common
-    private   $sessionKey                  = false;
-    private   $beforePass                  = 'WERe]r#$%{}^JH[~ghGHJ45 #$';
-    private   $afterPass                   = '9 Y{]}innv89789#$%^&';
-    private   $cookieName                  = '';
-    protected $sessionTime                 = 3600;      //session time in seconds
-    protected $lastLoginField              = false;     //set this to record last login time
+class User extends Base
+{
+    const BEFORE_PASS = 'WERe]r#$%{}^JH[~ghGHJ45 #$';
+    const AFTER_PASS = '9 Y{]}innv89789#$%^&';
+    
+    const DEFAULT_USER_ROLE     = "Nobody";
+    const DEFAULT_USER_LEVEL    = 0;
+    const DEFAULT_USER_LEVEL_ID = 0;
+    
+    /**
+     * @var string
+     * The key, which is used to store the session in the memcache
+     */
+    private $sessionKey;
+    
+    /**
+     * The name of the cookie for the user session
+     */
+    private $cookieName;
+    
+    /**
+     * @var array
+     * The user data is stored here
+     */
+    private $data;
+    
+    /**
+     * @var int
+     * User session time in seconds; after that the user will be logged out
+     */
+    protected $sessionTime = 3600;
+    
+    //database structure properties
+    
+    /**
+     * @var string
+     * The name of the table with the users
+     */
+    protected $tableName = 'users';
+    
+    /**
+     * @var string
+     * The name of the table, where the user levels are stored.
+     * If this is not empty, the user access levels will be considered when accessing pages
+     */
+    protected $usersLevelTableName;
+    
+    /**
+     * @var string
+     * The name of the table, where the additional user types are stored.
+     * If this is not empty, a user account can be created with same username or email but with different type_id
+     */
+    protected $usersTypesTableName;
+    
+    /**
+     * @var string
+     * The name of the table, where the pages of the site are recorded
+     */
+    protected $pagesTableName = 'pages';
+    
+    /**
+     * @var string
+     * Use this field in the users table to record last login time.
+     * If it is empty it will not record it.
+     */
+    protected $lastLoginField;
+    
+    //regitsration properties
+    
+    /**
+     * @var string
+     * Allow registration with email, instead of username
+     */
+    protected $registerWithEmail = false;
+    
     //recovery
-    public    $usersRecoveryTableName      = false;     //set this to enable password recovery functions, must contain user_id(int) and token(varchar 50)
-    public    $tokenExpireTime             = 3600;      //
+    protected $usersRecoveryTableName      = false;     //set this to enable password recovery functions, must contain user_id(int) and token(varchar 50)
+    protected $tokenExpireTime             = 3600;      //
     protected $usersRecoveryControllerName = 'recovery'; //this is the controller, which handles the tokens
      //registration and password requirements
     protected $emailRequired               = true;
-    protected $usernameRequired            = true;      //if false email is used as username but must be preset in the registration(anything) and in user table
+    
     protected $passMinLen                  = 5;
     protected $passMaxLen                  = 20;
     protected $userNameMinLen              = 5;
@@ -21,283 +88,377 @@ class User extends Base{
     protected $passNumbersRequired         = false;
     protected $passCapitalsRequired        = false;
     protected $passSymbolsRequired         = false;
-    //user levels and types
-    protected $usersLevelTableName         = false;
-    protected $usersTypesTableName         = false;     //if is set a user account can be created with same username or email but with different type_id
-    protected $pagesTableName              = 'pages';
-    //user info
-    public    $user                        = NULL;
-    //current page info
-    public    $pageLevel                   = false;
-    public    $pageId                      = false;
-
-    public function init(){
-        global $Core;
-
-        if(!isset($_SERVER['REMOTE_ADDR'], $_SERVER['REQUEST_URI'])){
-            throw new Exception($Core->language->error_remote_addr_or_request_uri_is_not_set);
+    
+    
+    
+    
+    
+    /**
+     * Gets a property from the data of the user
+     * @param string $propertyName - the name of the property
+     * @return mixed
+     */
+    public function __get(string $propertyName)
+    {
+        if (isset($this->data[$propertyName])) {
+            return $this->data[$propertyName];
+        }
+    }
+    
+    /**
+     * Returns the data of the user
+     * @return array
+     */
+    public function getData()
+    {
+        return $this->data;
+    }
+    
+    /**
+     * Inits the user session and cookie
+     */
+    public function init()
+    {
+        if (!isset($_SERVER['REMOTE_ADDR'], $_SERVER['REQUEST_URI'])) {
+            throw new Exception("Remote address or request uri is not set");
         }
 
         $this->cookieName = 'user_'.sha1($this->tableName);
 
         $this->setSessionKey();
-        $this->setUser();
+        
+        $this->getSessionDataFromMemcache();
 
-        if($this->usersLevelTableName){
-            $this->checkAccess();
-        }
+        $this->checkUserAccess();
     }
-
-    private function setSessionKey(){
-        if(isset($_COOKIE[$this->cookieName])){
+    
+    /**
+     * Set the sessionKey property for the current user
+     * If the session cookie is set, gets the unique id for the session from it
+     * Always resets the session cookie to extend the session time
+     */
+    private function setSessionKey()
+    {
+        if (isset($_COOKIE[$this->cookieName])) {
             $uniqid = $_COOKIE[$this->cookieName];
-        }else{
+        } else {
             $uniqid = uniqid();
         }
-
+        
         setcookie($this->cookieName, $uniqid, time() + $this->sessionTime, "/");
+        
         $this->sessionKey = $this->tableName.$_SERVER['REMOTE_ADDR'].$_SERVER['HTTP_USER_AGENT'].$uniqid;
-        return true;
     }
-
-    public function setProperty($property, $value){
-        $this->user->$property = $value;
-        $this->setSession($this->user);
-    }
-
-    private function setSession($user){
+    
+    /**
+     * Records the current user data in memcache using the session key
+     */
+    private function setSessionInMemcache()
+    {
         global $Core;
 
-        $Core->db->memcache->set($this->sessionKey, array("expire" => time() + $this->sessionTime,'user' => $user));
-        return true;
+        $Core->db->memcache->set($this->sessionKey, array("expire" => time() + $this->sessionTime, 'data' => $this->data));
     }
-
-    public function resetSession(){
-        global $Core;
-
-        $this->user = (object) array('id' => 0, 'level' => 0, 'level_id' => 0, 'loggedIn' => false, 'pages' => false);
-        $Core->db->memcache->set($this->sessionKey,array("expire" => time() + $this->sessionTime, 'user' => $this->user));
-        return true;
+    
+    /**
+     * Init the user data to it's default value
+     */
+    private function setUserDataToDefault()
+    {
+        $this->data = array(
+            'id'        => 0, 
+            'level'     => self::DEFAULT_USER_LEVEL,
+            'level_id'  => self::DEFAULT_USER_LEVEL_ID,
+            'role'      => self::DEFAULT_USER_ROLE,
+            'logged_in' => false, 
+            'pages'     => false,
+        );
     }
-
-    private function setUser(){
+    
+    /**
+     * Gets the session data from memcache and sets the data property of the class
+     */
+    private function getSessionDataFromMemcache()
+    { 
         global $Core;
+        
+        $data = $Core->db->memcache->get($this->sessionKey);
 
-        $key = $Core->db->memcache->get($this->sessionKey);
-
-        if($this->user = isset($key['expire'], $key['user'], $key['user']->loggedIn) && $key['expire'] >= time() ? $key['user'] : false){
-            $this->user->id       = intval($this->user->id);
-            $this->user->level    = intval($this->user->level);
-            $this->user->level_id = intval($this->user->level_id);
-            $this->user->loggedIn = $key['user']->loggedIn;
-        }else{
-            $this->user = (object) array('id' => 0, 'level' => 0, 'level_id' => 0, 'loggedIn' => false, 'pages' => false);
+        if (isset($data['expire'], $data['data'], $data['data']['logged_in']) && $data['expire'] >= time() ? $data['data'] : false) {
+            $this->data = $data['data'];
+        } else {
+            $this->setUserDataToDefault();
         }
-
-        $this->setSession($this->user);
-        return true;
     }
-
-    public function hashPassword($pass){
+    
+    /**
+     * Resets the current user data and records it in memcache
+     */
+    public function resetSession()
+    {
+        $this->setUserDataToDefault();
+        $this->setSessionInMemcache();
+    }
+    
+    /**
+     * Hashes the provided password string to the format used to store the passwords
+     * @param string $password - the password to hash
+     * @return string
+     */
+    public function hashPassword(string $password)
+    {
         global $Core;
 
-        return md5($this->beforePass.sha1($Core->db->escape($pass)).$this->afterPass);
+        return md5(self::BEFORE_PASS.sha1($Core->db->escape($password)).self::AFTER_PASS);
     }
-
-    public function login($username, $password, $typeId = false){
+    
+    /**
+     * Sets a property in the user data and stores in memcache
+     * @param string $propertyName - the name of the property to set
+     * @param mixed $propertyValue - the value of the property to set
+     */
+    public function setProperty(string $propertyName, $propertyValue)
+    {
+        $this->data[$propertyName] = $propertyValue;
+        $this->setSessionInMemcache();
+    }
+    
+    /**
+     * Gets the data for the level of security, allowed for the current user
+     * @return array
+     */
+    private function getUserLevelData()
+    {
+        if ($this->usersLevelTableName) {
+            if (!isset($this->data['level_id'])) {
+                throw new Exception("Column `level_id` does not exist in table `{$this->tableName}`");
+            }
+            
+            $selector = new BaseSelect($this->usersLevelTableName);
+            $selector->setWhere(" id = {$this->data['level_id']}");
+            $selector->setGlobalTemplate('fetch_assoc');
+            $data = $selector->execute();
+            unset($data['id']);
+            return $data;
+        } else {
+            return array(
+                'level'    => self::DEFAULT_USER_LEVEL,
+                'level_id' => self::DEFAULT_USER_LEVEL_ID,
+                'role'     => self::DEFAULT_USER_ROLE,
+            );
+        }
+    }
+    
+    /**
+     * Gets a collection of the pages, allowed for the current user
+     * @return array
+     */
+    private function getUserPages()
+    {
         global $Core;
 
-        if(empty($username) || !is_string($username)){
-            if($this->usernameRequired){
-                throw new BaseException($Core->language->error_enter_username);
-            }else{
+        if ($this->usersLevelTableName) {
+            $selector = new BaseSelect($this->pagesTableName);
+            $selector->addField('*', null);
+            $selector->addField('level', 'level', $this->usersLevelTableName);
+            $selector->addLeftJoin($this->usersLevelTableName, 'id', 'level_id');
+            $selector->setWhere("(`level` > {$this->data['level']} AND `name` IS NOT NULL AND `name` != '') OR `level` = 0 ");
+            $selector->setOrderBy("`{$Core->dbName}`.`{$this->pagesTableName}`.`order` ASC, `{$Core->dbName}`.`{$this->pagesTableName}`.`name` ASC");
+            return $selector->execute();
+        }
+        
+        return $base->getAll(null, "`name` IS NOT NULL AND `name` != ''", "`order` ASC, `name` ASC");
+    }
+    
+    /**
+     * Checks if the user has an access to the current page;
+     * If he hasn't, it will redirect to page not found
+     * If the user is not logged in, he only has access to the level 0 pages
+     */
+    private function checkUserAccess()
+    {
+        global $Core;
+        
+        if (!$this->usersLevelTableName) {
+            return;
+        }
+        
+        if (!isset($this->data['pages']) || empty($this->data['pages'])) {
+            $selector = new BaseSelect($this->pagesTableName);
+            $selector->addField('level', 'level', $this->usersLevelTableName);
+            $selector->addLeftJoin($this->usersLevelTableName, 'id', 'level_id');
+            $selector->setWhere("`{$Core->dbName}`.`{$this->pagesTableName}`.`url` = '".$Core->db->escape($Core->rewrite->url)."'");
+            $selector->setGlobalTemplate('fetch_assoc');
+            $level = $selector->execute();
+            if (!empty($level) && isset($level['level']) && $level['level'] == 0) {
+                return;
+            }
+        } else {
+            foreach ($this->data['pages'] as $page) {
+                if ($Core->Rewrite->url == $page['url']) {
+                    return;
+                }
+            }
+        }
+        
+        $Core->doOrDie();
+    }
+
+    /**
+     * Loggs in a user with a username(email) and password, getting its data from the database
+     * Throws BaseException if username/password is empty or they are not registered
+     * Throws Exception if $typeId is provided but the model is not set up correctly
+     * @param string $username
+     * @param string $password
+     * @param int $typeId - optional type id for the user
+     * @throws Exception
+     * @throws BaseException
+     */
+    public function login(string $username, string $password, int $typeId = null)
+    {
+        global $Core;
+        
+        $username = trim($username);
+        $password = trim($password);
+        
+        if (empty($username)) {
+            if ($this->registerWithEmail) {
                 throw new BaseException($Core->language->error_enter_email);
+            } else {
+                throw new BaseException($Core->language->error_enter_username);
             }
         }
 
-        if(empty($password) || !is_string($password)){
+        if (empty($password)) {
             throw new BaseException($Core->language->error_enter_password);
         }
 
-        $username = $Core->db->escape(trim($username));
+        $username = $Core->db->escape($username);
         $password = $this->hashPassword($password);
-
-        if($typeId){
+        
+        $queryWhere = array();
+        
+        if ($typeId != null) {
             if(!$this->usersTypesTableName){
-                throw new BaseException($Core->language->error_users_types_table_is_not_set);
+                throw new Exception("usersTypesTableName is not set");
             }
 
-            if(!is_numeric($typeId) || !isset($this->getUserTypes()[$typeId])){
-                throw new BaseException($Core->language->error_invalid_user_type);
+            if(!isset($this->getUserTypes()[$typeId])){
+                throw new Exception("Invalid user type");
             }
 
-            $typeId = " AND `type_id` = '".($Core->db->escape($typeId))."' ";
+            $queryWhere[] = "`type_id` = '".($Core->db->escape($typeId))."'";
         }
-
-        if($userId = $Core->db->result("SELECT `id` FROM `{$Core->dbName}`.`{$this->tableName}` WHERE (`username`='$username' OR `email` = '$username') $typeId AND `password` = '$password'")){
-            $this->setSession((object) $this->getUserInfo($userId));
-            $this->setUser();
-            if($this->lastLoginField){
-                $Core->db->query("UPDATE `{$Core->dbName}`.`{$this->tableName}`
-                SET {$this->lastLoginField} = '".$Core->globalFunctions->formatMysqlTime(time(),true)."' WHERE `id` = {$this->user->id}");
-            }
-        }else{
-            if($this->usernameRequired){
-                throw new BaseException($Core->language->error_username_or_password_is_invalid);
-            }else{
-                throw new BaseException($Core->language->error_email_addres_or_password_is_invalid);
-            }
+        
+        if ($this->registerWithEmail) {
+            $queryWhere[] = "`email` = '$username'";
+        } else {
+            $queryWhere[] = "`username` = '$username'";
         }
-        return true;
+        
+        $queryWhere[] = "`password` = '$password'";
+         
+        $this->data = $this->getAll(1, " ".implode(' AND ', $queryWhere));
+        
+        if (!empty($this->data)) {
+            $this->data = current($this->data);
+            $this->data['logged_in'] = true;
+            $this->data = array_merge($this->data, $this->getUserLevelData());
+            $this->data['pages'] = $this->getUserPages();
+            
+            $this->setSessionInMemcache();
+            
+            if ($this->lastLoginField) {
+                $this->updateById(
+                    $this->data['id'],
+                    array($this->lastLoginField => $Core->globalFunctions->formatMysqlTime(time(),true))
+                );
+            }
+        } else if ($this->registerWithEmail) {
+            throw new BaseException($Core->language->error_email_addres_or_password_is_invalid);
+        } else {
+            throw new BaseException($Core->language->error_username_or_password_is_invalid);
+        }
     }
-
-    public function logout($url = '/login'){
+    
+    /**
+     * Allows the developer to force login by user id
+     * Throws Exception if the user id is not provided or the user does not exist
+     * @param int $userId - the id of the user
+     * @throws Exception
+     */
+    public function loginById(int $userId)
+    {
         global $Core;
+
+        if (empty($id)) {
+            throw new Exception("Provide user id");
+        }
+        
+        $this->data = $this->getById($userId);
+        
+        if (empty($this->data)) {
+            throw new Exception("This user does not exist");
+        } else {
+            $this->data['logged_in'] = true;
+            $this->data = array_merge($this->data, $this->getUserLevelData());
+            $this->data['pages'] = $this->getUserPages();
+            
+            $this->setSessionInMemcache();
+            
+            if ($this->lastLoginField) {
+                $this->updateById(
+                    $this->data['id'],
+                    array($this->lastLoginField => $Core->globalFunctions->formatMysqlTime(time(),true))
+                );
+            }
+        }
+    }
+    
+    /**
+     * Destroys the current user sesson and redicrects to the provided url (/login by default)
+     * @param string $redirectUrl - an URL to redirect to after login
+     */
+    public function logout(string $redirectUrl = null)
+    {
+        global $Core;
+        
+        if ($redirectUrl === null) {
+            $redirectUrl = '/login';
+        }
 
         $this->resetSession();
 
-        if($url !== false && (!isset($_SERVER['REQUEST_URI']) || $_SERVER['REQUEST_URI'] != $url)){
-            $Core->redirect($url);
+        if ($redirectUrl !== false && (!isset($_SERVER['REQUEST_URI']) || $_SERVER['REQUEST_URI'] != $redirectUrl)) {
+            $Core->redirect($redirectUrl);
         }
-        return true;
     }
 
-    public function getUserInfo($id){
+    /**
+     * Gets a list of all user levels
+     * @return array
+     */
+    public function getUserLevels()
+    {
         global $Core;
-
-        $id = intval($id);
-        if(empty($id)){
-            throw new Exception($Core->languge->error_invalid_id);
-        }
-
-        if($this->usersLevelTableName){
-            $q = "
-            SELECT
-                 `{$Core->dbName}`.`{$this->tableName}`.*
-                ,`{$Core->dbName}`.`{$this->usersLevelTableName}`.`role` AS 'role'
-                ,`{$Core->dbName}`.`{$this->usersLevelTableName}`.`level` AS 'level'
-                ,'true' AS 'loggedIn'
-            FROM
-                `{$Core->dbName}`.`{$this->tableName}`
-            LEFT JOIN
-                `{$Core->dbName}`.`{$this->usersLevelTableName}`
-            ON
-                `{$Core->dbName}`.`{$this->tableName}`.`level_id` = `{$Core->dbName}`.`{$this->usersLevelTableName}`.`id`
-            WHERE
-                `{$Core->dbName}`.`{$this->tableName}`.`id`= '$id'";
-        }
-        else{
-            $q = "SELECT *, 'true' AS 'loggedIn', '0' AS 'level' FROM `{$Core->dbName}`.`{$this->tableName}` WHERE `{$Core->dbName}`.`{$this->tableName}`.`id`= '$id'";
-        }
-        if($Core->db->query($q, 0, 'fetch_assoc',$user)){
-            $user['pages'] = $this->getUserPages($user['level']);
-            return $user;
-        }
-        return false;
-    }
-
-    public function checkAccess(){
-        global $Core;
-
-        if($Core->db->query("
-            SELECT
-                `{$Core->dbName}`.`{$this->pagesTableName}`.`id`
-                ,`{$Core->dbName}`.`{$this->usersLevelTableName}`.`level` AS 'level'
-            FROM
-                `{$Core->dbName}`.`{$this->pagesTableName}`
-            LEFT JOIN
-                `{$Core->dbName}`.`{$this->usersLevelTableName}`
-            ON
-                `{$Core->dbName}`.`{$this->pagesTableName}`.`level_id` = `{$Core->dbName}`.`{$this->usersLevelTableName}`.`id`
-            WHERE
-                `{$Core->dbName}`.`{$this->pagesTableName}`.`url` = '".$Core->db->escape($Core->rewrite->url)."'"
-            , 0,'fetch_assoc', $mainPage))
-        {
-            $this->pageLevel = intval($mainPage['level']);
-            $this->pageId    = intval($mainPage['id']);
-        }else{
-            $Core->doOrDie();
-        }
-
-        /*if($mainPage = $Core->globalFunctions->arraySearch($this->user->pages, 'url', $Core->rewrite->URL)){
-            $mainPage        = current($mainPage);
-            $this->pageLevel = intval($mainPage['level']);
-            $this->pageId    = intval($mainPage['id']);
-        }
-        echo '<br><br><br><br><br>';
-        $Core->dump($mainPage, false);*/
-
-
-        if($this->pageLevel !== 0 && ($this->user->level === 0 || $this->pageLevel < $this->user->level)){
-            $Core->doOrDie();
-        }
-        return true;
-    }
-
-    public function getUserPages($level = false){
-        global $Core;
-
-        if(!$level){
-            $level = $this->user->level;
-        }
-
-        if($this->usersLevelTableName){
-            $q  = " SELECT ";
-            $q .= " `{$Core->dbName}`.`{$this->pagesTableName}`.*, ";
-            $q .= " `{$Core->dbName}`.`{$this->usersLevelTableName}`.`level` AS 'level'";
-            $q .= " FROM `{$Core->dbName}`.`{$this->pagesTableName}` ";
-            $q .= " LEFT JOIN  `{$Core->dbName}`.`{$this->usersLevelTableName}` ";
-            $q .= " ON `{$Core->dbName}`.`{$this->usersLevelTableName}`.`id` = `{$Core->dbName}`.`{$this->pagesTableName}`.`level_id` ";
-            $q .= " WHERE `level_id`".($level === 0 ? " = " : " >= ");
-            $q .= " (SELECT `id` FROM `{$Core->dbName}`.`{$this->usersLevelTableName}` WHERE `level` = $level) ";
-            $q .= " AND `name` IS NOT NULL AND `name` != '' ";
-            $q .= " ORDER BY `{$Core->dbName}`.`{$this->pagesTableName}`.`order` ASC, `{$Core->dbName}`.`{$this->pagesTableName}`.`name` ASC";
-        }else{
-            $q = "SELECT * FROM `{$Core->dbName}`.`{$this->pagesTableName}` WHERE `name` IS NOT NULL AND `name` != '' ORDER BY `order` ASC, `name` ASC";
-        }
-
-        if($Core->db->query($q, 0, 'simpleArray', $pages)){
-            return $pages;
-        }
-        return false;
-    }
-
-    public function getUserLevels(){
-        global $Core;
-
+        
         $Core->db->query("SELECT * FROM `{$Core->dbName}`.`{$this->usersLevelTableName}` WHERE `level` != '0'", 0, 'fillArray', $levels, 'id');
         return $levels;
     }
-
-    public function getUserTypes(){
+    
+    /**
+     * Gets a list of all user types
+     * @return array
+     */
+    public function getUserTypes()
+    {
         global $Core;
 
         $Core->db->query("SELECT * FROM `{$Core->dbName}`.`{$this->usersTypesTableName}`", 0, 'fillArray', $levels, 'id');
         return $levels;
     }
 
-    public function loginById($id){
-        global $Core;
-
-        if(empty($id) || !is_numeric($id)){
-            throw new BaseException($Core->language->error_invalid_id);
-        }
-
-        $userInfo = $this->getUserInfo($id);
-        if($userInfo){
-            $this->setSession((object)$userInfo);
-            $this->setUser();
-            if($this->lastLoginField){
-                $Core->db->query("UPDATE `{$Core->dbName}`.`{$this->tableName}`
-                SET {$this->lastLoginField} = '".$Core->globalFunctions->formatMysqlTime(time(),true)."' WHERE `id` = {$this->user->id}");
-            }
-        }
-        else{
-            throw new BaseException($Core->language->error_this_id_does_not_exist);
-        }
-
-        return true;
-    }
+    //REGISTRATION FUNCTIONS
 
     public function validateUsername($username, $typeId = false){
         global $Core;
@@ -645,4 +806,3 @@ class User extends Base{
         return true;
     }
 }
-?>

@@ -10,7 +10,7 @@ class Messages extends Base{
         global $Core;
 
         if(!$Core->userModel){
-            throw new Exception($Core->language->error_user_model_is_not_set);
+            throw new Exception("User model is not set");
         }
     }
 
@@ -19,11 +19,11 @@ class Messages extends Base{
 
         if(isset($_REQUEST['hide_notify']) && is_numeric($_REQUEST['hide_notify'])){
             $_REQUEST['hide_notify'] = $Core->db->escape($_REQUEST['hide_notify']);
-            $Core->db->query("UPDATE `{$Core->dbName}`.`{$this->tableName}` SET `notify` = 0 WHERE `user_id` = ".$Core->{$Core->userModel}->user->id." AND `type` = {$_REQUEST['hide_notify']}");
+            $Core->db->query("UPDATE `{$Core->dbName}`.`{$this->tableName}` SET `notify` = 0 WHERE `user_id` = ".$Core->{$Core->userModel}->id." AND `type` = {$_REQUEST['hide_notify']}");
         }elseif(isset($_REQUEST['seen']) && is_numeric($_REQUEST['seen'])){
             $_REQUEST['seen']  = $Core->db->escape($_REQUEST['seen']);
 
-            $Core->db->query("UPDATE `{$Core->dbName}`.`{$this->tableName}` SET `seen` = 1 WHERE `user_id` = ".$Core->{$Core->userModel}->user->id." AND `id` = {$_REQUEST['seen']}");
+            $Core->db->query("UPDATE `{$Core->dbName}`.`{$this->tableName}` SET `seen` = 1 WHERE `user_id` = ".$Core->{$Core->userModel}->id." AND `id` = {$_REQUEST['seen']}");
         }elseif(isset($_REQUEST['delete'])){
             if(!is_numeric($_REQUEST['delete'])){
                 throw new Error($Core->language->error_invalid_message_id);
@@ -79,7 +79,7 @@ class Messages extends Base{
         global $Core;
 
         if(!$userId){
-            $userId = $Core->{$Core->userModel}->user->id;
+            $userId = $Core->{$Core->userModel}->id;
         }
 
         $count = $this->getMessagesCount($userId);
@@ -124,7 +124,7 @@ class Messages extends Base{
         global $Core;
 
         if(!$userId){
-            $userId = $Core->{$Core->userModel}->user->id;
+            $userId = $Core->{$Core->userModel}->id;
         }
 
         //insert new message
@@ -152,7 +152,7 @@ class Messages extends Base{
         global $Core;
 
         if(!$userId){
-            $userId = $Core->{$Core->userModel}->user->id;
+            $userId = $Core->{$Core->userModel}->id;
         }
 
         //delete if message id exists for user id
