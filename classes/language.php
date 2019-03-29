@@ -41,6 +41,7 @@ class Language extends Base
      * Creates an instance of the Language class
      * Makes a query to the databse to get a list of the allowed languages
      * Sets the PHP locale to the current language
+     * Requires languages, languages_lang, phrases and phrases_text tables to work!
      * Throws Exception if no languages are allowed
      * @throws Exception
      */

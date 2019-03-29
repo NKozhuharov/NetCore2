@@ -1,6 +1,11 @@
 <?php
 class ExceptionHandler
 {
+    /**
+     * Pasrses the exception message and returns the translated (or not) text
+     * @param Exception $exception - the thrown exception
+     * @return string
+     */
     private function getExceptionMessage($exception)
     {
         global $Core;

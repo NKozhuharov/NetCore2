@@ -64,6 +64,11 @@ try {
 
     $Core = new Core($info);
 
+    //init images class if present
+    if ($Core->{$Core->imagesModel}) {
+        $Core->{$Core->imagesModel};
+    }
+
     //init users class if present
     if ($Core->{$Core->userModel}) {
         $Core->{$Core->userModel}->init();

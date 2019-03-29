@@ -127,6 +127,7 @@ class Core{
     private $itemsPerPage              = 25;
     private $numberOfPagesInPagination = 5;
     //images
+    private $imagesModel               = null;
     private $imagesStorage             = 'images_org/'; //original images not web accessible
     private $imagesDir                 = 'images/';
     private $imagesWebDir              = '/images/';
@@ -340,7 +341,7 @@ class Core{
         if ($model !== false) {
             return $model;
         }
-        
+
         return false;
     }
 
