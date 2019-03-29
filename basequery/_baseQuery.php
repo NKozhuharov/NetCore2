@@ -40,11 +40,15 @@
          */
         public function __construct(string $tableName)
         {
+            global $Core;
+            
             if (empty($tableName)) {
                 throw new Exception("Provide a table name!");
             }
             
             $this->tableName = $tableName;
+            
+            $this->dbName = $Core->dbName;
         }
         
         /**
@@ -76,7 +80,7 @@
         }
 
         /**
-         * Dumps (echoes) the body of the query.
+         * Dumps the body of the query.
          * By default, it dies after the dump
          * @param bool @die - if set to false, the script will not die after the dump
          */
@@ -87,6 +91,19 @@
                 $this->build(),
                 ($die === false) ? false : true
             );
+        }
+        
+        /**
+         * Echoes the body of the query.
+         * By default, it dies after the echo
+         * @param bool @die - if set to false, the script will not die after the echo
+         */
+        public function toString(bool $die = null)
+        {
+            echo $this->build();
+            if ($die !== false) {
+                die;
+            }
         }
         
         /**

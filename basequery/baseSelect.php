@@ -4,6 +4,7 @@
         use BaseWhere;
         use BaseOrderBy;
         use BaseLimit;
+        use BaseJoin;
 
         const DEFAULT_SELECTED_FIELDS = '*';
 
@@ -90,18 +91,23 @@
          * Adds a field to the query
          * @param string $field - the name of the field
          * @param string $name - the "AS" name for the field
+         * @param string $tableName - the name of the table, from which to select the field
          */
-        public function addField(string $field, string $name = null)
+        public function addField(string $field, string $name = null, string $tableName = null)
         {
             global $Core;
 
             $field = $Core->db->escape($field);
             $name = $Core->db->escape($name);
+            
+            if (empty($tableName)) {
+                $tableName = $this->tableName;
+            }
 
             if (!empty($name)) {
-                $this->fields[] = "{$field} AS '{$name}'";
+                $this->fields[] = "`{$tableName}`.`{$field}` AS '{$name}'";
             } else {
-                $this->fields[] = $field;
+                $this->fields[] = "`{$tableName}`.`{$field}`";
             }
         }
 
@@ -118,7 +124,9 @@
             $this->query .= ' FROM ';
 
             $this->query .= "`".(empty($this->dbName) ? $Core->dbName : $this->dbName)."`.`{$this->tableName}`";
-
+            
+            $this->addJoinsToQuery();
+            
             $this->addWhereToQuery();
             $this->addOrderByToQuery();
             $this->addLimitToQuery();
