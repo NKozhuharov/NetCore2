@@ -90,27 +90,57 @@
         /**
          * Adds a field to the query
          * @param string $field - the name of the field
-         * @param string $name - the "AS" name for the field
+         * @param string $alias - the "AS" alias for the field
          * @param string $tableName - the name of the table, from which to select the field
          */
-        public function addField(string $field, string $name = null, string $tableName = null)
+        public function addField(string $field, string $alias = null, string $tableName = null)
         {
             global $Core;
 
             $field = $Core->db->escape($field);
-            $name = $Core->db->escape($name);
+            $alias = $Core->db->escape($alias);
             
             if (empty($tableName)) {
                 $tableName = $this->tableName;
             }
 
-            if (!empty($name)) {
-                $this->fields[] = "`{$tableName}`.`{$field}` AS '{$name}'";
+            if (!empty($alias)) {
+                $this->fields[] = "`{$tableName}`.`{$field}` AS '{$alias}'";
             } else {
                 $this->fields[] = "`{$tableName}`.`{$field}`";
             }
         }
-
+        
+        /**
+         * Allows to add multiple fields, without aliases
+         * The array keys of the fields parameter are ignored
+         * @param array $fields - the names of the fields to add
+         * @param string $tableName - the name of the table, from which to select the fields
+         */
+        public function addFields(array $fields, string $tableName = null)
+        {
+            if (!empty($fields)) {
+                foreach ($fields as $field) {
+                    $this->addField($field, null, $tableName);
+                }
+            }
+        }
+        
+        /**
+         * Allows to add multiple fields, with aliases
+         * The array keys of the fields parameter are the fields, the values are the aliases
+         * @param array $fields - the names and aliases of the fields to add
+         * @param string $tableName - the name of the table, from which to select the fields
+         */
+        public function addFieldsWithAliasess(array $fields, string $tableName = null)
+        {
+            if (!empty($fields)) {
+                foreach ($fields as $field => $alias) {
+                    $this->addField($field, $alias, $tableName);
+                }
+            }
+        }
+        
         /**
          * Builds the query from all of it's parts
          * @return string
