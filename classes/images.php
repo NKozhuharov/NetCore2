@@ -1,7 +1,18 @@
 <?php
-class Images extends Base{
+//TODO exted size types
+class Images extends Base
+{
+    /**
+     * @var string
+     * Table containing images info
+     */
     protected $tableName = 'images';
 
+    /**
+     * @var string
+     * The allowed image sizes containig the type ofthe image dimensions
+     * If is empty all sizes are allowed
+     */
     protected $allowedSizes = array(
         'org' => array(
             'org' => array('width' => false, 'height' => false),
@@ -15,32 +26,48 @@ class Images extends Base{
         ),
         'fixed' => array(
             '1920-1080' => array('width' => 1920, 'height' => 1080)
-        ),
-        /*false => array(
-            false => array('width' => false, 'height' => false)
-        )*/
+        )
     );
 
+    /**
+     * @var string
+     * Maximum image sizae in bytes
+     */
     protected $sizeLimit      = 10485760; //10MB
-    protected $sizeLimitText  = '10MB';
+
     protected $uploadName     = 'imageUpload'; //$_REQUEST flag for showing it is upload
     protected $showResponse   = true;
     protected $allowDuplicate = false;
+
+    /**
+     * @var bool
+     * If is set to true the script will die after execution
+     */
     protected $dieWhenDone    = true;
-    protected $defaultFormat  = 'jpg';
+
+    /**
+     * @var string
+     * Default file format. If is not empty all files will be converted to it.
+     */
+    protected $fileFormat  = 'jpg';
+
+    /**
+     * @var string
+     * Current imagick file folder containing $this->sizeType, $this->sizeKey
+     */
     private $currentFolder  = false;
-    private $folderNumber   = false;
+    private $sizeType       = false;
+    private $sizeKey        = false;
+    private $width          = false;
+    private $height         = false;
     private $name           = false;
     private $orgMd5         = false;
     private $response       = array();
-    private $width          = false;
-    private $height         = false;
-    private $sizeType       = false;
-    private $sizeKey            = false;
     private $imagick        = false;
-    protected $watermarkFile      = false; //'/var/www/site/www/img/watermark.png';
+    protected $watermarkFile = ''; //'/var/www/site/www/img/watermark.png';
 
-    public function __construct(){
+    public function __construct()
+    {
         #header('Content-Type: image/jpg');
         #header('X-Accel-Redirect: /images_org'.urldecode($_REQUEST['image']));
         #die;
@@ -52,139 +79,89 @@ class Images extends Base{
 
         global $Core;
 
-        if(isset($_FILES[$this->uploadName], $_FILES[$this->uploadName]['tmp_name'])){
-            if(is_array($_FILES[$this->uploadName]['tmp_name'])){
+        if (!isset($_SERVER['REQUEST_URI'])) {
+            throw new Exception('Unallowed action');
+        }
+
+        //image upload
+        if (isset($_FILES[$this->uploadName], $_FILES[$this->uploadName]['tmp_name'])) {
+            if (is_array($_FILES[$this->uploadName]['tmp_name'])) {
                 $files = $Core->globalfunctions->reArrangeRequestFiles($_FILES[$this->uploadName]);
-            }else{
+            } else {
                 $files = array($_FILES[$this->uploadName]);
             }
 
-            foreach($files as $file){
-                $fileLocation = $this->checks($file);
+            $response = array();
+
+            foreach($files as $file) {
+                $fileLocation = $this->prepareUpload($file);
 
                 $this->setImagick($fileLocation);
-                if($this->defaultFormat){
-                    $this->convertFormat();
-                }
+
+                $this->setFileFormat($fileLocation);
+
                 $this->orgMd5 = md5($this->imagick->__toString());
 
-                $this->upload();
+                $response[] = $this->upload();
             }
 
-            if(count($this->response) == 1){
-                if($this->showResponse){
-                    echo $this->response[0];
-                }else{
-                    return $this->response[0];
+
+            if (count($response) == 1) {
+                if ($this->showResponse) {
+                    echo $response[0];
+                } else {
+                    return $response[0];
                 }
-            }else{
+            } else {
                 if($this->showResponse){
-                    echo json_encode($this->response);
+                    echo json_encode($response);
                 }else{
-                    return $this->response;
+                    return $response;
                 }
             }
 
-            if($this->dieWhenDone){
+            if ($this->dieWhenDone) {
                 die;
             }
-        }elseif(substr($_SERVER['REQUEST_URI'], 0, strlen($Core->imagesWebDir)) == $Core->imagesWebDir){
-            $fileLocation = $this->checks();
+        }
+        //create image on demand
+        elseif (substr($_SERVER['REQUEST_URI'], 0, strlen($Core->imagesWebDir)) == $Core->imagesWebDir) {
+            $fileLocation = $this->prepareOnDemand();
+
             $this->setImagick($fileLocation);
+
+            $this->setFileFormat($fileLocation);
+
             $this->orgMd5 = md5_file($fileLocation);
-            $this->processResized();
+
+            $this->createOnDemand();
         }
     }
 
-    public function checks(array $file = null){
+    /**
+     * Prepares uploaded file/s and sets the needed class variables
+     * Throws Exception if the uploaded file is not a valid image or bigger thnan $this->sizeLimit
+     * @param string $file - temp file location
+     * @throws Exception
+     */
+    private function prepareUpload(array $file)
+    {
         global $Core;
 
-        if(!isset($_SERVER['REQUEST_URI'])){
-            throw new Exception('Unallowed action');
-        }elseif($file){
-            if (empty($file['tmp_name'])) {
-                throw new BaseException("Image is empty");
-            } elseif (!stristr(mime_content_type($file['tmp_name']), 'image')) {
-                throw new BaseException("The file %%`{$file['name']}`%% is not valid");
-            } elseif ($this->sizeLimit && filesize($file['tmp_name']) > $this->sizeLimit) {
-                throw new BaseException("Image must not be bigger than %%{$this->sizeLimitText}%%");
-            }
-
-            $this->folderNumber  = $Core->globalfunctions->getFolder($Core->imagesStorage, true);
-            $this->name          = substr($file['name'], 0, strripos($file['name'], '.'));
-            $fileLocation        = urldecode($file['tmp_name']);
-            $this->sizeType      = 'org';
-            $this->sizeKey       = 'org';
-            $this->currentFolder = $this->sizeType.'/'.$this->folderNumber.'/';
-        } elseif (preg_match("~^".$Core->imagesWebDir."(width|height)/([\d]+)/([\d]+)/(.*)~",$_SERVER['REQUEST_URI'] ,$m)){
-            $this->sizeType      = $m[1];
-            $this->sizeKey       = $m[2];
-            $this->name          = urldecode(substr($m[4], 0, strripos($m[4], '.')));
-            $this->currentFolder = $m[1].'/'.$m[2].'/'.$m[3].'/';
-            $fileLocation        = urldecode($Core->imagesStorage.$m[3].'/'.$m[4]);
-
-            if(!$this->allowedSizes){
-                if($m[1] == 'width'){
-                    $this->width  = $m[2];
-                }elseif($m[1] == 'height'){
-                    $this->height = $m[2];
-                }
-            }
-
-            if(!is_file($fileLocation)){
-                //unexisting file
-                $Core->doOrDie();
-            }
-        }elseif(preg_match("~^".$Core->imagesWebDir."(fixed)/([\d]+-[\d]+)/([\d]+)/(.*)~",$_SERVER['REQUEST_URI'] ,$m)){
-            $this->sizeType      = $m[1];
-            $this->sizeKey       = $m[2];
-            $this->name          = urldecode(substr($m[4], 0, strripos($m[4], '.')));
-            $this->currentFolder = $m[1].'/'.$m[2].'/'.$m[3].'/';
-            $fileLocation        = urldecode($Core->imagesStorage.$m[3].'/'.$m[4]);
-
-            if(!$this->allowedSizes){
-                $rato = explode('-', $m[2]);
-                if(count($rato == 2)){
-                    $this->width  = $rato[0];
-                    $this->height = $rato[1];
-                }
-            }
-
-            if(!is_file($fileLocation)){
-                //unexisting file
-                $Core->doOrDie();
-            }
-        }elseif(preg_match("~^".$Core->imagesWebDir."(org)/([\d]+)/(.*)~",$_SERVER['REQUEST_URI'] ,$m)){
-            $this->sizeType      = 'org';
-            $this->sizeKey       = 'org';
-            $this->name          = urldecode(substr($m[3], 0, strripos($m[3], '.')));
-            $this->currentFolder = $m[1].'/'.$m[2].'/';
-            $fileLocation        = urldecode($Core->imagesStorage.$m[2].'/'.$m[3]);
-
-            if(!is_file($fileLocation)){
-                //unexisting file
-                $Core->doOrDie();
-            }
-        }else{
-            //unexisting file
-            $Core->doOrDie();
+        if (empty($file['tmp_name'])) {
+            throw new BaseException("Image is empty");
+        } elseif (!stristr(mime_content_type($file['tmp_name']), 'image')) {
+            throw new BaseException("The file %%`{$file['name']}`%% is not valid");
+        } elseif ($this->sizeLimit && filesize($file['tmp_name']) > $this->sizeLimit) {
+            throw new BaseException("Image must not be bigger than %%{$Core->GlobalFunctions->formatBytes($this->sizeLimit)}%%");
         }
 
-        if ($this->allowedSizes) {
-            if (!isset($this->allowedSizes[$this->sizeType])) {
-                throw new Exception($Core->language->unallowed_action);
-            } elseif ($this->allowedSizes && !isset($this->allowedSizes[$this->sizeType][$this->sizeKey])) {
-                throw new Exception($Core->language->unallowed_image_size);
-            } else {
-                $this->width  = $this->allowedSizes[$this->sizeType][$this->sizeKey]['width'];
-                $this->height = $this->allowedSizes[$this->sizeType][$this->sizeKey]['height'];
-            }
-        }
+        $this->name          = substr($file['name'], 0, strripos($file['name'], '.'));
+        $this->sizeType      = 'org';
+        $this->sizeKey       = 'org';
+        $fileLocation        = urldecode($file['tmp_name']);
 
-        if(empty($this->defaultFormat)){
-            $fileType            = mime_content_type($fileLocation);
-            $this->defaultFormat = substr($fileType, strrpos($fileType, '/') + 1);
-        }
+        $this->setImageDimensions();
 
         return $fileLocation;
     }
@@ -203,6 +180,8 @@ class Images extends Base{
 
         $this->resize();
 
+        $folderNumber = $Core->globalfunctions->getFolder($Core->imagesStorage, true);
+
         if(!$exists){
             if($this->watermarkFile){
                 $hasWatermark = 1;
@@ -210,27 +189,66 @@ class Images extends Base{
                 $hasWatermark = 0;
             }
 
-            $this->setName();
-
+            $this->name = $Core->globalfunctions->getHref($Core->globalfunctions->getUrl($this->name), $this->tableName, 'name');
             //Keep original witout watermark
-            $this->insertImage($Core->imagesStorage.$this->folderNumber.'/', $this->orgMd5, 1, $hasWatermark);
+            $this->insertImage($Core->imagesStorage.$folderNumber.'/', $this->orgMd5, 1, $hasWatermark);
         }else{
-            $this->name = substr($exists, strripos($exists, '/')+1);
-            $this->name = substr($this->name, 0, strripos($this->name, '.'));
+            $this->name = $exists;
         }
 
-        $this->response[] = $Core->imagesStorage.$this->folderNumber.'/'.$this->name.'.'.$this->defaultFormat;
+        return $Core->imagesStorage.$folderNumber.'/'.$this->name.'.'.$this->fileFormat;
+    }
+
+     /**
+     * Prepares required file and sets the needed class variables
+     * Redirects no $Core->pageNotFoundLocation if the required file doesn't exists
+     */
+    public function prepareOnDemand(){
+        global $Core;
+
+        if (preg_match("~^".$Core->imagesWebDir."(width|height)/([\d]+)/([\d]+)/(.*)~",$_SERVER['REQUEST_URI'] ,$m)) {
+            $this->sizeType      = $m[1];
+            $this->sizeKey       = $m[2];
+            $this->name          = urldecode(substr($m[4], 0, strripos($m[4], '.')));
+            $this->currentFolder = $m[1].'/'.$m[2].'/'.$m[3].'/';
+            $fileLocation        = urldecode($Core->imagesStorage.$m[3].'/'.$m[4]);
+        } elseif (preg_match("~^".$Core->imagesWebDir."(fixed)/([\d]+-[\d]+)/([\d]+)/(.*)~",$_SERVER['REQUEST_URI'] ,$m)) {
+            $this->sizeType      = $m[1];
+            $this->sizeKey       = $m[2];
+            $this->name          = urldecode(substr($m[4], 0, strripos($m[4], '.')));
+            $this->currentFolder = $m[1].'/'.$m[2].'/'.$m[3].'/';
+            $fileLocation        = urldecode($Core->imagesStorage.$m[3].'/'.$m[4]);
+        } elseif (preg_match("~^".$Core->imagesWebDir."(org)/([\d]+)/(.*)~",$_SERVER['REQUEST_URI'] ,$m)) {
+            $this->sizeType      = 'org';
+            $this->sizeKey       = 'org';
+            $this->name          = urldecode(substr($m[3], 0, strripos($m[3], '.')));
+            $this->currentFolder = $m[1].'/'.$m[2].'/';
+            $fileLocation        = urldecode($Core->imagesStorage.$m[2].'/'.$m[3]);
+        } else {
+            //invalid file location or size type
+            $Core->doOrDie();
+        }
+
+        if (!is_file($fileLocation)) {
+            //unexisting file
+            $Core->doOrDie();
+        }
+
+        $this->setImageDimensions();
+
+        return $fileLocation;
     }
 
     /**
-     * Resizes the image, then stores the file, saves the info in $this->tableName and then show a preview of the image
+     * Resizes the image, then stores the file, saves the info in $this->tableName and then shows a preview of the image
+     * imagick __toString returns different string from file_get_contents
      */
-    public function processResized(){
+    public function createOnDemand(){
         global $Core;
 
         $this->resize();
 
-        if (isWatermarkRequired()) {
+        if ($this->isWatermarkRequired()) {
             $this->addWatermark();
 
             $hasWatermark = 1;
@@ -238,12 +256,29 @@ class Images extends Base{
             $hasWatermark = 0;
         }
 
-        //!!! imagick __toString returns different string from file_get_contents
         $file = $this->imagick->__toString();
 
         $this->insertImage($Core->imagesDir.$this->currentFolder, md5($file), 0, $hasWatermark);
 
         $this->previewImage($file);
+    }
+
+    /*
+     * Sets the current image width and height and check if the setted values are allowed
+     * Redirects no $Core->pageNotFoundLocation if type, width or height is not allowed
+     */
+    private function setImageDimensions()
+    {
+        global $Core;
+
+        if ($this->allowedSizes) {
+            if (!isset($this->allowedSizes[$this->sizeType]) || ($this->allowedSizes && !isset($this->allowedSizes[$this->sizeType][$this->sizeKey]))) {
+                $Core->doOrDie();
+            } else {
+                $this->width  = $this->allowedSizes[$this->sizeType][$this->sizeKey]['width'];
+                $this->height = $this->allowedSizes[$this->sizeType][$this->sizeKey]['height'];
+            }
+        }
     }
 
     /**
@@ -252,7 +287,7 @@ class Images extends Base{
      */
     public function isWatermarkRequired()
     {
-        if($this->getAll(null, "`hash` = '{$this->orgMd5}' AND `org` = 1")) {
+        if($this->getAll(null, "`hash` = '{$this->orgMd5}' AND `org` = 1 AND `watermark` = 1")) {
             return true;
         }
 
@@ -274,7 +309,7 @@ class Images extends Base{
             mkdir($folder, 0755, true);
         }
 
-        $destination = $folder.$this->name.'.'.$this->defaultFormat;
+        $destination = $folder.$this->name.'.'.$this->fileFormat;
 
         $this->imagick->writeImage($destination);
 
@@ -378,18 +413,6 @@ class Images extends Base{
     }
 
     /**
-     * Sets the name for the curent Imagick file
-     */
-    public function setName(){
-        global $Core;
-
-        $name = $Core->globalfunctions->getUrl($this->name);
-        $name = $Core->globalfunctions->getHref($name, 'images', 'name');
-
-        $this->name = $name;
-    }
-
-    /**
      * Sets Imagick  by given file name
      */
     public function setImagick(string $file){
@@ -397,11 +420,18 @@ class Images extends Base{
     }
 
     /**
-     * Converts the curent Imagick file if its format is not equal to $this->defaultFormat
+     * If is empty $this->fileFormat sets it to the format of the given file location.
+     * Else if the format of the given file is not the same as $this->fileFormat, sets the Imagick format to $this->fileFormat.
+     * @param strin $fileLocation
      */
-    public function convertFormat(){
-        if(strtolower($this->imagick->getImageFormat()) != $this->defaultFormat){
-            $this->imagick->setImageFormat($this->defaultFormat);
+    private function setFileFormat(string $fileLocation){
+        if(empty($this->fileFormat)){
+            $fileMimeType            = mime_content_type($fileLocation);
+            $this->fileFormat = substr($fileMimeType, strrpos($fileMimeType, '/') + 1);
+        }
+
+        if(strtolower($this->imagick->getImageFormat()) != strtolower($this->fileFormat)){
+            $this->imagick->setImageFormat(strtolower($this->fileFormat));
         }
     }
 
@@ -410,7 +440,7 @@ class Images extends Base{
      * @param string $file - contents of the file
      */
     public function previewImage(string $file){
-        header("Content-Type: image/".$this->defaultFormat);
+        header("Content-Type: image/".$this->fileFormat);
 
         echo $file;
         die;
@@ -419,14 +449,14 @@ class Images extends Base{
     /**
      * Checks if image exists in database by given hash(md5 of the file)
      * @param string $md5 - the file md5()
-     * @return bool
+     * @return string - if file exists returns it's file name
      */
     public function isExistingImage(string $md5){
-        if ($this->getAll(null, "`hash` = '{$md5}'")) {
-            return true;
+        if ($res = $this->getAll(null, "`hash` = '{$md5}'")) {
+            return current($res)['name'];
         }
 
-        return false;
+        return '';
     }
 
     /**
@@ -436,7 +466,7 @@ class Images extends Base{
      */
     public function getIdBySrc(string $src){
         if ($res = $this->getAll(null, "`src` = '{$src}'")) {
-            return intval(current($res['id']));
+            return intval(current($res)['id']);
         }
 
         return 0;

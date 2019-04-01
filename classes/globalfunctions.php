@@ -468,12 +468,17 @@ class GlobalFunctions{
     }
 
     //formats bytes into the powered values; $precision is used to set the number of decimal numbers
-    public function formatBytes($bytes, $precision = 2) {
+    public function formatBytes($bytes, $precision = 2)
+    {
         $units = array('B', 'KB', 'MB', 'GB', 'TB');
+
         $bytes = max($bytes, 0);
+
         $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
         $pow = min($pow, count($units) - 1);
+
         $bytes /= pow(1024, $pow);
+
         return round($bytes, $precision) . ' ' . $units[$pow];
     }
 
