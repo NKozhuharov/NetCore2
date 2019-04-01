@@ -2,14 +2,12 @@
 class ExceptionHandler
 {
     /**
-     * Pasrses the exception message and returns the translated (or not) text
+     * Parses the exception message and makes sure it can be translated
      * @param Exception $exception - the thrown exception
      * @return string
      */
     private function getExceptionMessage($exception)
     {
-        global $Core;
-
         $message = $exception->getMessage();
 
         if (empty($message)) {
@@ -17,7 +15,30 @@ class ExceptionHandler
         } else if (stristr($message, '<script') && strstr($message, '</script>')) {
             return $message;
         }
-        return $Core->language->{str_replace(' ', '_', mb_strtolower($message))};
+        
+        return $this->translateMessage($message);
+    }
+    
+    /**
+     * Parses the exception message and returns the translated (or not) text
+     * @param string $message - the thrown exception
+     * @return string
+     */
+    private function translateMessage(string $message)
+    {
+        global $Core;
+        
+        if (substr_count($message, '%%') > 1) {
+            
+            $message = explode('%%', $message);
+            $translation = '';
+            foreach ($message as $messagePart) {
+                $translation .= $Core->Language->$messagePart;
+            }
+            return $translation;
+        }
+        
+        return $Core->Language->{str_replace(' ', '_', mb_strtolower($message))};
     }
 
     /**
@@ -78,8 +99,8 @@ class ExceptionHandler
 
         if (!empty($exception->getData())) {
             echo ':';
-            foreach ($exception->getData() as $k => $v) {
-                echo '<br>'.$Core->language->{$k}.' - '.$Core->language->{str_replace(' ', '_', mb_strtolower($v))};
+            foreach ($exception->getData() as $fieldName => $message) {
+                echo '<br>'.$this->translateMessage($fieldName).' - '.$this->translateMessage($message);
             }
         }
     }
