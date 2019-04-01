@@ -15,10 +15,10 @@ class ExceptionHandler
         } else if (stristr($message, '<script') && strstr($message, '</script>')) {
             return $message;
         }
-        
+
         return $this->translateMessage($message);
     }
-    
+
     /**
      * Parses the exception message and returns the translated (or not) text
      * @param string $message - the thrown exception
@@ -27,17 +27,19 @@ class ExceptionHandler
     private function translateMessage(string $message)
     {
         global $Core;
-        
+
         if (substr_count($message, '%%') > 1) {
-            
+
             $message = explode('%%', $message);
             $translation = '';
             foreach ($message as $messagePart) {
-                $translation .= $Core->Language->$messagePart;
+                $messagePart = str_replace(' ', '_', mb_strtolower($messagePart));
+                $messagePart = trim($messagePart, ' _');
+                $translation .= $Core->Language->{$messagePart}.' ';
             }
-            return $translation;
+            return trim($translation);
         }
-        
+
         return $Core->Language->{str_replace(' ', '_', mb_strtolower($message))};
     }
 
