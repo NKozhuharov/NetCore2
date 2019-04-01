@@ -389,9 +389,9 @@ class Base
     public function getSelector()
     {
         $selector = new BaseSelect($this->tableName);
-        
+
         $selector = $this->addSelectQueryOverrides($selector);
-        
+
         return $selector;
     }
 
@@ -523,7 +523,7 @@ class Base
 
         return $this->getCount("`{$this->parentField}` = {$parentId}{$additional}");
     }
-    
+
     /**
      * It will return the value of the parent field of the provided row
      * @param int $rowId - the id of the row
@@ -533,11 +533,11 @@ class Base
         if (empty($this->parentField)) {
             throw new Exception("Set a parent field in model `".get_class($this)."`");
         }
-        
+
         $object = $this->getById($rowId);
         return !empty($object) ? $object[$this->parentField] : 0;
     }
-    
+
     /**
      * It will attempt to translate the provided result from a seelct query, using a '<table_name>_lang'
      * table from the database, where <table_name> is the name of the table, which is used to initialize the model.
@@ -671,15 +671,15 @@ class Base
     public function insert(array $input, int $flag = null)
     {
         $inserter = new BaseInsert($this->tableName);
-        
+
         if ($flag === INSERT_IGNORE) {
             $inserter->setIgnore(true);
-        } else if ($flag === INSERT_ON_DUPLICATE_KEY_UPDATE) {
+        } elseif ($flag === INSERT_ON_DUPLICATE_KEY_UPDATE) {
             $inserter->setUpdateOnDuplicate(true);
-        } else {
-            throw new Exception("Allowed flags are `INSERT_IGNORE` (0) and `INSERT_ON_DUPLICATE_KEY_UPDATE` (1)");
+        } elseif ($flag !== null) {
+            throw new Exception("Allowed flags are `INSERT_IGNORE` (0) and `INSERT_ON_DUPLICATE_KEY_UPDATE` (1) in model `".get_class($this)."`");
         }
-        
+
         $inserter->setFieldsAndValues($this->validateAndPrepareInputArray($input));
 
         return $inserter->execute();
@@ -751,7 +751,7 @@ class Base
         $updater = new BaseUpdate($this->tableName);
         $updater->setFieldsAndValues($this->validateAndPrepareInputArray($input, true));
         $updater->setWhere(" `{$this->parentField}` = {$parentId} ".(!empty($additional) ? " AND {$additional}" : ""));
-        
+
         return $updater->execute();
     }
 
@@ -808,7 +808,7 @@ class Base
         if (empty($objectInfo)) {
             throw new Exception("The object you are trying to translate does not exist in model `".get_class($this)."`");
         }
-        
+
         $this->validateTranslateExplodeFields($input, $objectInfo);
 
         //temp variable to store the current info for the validations
