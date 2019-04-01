@@ -24,6 +24,13 @@ class Language extends Base
      * A collection of long translation phrases from the `phrases_text` table
      */
     private $phrasesText = null;
+    
+    /**
+     * @var array
+     * A collection of platfrom translation phrases from the `phrases_platform` table
+     * DO NOT EDIT THE CONTENTS OF THE TABLE!!!
+     */
+    private $phrasesPlatform = null;
 
     /**
      * @var array
@@ -84,9 +91,11 @@ class Language extends Base
         if ($this->phrases === null) {
             $this->getPhrases();
         }
-
+        
         if (isset($this->phrases[$phrase])) {
             return $this->phrases[$phrase];
+        } else if (isset($this->phrasesPlatform[$phrase])) {
+            return $this->phrasesPlatform[$phrase];
         } else if (isset($this->phrasesText[$phrase])) {
             return $this->phrasesText[$phrase];
         }
@@ -157,6 +166,19 @@ class Language extends Base
             $this->queryCacheTime,
             'fillArraySingleField',
             $this->phrasesText,
+            'phrase',
+            'translation'
+        );
+        
+        $Core->db->query(
+            "SELECT
+                `phrase`,
+                IF(`".$this->currentLanguage."` IS NULL OR `".$this->currentLanguage."` = '', `".$Core->defaultLanguage."`, `".$this->currentLanguage."`) AS `translation`
+            FROM
+                `{$Core->dbName}`.`phrases_platform`",
+            $this->queryCacheTime,
+            'fillArraySingleField',
+            $this->phrasesPlatform,
             'phrase',
             'translation'
         );
