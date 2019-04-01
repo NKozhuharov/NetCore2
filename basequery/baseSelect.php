@@ -89,6 +89,7 @@
 
         /**
          * Adds a field to the query
+         * If a function result is provided to the field (COUNT(*)), table name must be put manually in the function
          * @param string $field - the name of the field
          * @param string $alias - the "AS" alias for the field
          * @param string $tableName - the name of the table, from which to select the field
@@ -103,11 +104,17 @@
             if (empty($tableName)) {
                 $tableName = $this->tableName;
             }
+            
+            if (strstr($field, '(') && strstr($field, ')')) {
+                $tableName = '';
+            } else {
+                $tableName = "`$tableName`.";
+            }
 
             if (!empty($alias)) {
-                $this->fields[] = "`{$tableName}`.`{$field}` AS '{$alias}'";
+                $this->fields[] = "{$tableName}{$field} AS '{$alias}'";
             } else {
-                $this->fields[] = "`{$tableName}`.`{$field}`";
+                $this->fields[] = "{$tableName}{$field}";
             }
         }
         
