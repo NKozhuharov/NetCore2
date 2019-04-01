@@ -62,14 +62,14 @@
 
         /**
          * Checks insert or update query input the field 'id'
-         * Throws BaseException if the field is present
+         * Throws Exception if the field is present
          * @param array $input - the input of query
-         * @throws BaseException
+         * @throws Exception
          */
         private function checkInputForFieldId(array $input)
         {
             if (isset($input['id'])) {
-                throw new BaseException("Field `id` is not allowed", null, get_class($this));
+                throw new Exception("Field `id` is not allowed", null, get_class($this));
             }
         }
 
@@ -86,15 +86,7 @@
             foreach ($this->tableFields->getRequiredFields() as $requiredField) {
                 if (!isset($input[$requiredField])) {
                     $missingFields[$requiredField] = 'Is required';
-                } else {
-                    if (!is_array($input[$requiredField])) {
-                        $input[$requiredField] = trim($input[$requiredField]);
-                    }
-                    
-                    if (empty($input[$requiredField])) {
-                        $missingFields[$requiredField] = 'Is required';
-                    }
-                }
+                } 
             }
 
             if (!empty($missingFields)) {
@@ -116,7 +108,7 @@
                 if (isset($input[$requiredField])) {
                     $input[$requiredField] = trim($input[$requiredField]);
                     
-                    if (empty($input[$requiredField])) {
+                    if (empty($input[$requiredField]) && $input[$requiredField] != '0') {
                         $emptyFields[] = $requiredField;
                     }
                 }
@@ -203,7 +195,7 @@
 
                     foreach ($value as $explodeFieldKey => $explodeFieldValue) {
                         if (strstr($explodeFieldValue, $this->explodeDelimiter)) {
-                            $inputErrors[$fieldName] = "The following `{$this->explodeDelimiter}` is not allowed for an explode field";
+                            $inputErrors[$fieldName] = "The following %%{$this->explodeDelimiter}%% is not allowed for an explode field";
                         }
                     }
                 }
