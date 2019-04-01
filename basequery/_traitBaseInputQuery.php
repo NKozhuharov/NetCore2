@@ -20,53 +20,51 @@
         private $values = array();
 
         /**
-         * Sets the collection of fields of the query
-         * @param array $fields - the fields which are going to be inserted
+         * Allows to set the collection of fields one by one
+         * Throws exception if the field name is empty
+         * @param string $field - the name of the field
+         * @param string $value - the value of the field
+         * @throws Exception
          */
-        public function setFields(array $fields)
+        public function addFieldAndValue(string $field, string $value)
         {
             global $Core;
-
-            if (!empty($this->fields)) {
-                throw new exception ("Use only the `setFields` and `setValues` functions or only the `setFieldsAndValues` function");
+            
+            $field = $Core->db->escape(trim($field));
+            
+            if (empty($field)) {
+                throw new Exception("Field names cannot be empty");
             }
-
-            $this->fields = $Core->db->escape($fields);
+            
+            $this->fields[] = $field;
+            $this->values[] = $Core->db->escape($value);
         }
-
+        
         /**
-         * Sets the collection of values of the query
-         * @param array $fields - the value which are going to be inserted
+         * Allows to set the collection of fields one by one
+         * Throws exception if the field name is empty
+         * @param string $field - the name of the field
+         * @param string $value - the value of the field
+         * @throws Exception
          */
-        public function setValues(array $values)
+        public function addField(string $field, string $value)
         {
-            global $Core;
-
-            if (!empty($this->values)) {
-                throw new exception ("Use only the `setFields` and `setValues` functions or only the `setFieldsAndValues` function");
-            }
-
-            $this->values = $Core->db->escape($values);
+            $this->addFieldAndValue($field, $value);
         }
 
         /**
          * Sets the collection of fields and values of the query with a single aray
+         * Throws exception if a field name is empty
          * @param array $input - the array which is going to be inserted
+         * @throws Exception
          */
         public function setFieldsAndValues(array $input)
         {
-            global $Core;
-
-            if (!empty($this->fields) || !empty($this->values)) {
-                throw new exception ("Use only the `setFields` and `setValues` functions or only the `setFieldsAndValues` function");
-            }
-
             $this->fields = array();
             $this->values = array();
 
             foreach ($input as $field => $value) {
-                $this->fields[] = $Core->db->escape($field);
-                $this->values[] = $Core->db->escape($value);
+                $this->addFieldAndValue($field, $value);
             }
         }
 
