@@ -1,6 +1,8 @@
 <?php
-class GlobalFunctions{
-    function curl($url){
+class GlobalFunctions
+{
+    function curl($url)
+    {
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
@@ -9,38 +11,41 @@ class GlobalFunctions{
         $r = curl_exec($ch);
         $er = curl_error($ch);
         curl_close($ch);
-        if($er){
-            throw new Error($er);
+        if ($er) {
+            throw new Exception($er);
         }
 
         return $r;
     }
 
-    public function getUrl($string){
+    public function getUrl($string)
+    {
         $string = trim(preg_replace('~\P{Xan}++~u', ' ', $string));
         $string = preg_replace("~\s+~", '-', strtolower($string));
         $string = substr($string, 0, 200);
+
         return $string;
     }
 
-    public function getHref($title, $table, $field, $id = false){
+    public function getHref($title, $table, $field, $id = false)
+    {
         global $Core;
 
         $url = $this->getUrl($title);
         $url = $Core->db->escape(substr($url, 0, 200));
         $and = '';
-        if($id && is_numeric($id)){
+        if ($id && is_numeric($id)) {
             $and = " `id` != '$id' AND ";
         }
 
         $count = 0;
-        while($Core->db->result("SELECT `id` FROM `{$Core->dbName}`.`$table` WHERE $and `$field` = '$url'")){
+        while($Core->db->result("SELECT `id` FROM `{$Core->dbName}`.`$table` WHERE $and `$field` = '$url'")) {
             $count++;
             $postFix = substr($url, strripos($url, '-'));
-            if($count > 1){
+            if ($count > 1) {
                 $postFix = str_replace('-'.($count-1),'-'.$count, $postFix);
                 $url = substr($url, 0, strripos($url, '-')).$postFix;
-            }else{
+            } else {
                 $url .= '-'.$count;
             }
         }
@@ -48,14 +53,15 @@ class GlobalFunctions{
     }
 
     //create swiper
-    public function swiper(array $imges, $pagination = true, $navigation = true){
+    public function swiper(array $imges, $pagination = true, $navigation = true)
+    {
         ob_start();
         ?>
         <div class="swiper-container">
             <div class="swiper-wrapper">
             <?php
-            if(!empty($imges)){
-                foreach($imges as $img){
+            if (!empty($imges)) {
+                foreach ($imges as $img) {
                     ?>
                     <div class="swiper-slide">
                         <img src="<?php echo $img?>" class="swiper-lazy">
@@ -66,11 +72,11 @@ class GlobalFunctions{
             }
             ?>
             </div>
-            <?php if($pagination){ ?>
+            <?php if ($pagination) { ?>
                 <div class="swiper-pagination"></div>
             <?php } ?>
 
-            <?php if($navigation){ ?>
+            <?php if ($navigation) { ?>
                 <!-- Add Arrows -->
                 <div class="swiper-button-next swiper-button-white"></div>
                 <div class="swiper-button-prev swiper-button-white"></div>
@@ -86,15 +92,16 @@ class GlobalFunctions{
     }
 
     //search array key for given value
-    public function arraySearch($array, $key, $value){
+    public function arraySearch($array, $key, $value)
+    {
         $results = array();
 
-        if(is_array($array)){
-            if(isset($array[$key]) && $array[$key] == $value){
+        if (is_array($array)) {
+            if (isset($array[$key]) && $array[$key] == $value) {
                 $results[] = $array;
             }
 
-            foreach($array as $subarray){
+            foreach ($array as $subarray) {
                 $results = array_merge($results, $this->arraySearch($subarray, $key, $value));
             }
         }
@@ -103,43 +110,45 @@ class GlobalFunctions{
     }
 
     //sends email; requires PHPMailer library to work!
-    public function sendEmail($from = false, $fromName = false, $subject = false, $addAddress = false, $body = false, $isHTML = false, $attachment = false, $isAdnmin = false){
+    public function sendEmail($from = false, $fromName = false, $subject = false, $addAddress = false, $body = false, $isHTML = false, $attachment = false, $isAdnmin = false)
+    {
         global $Core;
         require_once(GLOBAL_PATH.'platform/classes/PHPMailer-master/PHPMailerAutoload.php');
         $mail = new PHPMailer;
         $mail->isSMTP();
 
-        if(isset($Core->mailConfig) && $Core->mailConfig){
+        if (isset($Core->mailConfig) && $Core->mailConfig) {
             $mail->SMTPAuth   = true;
             $mail->SMTPSecure = $Core->mailConfig['SMTPSecure'];
             $mail->Username   = $Core->mailConfig['Username'];
             $mail->Password   = $Core->mailConfig['Password'];
             $mail->Host       = $Core->mailConfig['Host'];
             $mail->Port       = $Core->mailConfig['Port'];;
-        }else{
-            throw new Exception('Please set core $mailConfig variable');
+        } else {
+            throw new Exception('Set core $mailConfig variable');
         }
 
-        if($isHTML){
+        if ($isHTML) {
             $mail->isHTML(true);
         }
-        if($body){
+
+        if ($body) {
             $mail->Body = $body;
         }
 
-        if(is_array($attachment)){
-            foreach($attachment as $att){
+        if (is_array($attachment)) {
+            foreach ($attachment as $att) {
                 $mail->AddAttachment($att);
             }
-        }else{
+        } else {
             $mail->AddAttachment($attachment);
         }
 
-        if(is_array($addAddress)){
-            foreach($addAddress as $adr){
+        if (is_array($addAddress)) {
+            foreach ($addAddress as $adr) {
                 $mail->addAddress($adr);
             }
-        }else{
+        } else {
             $mail->addAddress($addAddress);
         }
 
@@ -148,13 +157,13 @@ class GlobalFunctions{
         $mail->From = $from;
         $mail->FromName = $fromName;
 
-        if(!$mail->send()){
-            if($isAdnmin){
+        if (!$mail->send()) {
+            if ($isAdnmin) {
                 $msg = $mail->ErrorInfo;
-            }else{
+            } else {
                 $msg = $Core->language->generalEmailError;
             }
-            throw new Error($msg);
+            throw new BaseException($msg);
         }
     }
 
@@ -165,22 +174,23 @@ class GlobalFunctions{
     //$showFirstLast - show first and last page
     //$html - html for the pagination
     //$showFirstPage- show or hide page number in the url when current page = 1
-    public function drawPagination($resultsCount, $url = false, $currentPage = false, $showFirstLast = false, $html = array(), $showFirstPage= false){
+    public function drawPagination($resultsCount, $url = false, $currentPage = false, $showFirstLast = false, $html = array(), $showFirstPage= false)
+    {
         global $Core;
         //get current page from the rewrite class
-        if(!$currentPage){
+        if (!$currentPage) {
             $currentPage = $Core->rewrite->currentPage;
         }
         //invalid page number
-        if($currentPage <= 0){
+        if ($currentPage <= 0) {
             $Core->doOrDie();
         }
         //no need of pagination
-        if($resultsCount <= $Core->itemsPerPage){
+        if ($resultsCount <= $Core->itemsPerPage) {
             return false;
         }
         //default html
-        if(!$html){
+        if (!$html) {
             $html = array(
                 'ul_class'           => 'pagination',
                 'current_page_class' => 'active',
@@ -208,15 +218,15 @@ class GlobalFunctions{
         }
 
         //default url with page numper in GET parameter(page=)
-        if(!$url){
+        if (!$url) {
             $url = $Core->rewrite->URL.((preg_replace("~(&|\?|)(page=)(\d+|)~", "", http_build_query($_GET))) ? '?'.(preg_replace("~(&|\?|)(page=)(\d+|)~", "", http_build_query($_GET))).'&page=' : '?page=');
         }
 
         $pagesCount = ceil($resultsCount / $Core->itemsPerPage);
 
-        if($Core->numberOfPagesInPagination > $pagesCount){
+        if ($Core->numberOfPagesInPagination > $pagesCount) {
             $numberOfPagesInPagination = $pagesCount;
-        }else{
+        } else {
             $numberOfPagesInPagination = $Core->numberOfPagesInPagination;
         }
 
@@ -225,13 +235,13 @@ class GlobalFunctions{
         $ulClass = (isset($html['ul_class']) ? ' class="'.$html['ul_class'].'"' : '');
         $currentClass = isset($html['current_page_class']) ? ' '.$html['current_page_class'] : '';
 
-        if(!$showFirstPage && $url == '/'){
+        if (!$showFirstPage && $url == '/') {
             $firstUrl = '/';
-        }elseif(!$showFirstPage && substr($url, -1, 1) == '/'){
+        }elseif (!$showFirstPage && substr($url, -1, 1) == '/') {
             $firstUrl = substr($url, 0, -1);
-        }elseif(!$showFirstPage){
+        }elseif (!$showFirstPage) {
             $firstUrl = $Core->rewrite->URL.((preg_replace("~(&|\?|)(page=)(\d+|)~", "", http_build_query($_GET))) ? '?'.(preg_replace("~(&|\?|)(page=)(\d+|)~", "", http_build_query($_GET))) : '');
-        }else{
+        } else {
             $firstUrl = $url.'1';
         }
 
@@ -252,23 +262,23 @@ class GlobalFunctions{
         $defaultHtml  = isset($html['default']['html']) && $html['default']['html'] ? $html['default']['html'] : '';
 
         echo '<ul'.$ulClass.'>';
-            if($currentPage > 1){
-                if($showFirstLast){
+            if ($currentPage > 1) {
+                if ($showFirstLast) {
                     echo('<li'.$firstClass.'><a title="Page 1" href="'.$firstUrl.'">'.$firstHtml.'</a></li>');
                 }
                 echo('<li'.$prevClass.'><a href="'.($current - 1 == 1 ? $firstUrl : $url.($current - 1)).'" title="Page '.($current-1).'">'.$prevHtml.'</a></li>');
             }
 
-            if($Core->numberOfPagesInPagination % 2 == 0)
+            if ($Core->numberOfPagesInPagination % 2 == 0)
                 $OddOrEven = 0;
             else
                 $OddOrEven = 1;
 
             $more = 0;
 
-            for($s = $currentPage - ceil($numberOfPagesInPagination / 2) + $OddOrEven; $s < $currentPage; $s++){
-                if($s > 0 && $currentPage + ceil($numberOfPagesInPagination / 2) + $OddOrEven < $pagesCount + 1 + $OddOrEven){
-                    if($s<=$pagesCount){
+            for($s = $currentPage - ceil($numberOfPagesInPagination / 2) + $OddOrEven; $s < $currentPage; $s++) {
+                if ($s > 0 && $currentPage + ceil($numberOfPagesInPagination / 2) + $OddOrEven < $pagesCount + 1 + $OddOrEven) {
+                    if ($s<=$pagesCount) {
                         echo (
                             '<li'.(($defaultClass || $currentPage == $s) ? ' class="'.$defaultClass.($currentPage == $s ? $currentClass : '').'"' : '').'>
                                 <a title="Page '.$s.'" href="'.($s == 1 ? $firstUrl : $url.$s).'">'.($defaultHtml.$s).'</a>
@@ -278,20 +288,20 @@ class GlobalFunctions{
                 }
             }
 
-            if($currentPage + ceil($numberOfPagesInPagination / 2) >= $pagesCount + 1){
+            if ($currentPage + ceil($numberOfPagesInPagination / 2) >= $pagesCount + 1) {
                 $currentPage = $pagesCount-$numberOfPagesInPagination + 1;
 
-                for($s = $currentPage; $s<$numberOfPagesInPagination+$currentPage; $s++){
-                    if($s <= $pagesCount){
+                for($s = $currentPage; $s<$numberOfPagesInPagination+$currentPage; $s++) {
+                    if ($s <= $pagesCount) {
                         echo(
                             '<li'.(($defaultClass || $current == $s) ? ' class="'.$defaultClass.($current == $s ? $currentClass : '').'"' : '').'>
                             <a title="Page '.$s.'" href="'.($s == 1 ? $firstUrl : $url.$s).'">'.($defaultHtml.$s).'</a>
                             </li>');
                     }
                 }
-            }else{
-                for($s = $currentPage; $s < $currentPage + $numberOfPagesInPagination - $more; $s++){
-                    if($s <= $pagesCount){
+            } else {
+                for($s = $currentPage; $s < $currentPage + $numberOfPagesInPagination - $more; $s++) {
+                    if ($s <= $pagesCount) {
                         echo(
                             '<li'.(($defaultClass || $currentPage == $s) ? ' class="'.$defaultClass.($currentPage == $s ? $currentClass : '').'"' : '').'>
                             <a title="Page '.$s.'" href="'.($s == 1 ? $firstUrl : $url.$s).'">'.($defaultHtml.$s).'</a>
@@ -300,9 +310,9 @@ class GlobalFunctions{
                 }
             }
 
-            if($current < $pagesCount){
+            if ($current < $pagesCount) {
                 echo('<li'.$nextClass.'><a href="'.$url.($current + 1).'" title="Page '.($current+1).'">'.$nextHtml.'</a></li>');
-                if($showFirstLast){
+                if ($showFirstLast) {
                     echo('<li'.$lastClass.'><a title="Page '.$pagesCount.'" href="'.$url.$pagesCount.'">'.$lastHtml.'</a></li>');
                 }
             }
@@ -310,8 +320,9 @@ class GlobalFunctions{
     }
 
     //returns the content between 2 points of a string
-    public function getBetween($content, $start, $end){
-        if(!strpos($content,$start))
+    public function getBetween($content, $start, $end)
+    {
+        if (!strpos($content,$start))
             return '';
         $content=substr($content,strpos($content,$start)+strlen($start));
         $content=substr($content,0,strpos($content,$end));
@@ -319,59 +330,63 @@ class GlobalFunctions{
     }
 
     //returns the content between 2 points of a string
-    public function getBetweenAll($content, $start, $end,$return=array()){
-        while(stristr($content,$start)){
+    public function getBetweenAll($content, $start, $end,$return=array())
+    {
+        while(stristr($content,$start)) {
             $startpos=strpos($content,$start)+strlen($start);
             $a=$content=substr($content,$startpos);
             $endpos=strpos($content,$end);
             $b[]=substr($content,0,$endpos);
             $content=substr($content,$endpos);
         }
-        if(isset($b))
+        if (isset($b))
             return $b;
     }
 
     //strips the HTML tags all fields in an array
-    public function stripTagsOfArray(&$fields, $donot = false){
+    public function stripTagsOfArray(&$fields, $donot = false)
+    {
         foreach ($fields as $key => $value) {
-            if($donot){
-                if(is_array($donot) && in_array($key, $donot)){
+            if ($donot) {
+                if (is_array($donot) && in_array($key, $donot)) {
                     continue;
-                }elseif(is_string($donot) && $key == $donot){
+                }elseif (is_string($donot) && $key == $donot) {
                     continue;
                 }
             }
-            if(is_array($fields[$key])){
+            if (is_array($fields[$key])) {
                 $this->stripTagsOfArray($fields[$key], $donot);
-            }else{
+            } else {
                 $fields[$key] = strip_tags($value);
             }
         }
     }
 
     //formats the given timestamp into ready for insert into mysql db date for field date/datetime; addHours parameter should be true for datetime fields
-    public function formatMysqlTime($time,$addHours = false){
+    public function formatMysqlTime($time,$addHours = false)
+    {
         $time = intval($time);
-        if(empty($time)){
+        if (empty($time)) {
             return false;
         }
 
-        if($addHours){
+        if ($addHours) {
             return date('Y-m-d H:i:s',$time);
         }
         return date('Y-m-d',$time);
     }
 
     //formats date from mysql date/datetime field into timestamp
-    public function mysqlTimeToTimestamp($time){
-        if(empty($time)){
+    public function mysqlTimeToTimestamp($time)
+    {
+        if (empty($time)) {
             return false;
         }
 
         $time = str_replace('T',' ',$time);
         $time = str_replace('Z','',$time);
 
-        if(stristr($time,':')){
+        if (stristr($time,':')) {
             $time = str_replace(array(':',' '),'-',$time);
             $time = explode('-',$time);
             return mktime($time[3],$time[4],$time[5],$time[1],$time[2],$time[0]);
@@ -381,14 +396,16 @@ class GlobalFunctions{
     }
 
     //alias of mysqlTimeToTimestamp
-    public function formatMysqlTimeToTimestamp($time){
+    public function formatMysqlTimeToTimestamp($time)
+    {
         return $this->mysqlTimeToTimestamp($time);
     }
 
     //formats seconds int seconds, minutes, hours, days and months; remove comment from $s and $mo to calculate seconds and months
-    function formatSecondsToTime($time) {
+    function formatSecondsToTime($time)
+    {
         $time = intval($time);
-        if(empty($time)){
+        if (empty($time)) {
             return false;
         }
 
@@ -399,24 +416,25 @@ class GlobalFunctions{
         //$mo = floor($time/2592000);
 
         $r = '';
-        if($d > 0){
+        if ($d > 0) {
             $r .= $d.'d ';
         }
-        if($h < 10){
+        if ($h < 10) {
             $h = "0$h";
         }
-        if($m < 10){
+        if ($m < 10) {
             $m = "0$m";
         }
         $r .= "$h:$m";
         return $r;
     }
 
-    public function timeDifference($time){
+    public function timeDifference($time)
+    {
         global $Core;
 
         $time = intval($time);
-        if(empty($time)){
+        if (empty($time)) {
             return false;
         }
 
@@ -428,37 +446,37 @@ class GlobalFunctions{
 
         $difference = $dtF->diff($dtT);
 
-        if(!$difference){
+        if (!$difference) {
             return '0';
         }
 
-        if($difference->y){
-            if($difference->y > 1){
+        if ($difference->y) {
+            if ($difference->y > 1) {
                 $suffix = 's';
             }
             $format = '%y '.$Core->language->{'year'.$suffix};
-        }elseif($difference->m){
-            if($difference->m > 1){
+        }elseif ($difference->m) {
+            if ($difference->m > 1) {
                 $suffix = 's';
             }
             $format = '%m '.$Core->language->{'month'.$suffix};
-        }elseif($difference->d){
-            if($difference->d > 1){
+        }elseif ($difference->d) {
+            if ($difference->d > 1) {
                 $suffix = 's';
             }
             $format = '%d '.$Core->language->{'day'.$suffix};
-        }elseif($difference->h){
-            if($difference->h > 1){
+        }elseif ($difference->h) {
+            if ($difference->h > 1) {
                 $suffix = 's';
             }
             $format = '%h '.$Core->language->{'hour'.$suffix};
-        }elseif($difference->i){
-            if($difference->i > 1){
+        }elseif ($difference->i) {
+            if ($difference->i > 1) {
                 $suffix = 's';
             }
             $format = '%i '.$Core->language->{'minute'.$suffix};
-        }elseif($difference->s){
-            if($difference->s > 1){
+        }elseif ($difference->s) {
+            if ($difference->s > 1) {
                 $suffix = 's';
             }
             $format = '%s '.$Core->language->{'second'.$suffix};
@@ -482,67 +500,72 @@ class GlobalFunctions{
         return round($bytes, $precision) . ' ' . $units[$pow];
     }
 
-    public function formatNumberToReadable($number){
-        if($number < 1000){
+    public function formatNumberToReadable($number)
+    {
+        if ($number < 1000) {
             return $number;
         }
-        if($number < 1000000){
+        if ($number < 1000000) {
             return number_format(($number / 1000),0).'K';
         }
-        if($number < 1000000000){
+        if ($number < 1000000000) {
             return number_format(($number / 1000000),0).'M';
         }
         return number_format(($number / 1000000000),0).'B';
     }
 
-    public function getFolder($dir, $onlyCurrent = false){
+    public function getFolder($dir, $onlyCurrent = false)
+    {
         global $Core;
 
         $mainFoldersCount = count(glob($dir.'*', GLOB_ONLYDIR));
-        if($mainFoldersCount == 0){
+        if ($mainFoldersCount == 0) {
             $current = 1;
             $folder  = $dir.$current.'/';
-        }elseif(count(glob($dir.$mainFoldersCount.'/*')) >= $Core->folderLimit){
+        }elseif (count(glob($dir.$mainFoldersCount.'/*')) >= $Core->folderLimit) {
             $current = $mainFoldersCount+1;
             $folder  = $dir.$current.'/';
-        }else{
+        } else {
             $current = $mainFoldersCount;
             $folder  = $dir.$current.'/';
         }
 
-        if($onlyCurrent){
+        if ($onlyCurrent) {
             return $current;
         }
         return $folder;
     }
 
     //validate an URL ($url) against a test string ($stringToCheck)
-    public function validateSpecificLink($url, $pattern) {
+    public function validateSpecificLink($url, $pattern)
+    {
         global $Core;
         $this->validateBasicUrl($url);
         if (!preg_match("{".$pattern."}",$url)) {
-            throw new Error("{$url} ".$Core->language->is_not_valid);
+            throw new BaseException("%%`{$url}`%% not valid");
         }
         return true;
     }
 
     //a basic check, if an URL is valid
-    public function validateBasicUrl($url) {
+    public function validateBasicUrl($url)
+    {
         global $Core;
         if (!filter_var($url, FILTER_VALIDATE_URL))
-            throw new Error("{$url} ".$Core->language->is_not_a_valid_link);
+            throw new BaseException("%%`{$url}`%% is not a valid link");
 
         if (!substr($url, 0, 7) == "http://" || !substr($url, 0, 8) == "https://") {
-            throw new Error("{$url} ".$Core->language->is_not_a_valid_link);
+            throw new BaseException("%%`{$url}`%% is not a valid link");
         }
 
         return true;
     }
 
-    public function checkIfProcessIsRunning($processName){
+    public function checkIfProcessIsRunning($processName)
+    {
         global $Core;
-        if(empty($processName)){
-            throw new Error($Core->language->error_provide_a_process_name);
+        if (empty($processName)) {
+            throw new Exception('Provide a process name');
         }
 
         exec("ps ax | grep '$processName'",$res);
@@ -550,10 +573,11 @@ class GlobalFunctions{
         return count($res) > 2 ? true : false;
     }
 
-    public function getProcessInstancesCount($processName){
+    public function getProcessInstancesCount($processName)
+    {
         global $Core;
-        if(empty($processName)){
-            throw new Error($Core->language->error_provide_a_process_name);
+        if (empty($processName)) {
+            throw new Exception('Provide a process name');
         }
 
         exec("ps ax | grep '$processName'",$res);
@@ -561,22 +585,8 @@ class GlobalFunctions{
         return count($res) - 2;
     }
 
-    //old not supporting file names
-    /*public function reArrangeRequestFiles($files){
-        $file_array = array();
-        $file_count = count($files['name']);
-        $file_keys = array_keys($files);
-
-        for ($i=0; $i<$file_count; $i++) {
-            foreach ($file_keys as $key) {
-                $file_array[$i][$key] = $files[$key][$i];
-            }
-        }
-
-        return $file_array;
-    }*/
-
-    public function reArrangeRequestFiles($files){
+    public function reArrangeRequestFiles($files)
+    {
         $file_array = array();
         $file_count = count($files['name']);
         $file_keys = array_keys($files);
@@ -590,4 +600,3 @@ class GlobalFunctions{
         return $file_array;
     }
 }
-?>

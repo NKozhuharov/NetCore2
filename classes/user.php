@@ -51,7 +51,7 @@ class User extends Base
      * The name of the table, where the additional user types are stored.
      * If this is not empty, a user account can be created with same username or email but with different type_id
      */
-    protected $usersTypesTableName;
+    protected $userTypesTableName;
 
     /**
      * @var string
@@ -73,43 +73,43 @@ class User extends Base
      * Allow registration with email, instead of username
      */
     protected $registerWithEmail = false;
- 
+
     /**
      * @var int
      * Set a minimum length for the username
      */
     protected $userNameMinLen = 5;
-    
+
     /**
      * @var int
      * Set a maximum length for the username
      */
     protected $userNameMaxLen = 20;
-    
+
     /**
      * @var int
      * Set a minimum length for the password
      */
     protected $passMinLen = 5;
-    
+
     /**
      * @var int
      * Set a maximum length for the password
      */
     protected $passMaxLen = 20;
-    
+
     /**
      * @var bool
      * Set to true if the password must contain at least one number
      */
     protected $passNumbersRequired = false;
-    
+
     /**
      * @var bool
      * Set to true if the password must contain at least one capital letter
      */
     protected $passCapitalsRequired = false;
-    
+
     /**
      * @var bool
      * Set to true if the password must contain at least one symbol
@@ -122,19 +122,19 @@ class User extends Base
      * Set this to enable password recovery functions, must contain user_id(int) and token(varchar 50)
      */
     protected $usersRecoveryTableName = null;
-    
+
     /**
      * @var int
      * The time for which a user can use a token to recover his password
      */
     protected $tokenExpireTime = 3600;
-    
+
     /**
      * @var string
      * The controller which handles the tokens
      */
     protected $usersRecoveryControllerName = 'recovery';
-    
+
     /**
      * Gets a property from the data of the user
      * @param string $propertyName - the name of the property
@@ -343,24 +343,24 @@ class User extends Base
 
         $Core->doOrDie();
     }
-    
+
     /**
      * Validates the provided user type
      * Throws Exception if something is wrong
-     * @param int $typeId - the type of the user 
+     * @param int $typeId - the type of the user
      * @throws Exception
      */
     private function validateUserType(int $typeId = null)
     {
         if ($typeId !== null) {
-            if (empty($this->usersTypesTableName)) {
-                throw new Exception("usersTypesTableName is not set");
+            if (empty($this->userTypesTableName)) {
+                throw new Exception("userTypesTableName is not set");
             }
 
             if (!isset($this->getUserTypes()[$typeId])) {
                 throw new Exception("Invalid user type");
             }
-        } else if (!empty($this->usersTypesTableName)) {
+        } else if (!empty($this->userTypesTableName)) {
             throw new Exception("Type id is not allowed set");
         }
     }
@@ -384,16 +384,16 @@ class User extends Base
 
         if (empty($username)) {
             if ($this->registerWithEmail) {
-                throw new BaseException($Core->language->error_enter_email);
+                throw new BaseException('Enter email');
             } else {
-                throw new BaseException($Core->language->error_enter_username);
+                throw new BaseException('Enter username');
             }
         }
 
         if (empty($password)) {
-            throw new BaseException($Core->language->error_enter_password);
+            throw new BaseException('Enter password');
         }
-        
+
         $this->validateUserType($typeId);
 
         $password = $this->hashPassword($password);
@@ -405,7 +405,7 @@ class User extends Base
         }
 
         $queryWhere[] = "`username` = '$username'";
-        
+
         $queryWhere[] = "`password` = '$password'";
 
         $this->data = $this->getAll(1, " ".implode(' AND ', $queryWhere));
@@ -425,9 +425,9 @@ class User extends Base
                 );
             }
         } elseif ($this->registerWithEmail) {
-            throw new BaseException("Error email addres or password is invalid");
+            throw new BaseException("Email addres or password is invalid");
         } else {
-            throw new BaseException("Error username or password is invalid");
+            throw new BaseException("Username or password is invalid");
         }
     }
 
@@ -504,16 +504,16 @@ class User extends Base
     {
         global $Core;
 
-        $Core->db->query("SELECT * FROM `{$Core->dbName}`.`{$this->usersTypesTableName}`", 0, 'fillArray', $levels, 'id');
+        $Core->db->query("SELECT * FROM `{$Core->dbName}`.`{$this->userTypesTableName}`", 0, 'fillArray', $levels, 'id');
         return $levels;
     }
 
     //REGISTRATION FUNCTIONS
-    
+
     /**
      * Validates the provided username (before registering or chaning)
      * It will check for empty spaces, min/max length, if these are required by the model
-     * It will check for duplicate of the username. If user type is set, it will check for duplicates 
+     * It will check for duplicate of the username. If user type is set, it will check for duplicates
      * only within this type
      * Throws Exception if something is wrong
      * @param string $username - the provided username
@@ -525,31 +525,31 @@ class User extends Base
         if (empty($username)) {
             throw new Exception("Provide username");
         }
-        
+
         if (stristr($username,' ')) {
             throw new Exception("No spaces are allowed in the username");
         }
-        
+
         if ($this->userNameMinLen && strlen($username) < $this->userNameMinLen) {
-            throw new Exception("Error username must be minimum %%{$this->userNameMinLen}%% symbols");
+            throw new Exception("Username must be minimum %%{$this->userNameMinLen}%% symbols");
         }
-        
+
         if ($this->userNameMaxLen && strlen($username) > $this->userNameMaxLen) {
-            throw new Exception("Error username must be maximum %%{$this->userNameMaxLen}%% symbols");
+            throw new Exception("Username must be maximum %%{$this->userNameMaxLen}%% symbols");
         }
-        
+
         $queryWhere = "`username` = '$username'";
         if ($typeId !== null) {
             $queryWhere .= " AND `type_id` = '".($typeId)."' ";
         }
-        
+
         $selector = new BaseSelect($this->tableName);
         $selector->addField('id');
         $selector->setWhere($queryWhere);
         $selector->setGlobalTemplate('fetch_assoc');
         $selector->turnOffCache();
         $userId = $selector->execute();
-        
+
         if (!empty($userId)) {
             if ($this->registerWithEmail) {
                 throw new Exception("This email is already taken");
@@ -557,7 +557,7 @@ class User extends Base
             throw new Exception("This username is already taken");
         }
     }
-    
+
     /**
      * Validates the provided password (before registering or chaning)
      * It will check for empty spaces, min/max length, numbers, capital letters and symbols,
@@ -590,7 +590,7 @@ class User extends Base
             throw new Exception("Password must contain a symbol");
         }
     }
-    
+
     /**
      * Ensures the provided email is in the correct format
      * Throws Exception if it's not
@@ -600,10 +600,10 @@ class User extends Base
     private function validateEmail(string $email)
     {
         if ($this->registerWithEmail && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            throw new Exception("Error email is not valid");
+            throw new Exception("Email is not valid");
         }
     }
-    
+
     /**
      * Allows the registration of users with username and password
      * Allows to set a user level id and user type id (if requried by the project)
@@ -620,19 +620,19 @@ class User extends Base
     public function register(string $username, string $password, string $repeatPassword, int $levelId = null, int $typeId = null)
     {
         global $Core;
-        
+
         if ($this->usersLevelTableName && (empty($levelId) || !isset($this->getUserLevels()[$levelId]))) {
             throw new Exception("User level is not supported or invalid");
         }
 
         $this->validateUserType($typeId);
-        
+
         $username = $Core->db->escape(trim($username));
         $password = $Core->db->escape(trim($password));
         $repeatPassword = $Core->db->escape(trim($repeatPassword));
-        
+
         $errorsInFields = array();
-        
+
         try {
             if ($this->registerWithEmail) {
                 $this->validateEmail($username);
@@ -641,29 +641,29 @@ class User extends Base
         } catch (Exception $ex) {
             $errorsInFields['username'] = $ex->getMessage();
         }
-        
-        try {    
+
+        try {
             $this->validatePassword($password);
         } catch (Exception $ex) {
             $errorsInFields['password'] = $ex->getMessage();
         }
-        
+
         if (empty($repeatPassword)) {
             $errorsInFields['repeat_password'] = "Repeat password";
         } elseif ($password !== $repeatPassword) {
             $errorsInFields['repeat_password'] = "Passwords do not match";
         }
-        
+
         if (!empty($errorsInFields)) {
             throw new BaseException("The following fields are not valid", $errorsInFields, get_class($this));
         }
-        
+
         $password = $this->hashPassword($password);
-        
+
         $inserter = new BaseInsert($this->tableName);
         $inserter->addFieldAndValue('username', $username);
         $inserter->addFieldAndValue('password', $password);
-        
+
         if ($levelId !== null) {
             $inserter->addFieldAndValue('level_id', $levelId);
         }
@@ -673,7 +673,7 @@ class User extends Base
 
         return $inserter->execute();;
     }
-    
+
     /**
      * Allows to change the password of the user
      * Throws BaseException if something is wrong with the credentials of the user
@@ -687,34 +687,34 @@ class User extends Base
      */
     public function changePassword(int $userId, string $newPassword, string $repeatPassword, string $currentPassword = null){
         global $Core;
-        
+
         if (empty($userId)) {
             throw new Exception("Provide user id");
         }
-        
+
         $userData = $this->getById($userId);
-        
+
         if (empty($userData)) {
             throw new BaseException("This user does not exist");
         }
-        
+
         $errorsInFields = array();
-        
+
         $newPassword = $Core->db->escape(trim($newPassword));
         $repeatPassword = $Core->db->escape(trim($repeatPassword));
-        
-        try {    
+
+        try {
             $this->validatePassword($newPassword);
         } catch (Exception $ex) {
             $errorsInFields['password'] = $ex->getMessage();
         }
-        
+
         if (empty($repeatPassword)) {
             $errorsInFields['repeat_password'] = "Repeat password";
         } elseif ($newPassword !== $repeatPassword) {
             $errorsInFields['repeat_password'] = "Passwords do not match";
         }
-        
+
         if ($currentPassword !== null){
             $currentPassword = $Core->db->escape(trim($currentPassword));
             if (empty($currentPassword)) {
@@ -723,16 +723,16 @@ class User extends Base
                 $errorsInFields['current_password'] = "Current password is incorrect";
             }
         }
-        
+
         if (!empty($errorsInFields)) {
             throw new BaseException("The following fields are not valid", $errorsInFields, get_class($this));
         }
-        
+
         return $this->updateById($userId, array('password' => $this->hashPassword($password)));
     }
 
     //RECOVERY FUNCTIONS
-    
+
     /**
      * Allows a user to recover his username with his email
      * Sends an email to the user with his username
@@ -748,21 +748,21 @@ class User extends Base
     public function recoverUsername(string $email, string $body = null, string $subject = null, int $typeId = null)
     {
         global $Core;
-        
+
         if ($this->registerWithEmail) {
             throw new Exception("Username recovery is not allowed when the users register with email");
         }
-        
+
         $email = $Core->db->escape(trim($email));
-        
+
         if (empty($email)) {
             throw new BaseException("Enter email");
         }
-        
+
         $this->validateEmail($username);
-        
+
         $this->validateUserType($typeId);
-        
+
         $queryWhere = "`email` = '$email'";
 
         if ($typeId !== null) {
@@ -793,7 +793,7 @@ class User extends Base
 
         $Core->GlobalFunctions->sendEmail($Core->mailConfig['Username'], $Core->siteName, $subject, $email, $body, true);
     }
-    
+
     /**
      * Allows a user to recover his password with his email, by requesting a password token
      * Sends an email to the user with his token
@@ -811,13 +811,13 @@ class User extends Base
     public function requestPasswordToken(string $email, string $body = null, string $subject = null, int $typeId = null)
     {
         global $Core;
-        
+
         if (empty($this->usersRecoveryTableName)) {
             throw new Exception("Recovery is not possible, without setting the usersRecoveryTableName");
         }
 
         $email = $Core->db->escape(trim($email));
-        
+
         if (empty($email)) {
             throw new BaseException("Enter email");
         }
@@ -825,19 +825,19 @@ class User extends Base
         $this->validateEmail($username);
 
         $this->validateUserType($typeId);
-        
+
         if ($this->registerWithEmail) {
             $queryWhere = "`username` = '$email'";
         } else {
             $queryWhere = "`email` = '$email'";
         }
-        
+
         if ($typeId !== null) {
             $queryWhere .= " AND `type_id` = $typeId ";
         }
 
         $email = $Core->db->escape($email);
-        
+
         $selector = new BaseSelect($this->tableName);
         $selector->setWhere($queryWhere);
         $selector->setGlobalTemplate('fetch_assoc');
@@ -845,21 +845,21 @@ class User extends Base
         $user = $selector->execute();
 
         if (empty($user)) {
-            throw new BaseException($Core->language->error_this_email_does_not_exist);
+            throw new BaseException('This email does not exist');
         }
-        
+
         unset($selector);
-        
+
         //check for existing token
         $selector = new BaseSelect($this->usersRecoveryTableName);
         $selector->setWhere("`user_id` = '{$user['id']}'");
         $selector->setGlobalTemplate('fetch_assoc');
         $selector->turnOffCache();
         $token = $selector->execute();
-        
+
         if (empty($token)) {
             $token = md5(uniqid());
-            
+
             $inserter = new BaseInsert($this->usersRecoveryTableName);
             $inserter->addField('user_id', $user['id']);
             $inserter->addField('token', $token);
@@ -873,7 +873,7 @@ class User extends Base
             $deleter = new BaseDelete($this->usersRecoveryTableName);
             $deleter->setWhere("`token` = '$token'");
             $deleter->execute();
-            
+
             $token = md5(uniqid());
 
             $inserter = new BaseInsert($this->usersRecoveryTableName);
@@ -881,7 +881,7 @@ class User extends Base
             $inserter->addField('token', $token);
             $inserter->execute();
         }
-    
+
         if ($body === null) {
             $body =
             $Core->Language->you_requested_a_password_recovery_for.'`'.$user['username'].'.`<br><br>'.
@@ -908,10 +908,10 @@ class User extends Base
         }
 
         $Core->GlobalFunctions->sendEmail($Core->mailConfig['Username'], $Core->siteName, $subject, $email, $body, true);
-        
+
         return $token;
     }
-    
+
     /**
      * Allows a user to recover his password with his email, by exchanging a password token
      * Sends an email to the user with his new password
@@ -928,22 +928,22 @@ class User extends Base
     public function recoverPassword(string $token, string $body = null, string $subject = null)
     {
         global $Core;
-        
+
         if (empty($this->usersRecoveryTableName)) {
             throw new Exception("Recovery is not possible, without setting the usersRecoveryTableName");
         }
-        
+
         $token = $Core->db->escape(trim($token));
-        
+
         if (empty($token)) {
             throw new BaseException("Provide token");
         }
-        
+
         $queryWhere = "`token` = '$token'";
         if ($this->tokenExpireTime > 0) {
             $queryWhere .= " AND `added` < NOW - {$this->tokenExpireTime}";
-        } 
-        
+        }
+
         $selector = new BaseSelect($this->usersRecoveryTableName);
         $selector->addField('user_id');
         $selector->setWhere($queryWhere);
@@ -954,30 +954,30 @@ class User extends Base
         if (empty($userId)) {
             throw new BaseException("Invalid token");
         }
-        
+
         unset($selector);
-        
+
         $selector = new BaseSelect($this->tableName);
         $selector->setWhere("`id` = {$userId['user_id']}");
         $selector->setGlobalTemplate('fetch_assoc');
         $selector->turnOffCache();
         $user = $selector->execute();
-        
+
         if (empty($user)) {
             throw new BaseException("Invalid token");
         }
-        
+
         $newPass = strtoupper(substr(md5(time()),5,10));
-        
+
         $updater = new BaseUpdate($this->tableName);
         $updater->addField('password', $this->hashPassword($newPass));
         $selector->setWhere("`id` = {$user['user_id']}");
         $selector->execute();
-        
+
         $deleter = new BaseDelete($this->usersRecoveryTableName);
         $deleter->setWhere("`token` = '$token'");
         $deleter->execute();
-        
+
         if ($body === null) {
             $body = $Core->Language->your_new_password_for.' '.$user['username'].' :<b>'.$newPass.'</b>';
         } else {
@@ -993,7 +993,7 @@ class User extends Base
         }
 
         $Core->GlobalFunctions->sendEmail($Core->mailConfig['Username'], $Core->siteName, $subject, $email, $body, true);
-        
+
         return $newPass;
     }
 }

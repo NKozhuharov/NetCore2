@@ -10,45 +10,51 @@
 *    header('Content-Type: file/type');
 *    header('X-Accel-Redirect: /files/folder/filename));
 */
-class Files extends Base{
+class Files extends Base
+{
     private $filePath   = false;
     public  $tableName  = 'files';
 
-    public function __construct(){
+    public function __construct()
+    {
         global $Core;
 
         $this->filePath = $Core->filesDir;
     }
 
-    public function getByHash($hash){
+    public function getByHash($hash)
+    {
         global $Core;
 
         $hash = $Core->db->escape($hash);
-        if(empty($hash)){
-            throw new exception ('Invalid hash!');
+        if (empty($hash)) {
+            throw new exception ('Invalid hash');
         }
 
         $Core->db->query("SELECT * FROM `{$Core->dbName}`.`{$this->tableName}` WHERE `hash`='$hash'",$Core->cacheTime,'fetch_assoc',$result);
-        if(empty($result)){
-            throw new exception('File not found!');
+
+        if (empty($result)) {
+            throw new exception('File not found');
         }
+
         return $result;
     }
 
-    public function getBySrc($src){
+    public function getBySrc($src)
+    {
         global $Core;
 
         $src = $Core->db->escape($src);
 
-        if(!is_string($src) || empty($src)){
-            throw new exception ('Invalid file source!');
+        if (!is_string($src) || empty($src)) {
+            throw new exception ('Invalid file source');
         }
 
         $src   = explode('/', $src);
         $count = count($src);
 
-        if($count < 2){
-            throw new exception('Invalid file source!');
+        if ($count < 2) {
+            throw new exception('Invalid file source');
         }
 
         $hashedName = $src[$count-1];
@@ -56,48 +62,52 @@ class Files extends Base{
 
         $Core->db->query("SELECT * FROM `{$Core->dbName}`.`{$this->tableName}` WHERE `dir` = '$dir' AND `hashed_name`='$hashedName'", $Core->cacheTime, 'fetch_assoc', $result);
 
-        if(empty($result)){
-            throw new exception('File not found!');
+        if (empty($result)) {
+            throw new exception('File not found');
         }
         return $result;
     }
 
-    private function getFileHash($file){
+    private function getFileHash($file)
+    {
         return sha1($file['name'].'_'.$file['size'].'_'.time());
     }
 
-    private function getHashedName($file){
+    private function getHashedName($file)
+    {
         return sha1($file['name'].'the_file_name'.time().uniqid());
     }
 
-    private function insertFile($currentDirId, $file){
+    private function insertFile($currentDirId, $file)
+    {
         global $Core;
-        if(!is_dir($this->filePath.$currentDirId)){
+        if (!is_dir($this->filePath.$currentDirId)) {
             mkdir($this->filePath.$currentDirId,0755);
         }
 
         $fi = new FilesystemIterator($this->filePath.$currentDirId, FilesystemIterator::SKIP_DOTS);
         $fCount = iterator_count($fi);
-        if($fCount < $Core->folderLimit){
+        if ($fCount < $Core->folderLimit) {
             move_uploaded_file($file['tmp_name'],$this->filePath.$currentDirId.'/'.$file['hashed_name']);
             return $currentDirId;
         }
         return $this->insertFile($currentDirId + 1, $file);
     }
 
-    public function addFiles($files, $insertInDb = true){
+    public function addFiles($files, $insertInDb = true)
+    {
         global $Core;
 
-        if(is_array($files['tmp_name'])){
+        if (is_array($files['tmp_name'])) {
             $files = $Core->globalfunctions->reArrangeRequestFiles($files);
-        }else{
+        } else {
             $files = array($files);
         }
 
-        foreach($files as $file){
-            if(empty($file)){
-                throw new exception('Please provide a valid file!');
-            }elseif($file['error']){
+        foreach ($files as $file) {
+            if (empty($file)) {
+                throw new exception('Please provide a valid file');
+            }elseif ($file['error']) {
                 throw new exception($this->codeToMessage($file['error']));
             }
 
@@ -106,7 +116,7 @@ class Files extends Base{
 
             $currentDirId = $this->insertFile(1,$file);
 
-            if(is_file($this->filePath.$currentDirId.'/'.$file['hashed_name'])){
+            if (is_file($this->filePath.$currentDirId.'/'.$file['hashed_name'])) {
                 $inputArr = array(
                     'name' => $file['name'],
                     'hashed_name' => $file['hashed_name'],
@@ -116,36 +126,38 @@ class Files extends Base{
                     'size' => $file['size']
                 );
 
-                if($insertInDb){
+                if ($insertInDb) {
                     $this->add($inputArr);
                     $return[] = $Core->siteDomain.'/'.$currentDirId.$Core->filesWebDir.$file['hash'];
-                }else{
+                } else {
                     $return[] = $inputArr;
                 }
             }
             else{
-                throw new exception('Error occured! Please try again and if the problem persits contact support!');
+                throw new exception('Error occured. Please try again and if the problem persits contact support');
             }
         }
         return $return;
     }
 
-    public function insertFileIntoDb($inputArr, $returnId = false){
+    public function insertFileIntoDb($inputArr, $returnId = false)
+    {
         global $Core;
-        if(!is_array($inputArr)){
-            throw new exception('Please provide a valid array!');
+        if (!is_array($inputArr)) {
+            throw new exception('Please provide a valid array');
         }
 
         $id = $this->add($inputArr);
 
-        if($returnId){
+        if ($returnId) {
             return $id;
         }
 
         return $Core->siteDomain.'/'.$inputArr['dir'].$Core->filesWebDir.$inputArr['hash'];
     }
 
-    private function codeToMessage($code){
+    private function codeToMessage($code)
+    {
         switch ($code) {
             case UPLOAD_ERR_INI_SIZE:
                 $message = "The uploaded file exceeds the upload_max_filesize directive in php.ini";
@@ -175,50 +187,52 @@ class Files extends Base{
         return $message;
     }
 
-    public function typeMap($type,$name){
-        if($type == 'application/octet-stream'){
+    public function typeMap($type,$name)
+    {
+        if ($type == 'application/octet-stream') {
             $name = strrev($name);
             $name = substr($name,0,strpos($name,'.'));
             $name = strrev($name);
-            if($name == 'zip' || $name == 'rar'){
+            if ($name == 'zip' || $name == 'rar') {
                 return $name;
             }
         }
-        if(stristr($type,'image')){
+        if (stristr($type,'image')) {
             return 'pic';
         }
-        if($type == 'application/pdf'){
+        if ($type == 'application/pdf') {
             return 'pdf';
         }
-        if($type == 'application/vnd.ms-excel'){
+        if ($type == 'application/vnd.ms-excel') {
             return 'excel';
         }
-        if($type == 'application/vnd.openxmlformats-officedocument.pres'){
+        if ($type == 'application/vnd.openxmlformats-officedocument.pres') {
             return 'ppt';
         }
-        if(stristr($type,'application') || stristr($type,'text')){
+        if (stristr($type,'application') || stristr($type,'text')) {
             return 'doc';
         }
-        if(stristr($type,'video')){
+        if (stristr($type,'video')) {
             return 'mov';
         }
-        if(stristr($type,'audio') || stristr($type,'music')){
+        if (stristr($type,'audio') || stristr($type,'music')) {
             return 'music';
         }
         return 'unknown';
     }
 
-    public function download($fileTo){
+    public function download($fileTo)
+    {
         global $Core;
 
-        if(is_numeric($fileTo) && $file = $this->getById($fileTo)){
+        if (is_numeric($fileTo) && $file = $this->getById($fileTo)) {
             $fileTo = $Core->filesDir.$file['dir'].'/'.$file['hashed_name'];
-        }else{
+        } else {
             $file = $this->getBySrc($fileTo);
             $fileTo = GLOBAL_PATH.substr(SITE_PATH, 0, -1).$fileTo;
         }
 
-        if(is_file($fileTo)){
+        if (is_file($fileTo)) {
             header('Pragma: public');
             header('Expires: 0');
             header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
@@ -230,7 +244,7 @@ class Files extends Base{
 
             $chunkSize = 1024 * 1024;
             $handle = fopen($fileTo, 'rb');
-            while (!feof($handle)){
+            while (!feof($handle)) {
                 $buffer = fread($handle, $chunkSize);
                 echo $buffer;
                 ob_flush();
@@ -238,22 +252,23 @@ class Files extends Base{
             }
             fclose($handle);
             die;
-        }else{
-            throw new exception('File not found!');
+        } else {
+            throw new exception('File not found');
         }
     }
 
-    public function deleteFile($fileTo){
+    public function deleteFile($fileTo)
+    {
         global $Core;
 
-        if(is_numeric($fileTo) && $file = $this->getById($fileTo)){
+        if (is_numeric($fileTo) && $file = $this->getById($fileTo)) {
             $fileTo = $Core->filesDir.$file['dir'].'/'.$file['hashed_name'];
-        }else{
+        } else {
             $file = $this->getBySrc($fileTo);
         }
 
-        if(!is_file($fileTo)){
-            throw new exception('File not found!');
+        if (!is_file($fileTo)) {
+            throw new exception('File not found');
         }
 
         unlink($fileTo);
@@ -261,4 +276,3 @@ class Files extends Base{
         return true;
     }
 }
-?>

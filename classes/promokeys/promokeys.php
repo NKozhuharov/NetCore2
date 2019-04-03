@@ -3,7 +3,7 @@
     {
         const MIN_KEY_LENGTH = 3;
         const MAX_KEY_LENGTH = 40;
-        
+
         /**
          * All types of keys
          * @var array
@@ -14,7 +14,7 @@
             3 => 'limited',
             4 => 'automated',
         );
-        
+
         /**
          * A color for every key type (for the admin panel)
          * @var array
@@ -25,7 +25,7 @@
             3 => 'green',
             4 => 'gray'
         );
-        
+
         /**
          * All discount types
          * @var array
@@ -34,7 +34,7 @@
             1 => 'percentage',
             2 => 'amount',
         );
-        
+
         public function __construct()
         {
             $this->tableName = 'promo_keys';
@@ -43,7 +43,7 @@
             $this->parentField = 'type';
             $this->searchByField = 'key';
         }
-        
+
         /**
          * Gets the promo key types
          * @return array
@@ -52,7 +52,7 @@
         {
             return $this->typeMap;
         }
-        
+
         /**
          * Gets the promo key type colors
          * @return array
@@ -61,7 +61,7 @@
         {
             return $this->typeColorMap;
         }
-        
+
         /**
          * Gets the discount types
          * @return array
@@ -70,7 +70,7 @@
         {
             return $this->discountTypeMap;
         }
-        
+
         /**
          * Adds a new key, type 'private' in the db
          * Throws Error if invalid parameters are provided
@@ -87,15 +87,15 @@
         public function addPrivate(string $key, int $platformId, string $privateUsername, int $discountType, float $discount, string $note = NULL)
         {
             $this->validatePlatformId($platformId);
-             
+
             $this->validateKeyName($key, $platformId);
-            
+
             $this->validateDiscount($discountType, $discount);
-            
+
             if (empty($privateUsername)) {
-                throw new Error("Provide username!");
+                throw new Exception("Provide username!");
             }
-            
+
             return $this->add(
                 array(
                     'key'              => $key,
@@ -108,7 +108,7 @@
                 )
             );
         }
-        
+
         /**
          * Adds a new key, type 'period' in the db
          * Throws Error if invalid parameters are provided
@@ -125,11 +125,11 @@
         public function addPeriod(string $key, int $platformId, DateTime $date, int $discountType, float $discount, string $note = NULL)
         {
             $this->validatePlatformId($platformId);
-            
+
             $this->validateKeyName($key, $platformId);
-            
+
             $this->validateDiscount($discountType, $discount);
-            
+
             return $this->add(
                 array(
                     'key'              => $key,
@@ -142,7 +142,7 @@
                 )
             );
         }
-        
+
         /**
          * Adds a new key, type 'limited' in the db
          * Throws Error if invalid parameters are provided
@@ -159,15 +159,15 @@
         public function addLimited(string $key, int $platformId, int $limit, int $discountType, float $discount, string $note = NULL)
         {
             $this->validatePlatformId($platformId);
-            
+
             $this->validateKeyName($key, $platformId);
-            
+
             $this->validateDiscount($discountType, $discount);
-            
+
             if (empty($limit)) {
-                throw new Error("Provide expire limit!");
+                throw new Exception("Provide expire limit!");
             }
-            
+
             return $this->add(
                 array(
                     'key'              => $key,
@@ -180,7 +180,7 @@
                 )
             );
         }
-        
+
         /**
          * Checks if the following key exists, by it's name and platform id
          * @param string $key - the name of the key
@@ -190,10 +190,10 @@
         public function keyExists(string $key, int $platformId)
         {
             $existingKey = $this->getAll(false, true, 1, false, false, "`key` = '$key' AND `platform_id` = $platformId");
-            
+
             return !empty($existingKey) ? true : false;
         }
-        
+
         /**
          * Checks if the following key exists, by it's id
          * Throws Error if the id is empty
@@ -204,14 +204,14 @@
         public function keyIdExists(int $keyId)
         {
             if (empty($keyId)) {
-                throw new Error("Provide key id!");
+                throw new Exception("Provide key id!");
             }
-            
+
             $existingKey = $this->getById($keyId);
-            
+
             return empty($existingKey) ? false : true;
         }
-        
+
         /**
          * Checks if the following key is expired, by it's name and platform id
          * @param string $key - the name of the key
@@ -221,17 +221,17 @@
         public function isKeyExpired(string $key, int $platformId)
         {
             $existingKey = $this->getAll(
-                false, 
-                true, 
-                1, 
-                false, 
-                false, 
+                false,
+                true,
+                1,
+                false,
+                false,
                 "`key` = '$key' AND `expired` = 0 AND `platform_id` = $platformId"
             );
-            
+
             return !empty($existingKey) ? false : true;
         }
-        
+
         /**
          * Gets a key from the databse, according to it's name and platform id
          * Throws Error if the parameters are invalid, key does not exist, or it is expired
@@ -243,33 +243,33 @@
         public function getKey(string $key, int $platformId)
         {
             $this->validatePlatformId($platformId);
-            
+
             if (empty($key)) {
-                throw new Error("Provide key!");
+                throw new Exception("Provide key!");
             }
-            
+
             $existingKey = $this->getAll(
-                false, 
-                true, 
-                1, 
-                false, 
-                false, 
+                false,
+                true,
+                1,
+                false,
+                false,
                 "`key` = '$key' AND `platform_id` = $platformId"
             );
-            
+
             if (empty($existingKey)) {
-                throw new Error("This key does not exist!");
+                throw new Exception("This key does not exist!");
             }
-            
+
             $existingKey = current($existingKey);
-            
+
             if ($existingKey['expired'] == 1) {
-                throw new Error("This key is expired!");
+                throw new Exception("This key is expired!");
             }
-            
+
             return $existingKey;
         }
-        
+
         /**
          * Gets a 10 symbol random string, to be used as a key name
          * @param string $seed - optional parameter for further randomization
@@ -279,7 +279,7 @@
         {
             return strtoupper(substr(sha1(time() . $seed), rand(0, 20), 10));
         }
-        
+
         /**
          * Markes the key, but it's id, as expired
          * Throws Error if the id is empty
@@ -289,12 +289,12 @@
         public function deActivateKey(int $keyId)
         {
             if (!$this->keyIdExists($keyId)) {
-                throw new Error("This key does not exist!");
+                throw new Exception("This key does not exist!");
             }
-            
+
             $this->update($keyId, array('expired' => 1));
         }
-        
+
         /**
          * Markes the key, but it's id, as active
          * Throws Error if the id is empty
@@ -304,12 +304,12 @@
         public function activateKey(int $keyId)
         {
             if (!$this->keyIdExists($keyId)) {
-                throw new Error("This key does not exist!");
+                throw new Exception("This key does not exist!");
             }
-            
+
             $this->update($keyId, array('expired' => 0));
         }
-        
+
         /**
          * Updates the expiration criteria for a key, by it's id
          * It could also update it's note
@@ -324,27 +324,27 @@
         public function updateKey(int $keyId, string $newValue, string $newNote = NULL)
         {
             global $Core;
-            
+
             if (empty($keyId)) {
-                throw new Error("Provide key id!");
+                throw new Exception("Provide key id!");
             }
-            
+
             $existingKey = $this->getById($keyId);
-            
+
             if (empty($existingKey)) {
-                throw new Error("This key does not exist!");
+                throw new Exception("This key does not exist!");
             }
-            
+
             if (empty($newValue) && $existingKey['type'] != 4) {
-                throw new Error("Key criteria cannot be empty!");
+                throw new Exception("Key criteria cannot be empty!");
             }
-            
+
             if ($existingKey['type'] == 1) {
                 $this->update(
                     $keyId,
                     array(
                         'private_username' => $newValue,
-                        'note'             => $newNote,  
+                        'note'             => $newNote,
                     )
                 );
             } else if ($existingKey['type'] == 2) {
@@ -353,28 +353,28 @@
                     $keyId,
                     array(
                         'expire_date' => $newDate->format('Y-m-d'),
-                        'note'        => $newNote,  
+                        'note'        => $newNote,
                     )
                 );
-                
+
                 if ($newDate->getTimestamp() < time()) {
                     $this->deActivateKey($keyId);
                 } else {
                     $this->activateKey($keyId);
                 }
-                
+
                 unset($newDate);
             } else if ($existingKey['type'] == 3) {
                 $this->update(
                     $keyId,
                     array(
                         'expire_limit' => intval($newValue),
-                        'note'         => $newNote,  
+                        'note'         => $newNote,
                     )
                 );
-                
+
                 $keyUsage = $Core->PromoKeysUsage->getKeyUsageById($keyId);
-                
+
                 if ($keyUsage < $newValue) {
                     $this->activateKey($keyId);
                 } else {
@@ -384,12 +384,12 @@
                 $this->update(
                     $keyId,
                     array(
-                        'note' => $newNote,  
+                        'note' => $newNote,
                     )
                 );
             }
         }
-        
+
         /**
          * Records a usage for the key by it's id
          * Throws Error if parameters are invalid or the key cannot be used
@@ -401,41 +401,41 @@
         public function useKey(int $keyId, string $userIp, string $username = null)
         {
             global $Core;
-            
+
             if (empty($keyId)) {
-                throw new Error("Provide key id!");
+                throw new Exception("Provide key id!");
             }
-            
+
             if (!filter_var($userIp, FILTER_VALIDATE_IP)) {
-                throw new Error("Provide a valid user ip!");
+                throw new Exception("Provide a valid user ip!");
             }
-            
+
             $existingKey = $this->getById($keyId);
-            
+
             if (empty($existingKey)) {
-                throw new Error("This key does not exist!");
+                throw new Exception("This key does not exist!");
             }
-            
+
             if ($existingKey['expired']) {
-                throw new Error ("This key is expired!");
+                throw new Exception("This key is expired!");
             }
-            
+
             if ($existingKey['type'] == 1) {
                 if (empty($username)) {
-                    throw new Error("Provide username for the key!");
+                    throw new Exception("Provide username for the key!");
                 }
-                
+
                 if ($username != $existingKey['private_username']) {
-                    throw new Error("This key is for another user!");
+                    throw new Exception("This key is for another user!");
                 }
-                
+
                 $Core->PromoKeysUsage->add(
                     array(
                         'key_id'  => $existingKey['id'],
                         'user_ip' => $userIp
                     )
                 );
-                
+
                 $this->deActivateKey($key['id']);
             } else if ($existingKey['type'] == 2) {
                 $Core->PromoKeysUsage->add(
@@ -451,9 +451,9 @@
                         'user_ip' => $userIp
                     )
                 );
-                
+
                 $keyUsageCount = $Core->PromoKeysUsage->getCount(false, "`key_id` = {$existingKey['id']}");
-                
+
                 if ($keyUsageCount == $existingKey['expire_limit']) {
                     $this->deActivateKey($existingKey['id']);
                 }
@@ -464,11 +464,11 @@
                         'user_ip' => $userIp
                     )
                 );
-                
+
                 $this->deActivateKey($existingKey['id']);
             }
         }
-        
+
         /**
          * Records a usage for the key by it's name
          * Throws Error if parameters are invalid or the key cannot be used
@@ -483,34 +483,34 @@
         public function applyKey(string $key, int $platformId, float $totalSum, string $username = null)
         {
             $existingKey = $this->getKey($key, $platformId);
-            
+
             if ($existingKey['type'] == 1) {
                 if (empty($username)) {
-                    throw new Error("Provide username for the key!");
+                    throw new Exception("Provide username for the key!");
                 }
-                
+
                 if ($username != $existingKey['private_username']) {
-                    throw new Error("This key is for another user!");
+                    throw new Exception("This key is for another user!");
                 }
             }
-            
+
             $discountedSum = 0;
             if ($existingKey['discount_type'] == 1) {
                 $discountedSum = $totalSum - ($totalSum * $existingKey['discount'] / 100);
             } else if ($existingKey['discount_type'] == 2) {
                 $discountedSum = $totalSum - $existingKey['discount'];
-            } 
-            
+            }
+
             if ($discountedSum < 0) {
                 $discountedSum = 0;
             }
-            
+
             return array(
                 'discounted_sum' => number_format($discountedSum, 2),
                 'key_id'         => $existingKey['id']
             );
         }
-        
+
         /**
          * Checks if the provided platform id exists
          * Throws Error if the id is empty, or it doesn't exist
@@ -520,18 +520,18 @@
         private function validatePlatformId(int $platformId)
         {
             global $Core;
-            
+
             if (empty($platformId)) {
-                throw new Error("Platform id cannot be empty!");
+                throw new Exception("Platform id cannot be empty!");
             }
-            
+
             $allPlatforms = $Core->PromoKeysPlatforms->getAll(false, true);
-            
+
             if (!isset($allPlatforms[$platformId])) {
-                throw new Error("This platform does not exist!");
+                throw new Exception("This platform does not exist!");
             }
         }
-        
+
         /**
          * Validates the provided key name
          * Throws Error if something is wrong
@@ -542,24 +542,24 @@
         private function validateKeyName(string $key, int $platformId)
         {
             if (empty($key)) {
-                throw new Error("Key name cannot be empty!");
+                throw new Exception("Key name cannot be empty!");
             }
-            
+
             if (strlen($key) < self::MIN_KEY_LENGTH) {
-                throw new Error("Key length must be more or exactly ".self::MIN_KEY_LENGTH.' symbols!');
+                throw new Exception("Key length must be more or exactly ".self::MIN_KEY_LENGTH.' symbols!');
             }
-            
+
             if (strlen($key) > self::MAX_KEY_LENGTH) {
-                throw new Error("Key length must be less or exactly ".self::MAX_KEY_LENGTH.' symbols!');
+                throw new Exception("Key length must be less or exactly ".self::MAX_KEY_LENGTH.' symbols!');
             }
-            
+
             if (!$this->isKeyExpired($key, $platformId)) {
-                throw new Error("This key is already in use!");
+                throw new Exception("This key is already in use!");
             }
         }
-        
+
         /**
-         * Validate the discount type and discount 
+         * Validate the discount type and discount
          * Throws Error if something is wrong
          * @param int $discountType - the discount type for the key
          * @param float $discount - the discount for the key
@@ -568,19 +568,19 @@
         private function validateDiscount(int $discountType, float $discount)
         {
             if (empty($discount) || empty($discountType)) {
-                throw new Error("Provide discount and discount type");
+                throw new Exception("Provide discount and discount type");
             }
-            
+
             if (!isset($this->discountTypeMap[$discountType])) {
-                throw new Error("Invalid discount type!");
+                throw new Exception("Invalid discount type!");
             }
-            
+
             if ($discount < 0) {
-                throw new Error("Discout must be more than 0!");
+                throw new Exception("Discout must be more than 0!");
             }
-            
+
             if ($discountType == 1 && $discount > 100) {
-                throw new Error("Percentage discount must be less or exactly 100%!");
+                throw new Exception("Percentage discount must be less or exactly 100%!");
             }
         }
     }

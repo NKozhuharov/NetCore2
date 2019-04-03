@@ -26,14 +26,14 @@ class Messages extends Base{
             $Core->db->query("UPDATE `{$Core->dbName}`.`{$this->tableName}` SET `seen` = 1 WHERE `user_id` = ".$Core->{$Core->userModel}->id." AND `id` = {$_REQUEST['seen']}");
         }elseif(isset($_REQUEST['delete'])){
             if(!is_numeric($_REQUEST['delete'])){
-                throw new Error($Core->language->error_invalid_message_id);
+                throw new Exception('Invalid message id');
             }
             //delete message
             $this->deleteMessage($_REQUEST['delete']);
         }else{
             //draw messages if new message is present
             if(!isset($_REQUEST['count']) || !is_numeric($_REQUEST['count'])){
-                throw new Error($Core->language->error_provide_messages_count);
+                throw new Exception('Provide messages count');
             }
 
             $_REQUEST['count'] = $Core->db->escape($_REQUEST['count']);
