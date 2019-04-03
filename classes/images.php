@@ -1,5 +1,4 @@
 <?php
-//TODO exted size types
 class Images extends Base
 {
     /**
@@ -9,63 +8,135 @@ class Images extends Base
     protected $tableName = 'images';
 
     /**
-     * @var string
+     * @var array
      * The allowed image sizes containig the type ofthe image dimensions
-     * If is empty all sizes are allowed
+     * If is empty all sizes are allowed except those with 0 or less
+     * It is recommended to be set
+     * Follow the structure below in order the script to work correctly
      */
     protected $allowedSizes = array(
         'org' => array(
             'org' => array('width' => false, 'height' => false),
         ),
         'width' => array(
-            '1920' => array('width' => 1920, 'height' => false)
-            ,'50' => array('width' => 50, 'height' => false)
+            '1920' => array('width' => '1920', 'height' => false),
         ),
         'height'=> array(
-            '1080' => array('width' => false, 'height' => 1080)
+            '1080' => array('width' => false, 'height' => '1080'),
         ),
         'fixed' => array(
-            '1920-1080' => array('width' => 1920, 'height' => 1080)
-        )
+            '1920-1080' => array('width' => '1920', 'height' => '1080'),
+        ),
     );
 
     /**
-     * @var string
+     * @var int
      * Maximum image sizae in bytes
      */
-    protected $sizeLimit      = 10485760; //10MB
+    protected $sizeLimit = 10485760; //10MB
 
-    protected $uploadName     = 'imageUpload'; //$_REQUEST flag for showing it is upload
-    protected $showResponse   = true;
+    /**
+     * @var string
+     * $_REQUEST flag for showing it is upload
+     */
+    protected $uploadName = 'imageUpload';
+
+    /**
+     * @var bool
+     * Param when uploading images.
+     * If set to true it will show the response. If count of the response is 1 it will show string otherwise JSON encoded array
+     * If set to false it will return the response. If count of the response is 1 it will retur string otherwise array
+     */
+    protected $showResponse = true;
+
+    /**
+     * @var bool
+     * If set to true it will allow uploading duplicated images otherwise it will use already inserted image
+     * Not recommended to be set to true
+     */
     protected $allowDuplicate = false;
 
     /**
      * @var bool
      * If is set to true the script will die after execution
      */
-    protected $dieWhenDone    = true;
+    protected $dieWhenDone = true;
 
     /**
      * @var string
      * Default file format. If is not empty all files will be converted to it.
      */
-    protected $fileFormat  = 'jpg';
+    protected $imageFormat = 'jpg';
 
     /**
      * @var string
-     * Current imagick file folder containing $this->sizeType, $this->sizeKey
+     * Location for watermark image
      */
-    private $currentFolder  = false;
-    private $sizeType       = false;
-    private $sizeKey        = false;
-    private $width          = false;
-    private $height         = false;
-    private $name           = false;
-    private $orgMd5         = false;
-    private $response       = array();
-    private $imagick        = false;
-    protected $watermarkFile = ''; //'/var/www/site/www/img/watermark.png';
+    protected $watermarkFile = '';
 
+    /**
+     * @var string
+     * Current image folder
+     */
+    private $currentFolder = '';
+
+    /**
+     * @var string
+     * Current image size type
+     */
+    private $sizeType = '';
+
+    /**
+     * @var string
+     * Current image size Key
+     */
+    private $sizeKey = '';
+
+    /**
+     * @var int
+     * Current image width
+     */
+    private $width = 0;
+
+    /**
+     * @var int
+     * Current image height
+     */
+    private $height = 0;
+
+    /**
+     * @var bool
+     * If is set to true allows created image size to be bigger than the original image size.
+     * Else if the given size is bigger than the original image size, original image size will be used
+     */
+    private $allowSizeOverflow = false;
+
+    /**
+     * @var string
+     * Current image name
+     */
+    private $name = '';
+
+    /**
+     * @var string
+     * Original image md5 to store when uploading or use when creating on demand
+     */
+    private $orgMd5 = '';
+
+    /**
+     * @var array
+     * Response when uploading
+     */
+    private $response = array();
+
+    /**
+     * instance of the Imagick class
+     */
+    private $imagick = false;
+
+    /**
+     * @return array or JSON
+     */
     public function __construct()
     {
         #header('Content-Type: image/jpg');
@@ -83,6 +154,10 @@ class Images extends Base
             throw new Exception('Unallowed action');
         }
 
+        if($this->allowedSizes){
+            $this->checkAllowedSizes();
+        }
+
         //image upload
         if (isset($_FILES[$this->uploadName], $_FILES[$this->uploadName]['tmp_name'])) {
             if (is_array($_FILES[$this->uploadName]['tmp_name'])) {
@@ -94,17 +169,16 @@ class Images extends Base
             $response = array();
 
             foreach($files as $file) {
-                $fileLocation = $this->prepareUpload($file);
+                $fileLocation = $this->setUpload($file);
 
                 $this->setImagick($fileLocation);
 
-                $this->setFileFormat($fileLocation);
+                $this->setImageFormat($fileLocation);
 
                 $this->orgMd5 = md5($this->imagick->__toString());
 
                 $response[] = $this->upload();
             }
-
 
             if (count($response) == 1) {
                 if ($this->showResponse) {
@@ -126,11 +200,11 @@ class Images extends Base
         }
         //create image on demand
         elseif (substr($_SERVER['REQUEST_URI'], 0, strlen($Core->imagesWebDir)) == $Core->imagesWebDir) {
-            $fileLocation = $this->prepareOnDemand();
+            $fileLocation = $this->setOnDemand();
 
             $this->setImagick($fileLocation);
 
-            $this->setFileFormat($fileLocation);
+            $this->setImageFormat($fileLocation);
 
             $this->orgMd5 = md5_file($fileLocation);
 
@@ -139,12 +213,12 @@ class Images extends Base
     }
 
     /**
-     * Prepares uploaded file/s and sets the needed class variables
+     * Sets uploaded file/s and sets the needed class variables
      * Throws Exception if the uploaded file is not a valid image or bigger thnan $this->sizeLimit
      * @param string $file - temp file location
      * @throws Exception
      */
-    private function prepareUpload(array $file)
+    private function setUpload(array $file)
     {
         global $Core;
 
@@ -196,29 +270,40 @@ class Images extends Base
             $this->name = $exists;
         }
 
-        return $Core->imagesStorage.$folderNumber.'/'.$this->name.'.'.$this->fileFormat;
+        return $Core->imagesStorage.$folderNumber.'/'.$this->name.'.'.$this->imageFormat;
     }
 
      /**
-     * Prepares required file and sets the needed class variables
+     * Sets required file and sets the needed class variables
      * Redirects no $Core->pageNotFoundLocation if the required file doesn't exists
      */
-    public function prepareOnDemand(){
+    public function setOnDemand(){
         global $Core;
 
-        if (preg_match("~^".$Core->imagesWebDir."(width|height)/([\d]+)/([\d]+)/(.*)~",$_SERVER['REQUEST_URI'] ,$m)) {
+        if (preg_match("~^".$Core->imagesWebDir."(width|height)/((?!0)[\d]+)/((?!0)[\d]+)/(.*)~",$_SERVER['REQUEST_URI'] ,$m)) {
             $this->sizeType      = $m[1];
             $this->sizeKey       = $m[2];
             $this->name          = urldecode(substr($m[4], 0, strripos($m[4], '.')));
             $this->currentFolder = $m[1].'/'.$m[2].'/'.$m[3].'/';
             $fileLocation        = urldecode($Core->imagesStorage.$m[3].'/'.$m[4]);
-        } elseif (preg_match("~^".$Core->imagesWebDir."(fixed)/([\d]+-[\d]+)/([\d]+)/(.*)~",$_SERVER['REQUEST_URI'] ,$m)) {
+
+            if ($m[1] == 'width') {
+                $this->width  = $m[2];
+            } elseif ($m[1] == 'height') {
+                $this->height = $m[2];
+            }
+        } elseif (preg_match("~^".$Core->imagesWebDir."(fixed)/((?!0)[\d]+-(?!0)[\d]+)/((?!0)[\d]+)/(.*)~",$_SERVER['REQUEST_URI'] ,$m)) {
             $this->sizeType      = $m[1];
             $this->sizeKey       = $m[2];
+
+            $ratio               = explode('-', $m[2]);
+            $this->width         = $ratio[0];
+            $this->height        = $ratio[1];
+
             $this->name          = urldecode(substr($m[4], 0, strripos($m[4], '.')));
             $this->currentFolder = $m[1].'/'.$m[2].'/'.$m[3].'/';
             $fileLocation        = urldecode($Core->imagesStorage.$m[3].'/'.$m[4]);
-        } elseif (preg_match("~^".$Core->imagesWebDir."(org)/([\d]+)/(.*)~",$_SERVER['REQUEST_URI'] ,$m)) {
+        } elseif (preg_match("~^".$Core->imagesWebDir."(org)/((?!0)[\d]+)/(.*)~",$_SERVER['REQUEST_URI'] ,$m)) {
             $this->sizeType      = 'org';
             $this->sizeKey       = 'org';
             $this->name          = urldecode(substr($m[3], 0, strripos($m[3], '.')));
@@ -239,9 +324,27 @@ class Images extends Base
         return $fileLocation;
     }
 
+    /*
+     * Sets the current image width and height and check if the setted values are allowed
+     * Redirects no $Core->pageNotFoundLocation if type, width or height is not allowed
+     */
+    private function setImageDimensions()
+    {
+        global $Core;
+
+        if ($this->allowedSizes) {
+            if (!isset($this->allowedSizes[$this->sizeType]) || !isset($this->allowedSizes[$this->sizeType][$this->sizeKey])) {
+                $Core->doOrDie();
+            } else {
+                $this->width  = $this->allowedSizes[$this->sizeType][$this->sizeKey]['width'];
+                $this->height = $this->allowedSizes[$this->sizeType][$this->sizeKey]['height'];
+            }
+        }
+    }
+
     /**
      * Resizes the image, then stores the file, saves the info in $this->tableName and then shows a preview of the image
-     * imagick __toString returns different string from file_get_contents
+     * Warning: imagick __toString returns different string from file_get_contents
      */
     public function createOnDemand(){
         global $Core;
@@ -263,20 +366,104 @@ class Images extends Base
         $this->previewImage($file);
     }
 
-    /*
-     * Sets the current image width and height and check if the setted values are allowed
-     * Redirects no $Core->pageNotFoundLocation if type, width or height is not allowed
+    /**
+     * Static checks when $this->alloweedSizes is not empty
+     * @throws Exception
      */
-    private function setImageDimensions()
+    private function checkAllowedSizes()
     {
-        global $Core;
+        if (!is_array($this->allowedSizes)) {
+            throw new Exception('Allowed sizes must be an array');
+        }
 
-        if ($this->allowedSizes) {
-            if (!isset($this->allowedSizes[$this->sizeType]) || ($this->allowedSizes && !isset($this->allowedSizes[$this->sizeType][$this->sizeKey]))) {
-                $Core->doOrDie();
-            } else {
-                $this->width  = $this->allowedSizes[$this->sizeType][$this->sizeKey]['width'];
-                $this->height = $this->allowedSizes[$this->sizeType][$this->sizeKey]['height'];
+        foreach($this->allowedSizes as $sizeType => $sizeValue) {
+            if (!is_array($sizeValue)) {
+                 throw new Exception('Allowed sizes `'.$sizeType.'` value must be an array');
+            }
+
+            if (!in_array($sizeType, array('org', 'fixed', 'width', 'height'))) {
+                throw new Exception('Allowed sizes key must be one of the following: `org`, `fixed`, `width`, `height`');
+            }
+
+            if ($sizeType == 'org') {
+                if (
+                    count($this->allowedSizes[$sizeType]) != 1 ||
+                    !isset($this->allowedSizes[$sizeType]['org']) ||
+                    !isset($this->allowedSizes[$sizeType]['org']['width']) ||
+                    !isset($this->allowedSizes[$sizeType]['org']['height']) ||
+                    (!is_bool($this->allowedSizes[$sizeType]['org']['width']) && !is_numeric($this->allowedSizes[$sizeType]['org']['width'])) ||
+                    (!is_bool($this->allowedSizes[$sizeType]['org']['height']) && !is_numeric($this->allowedSizes[$sizeType]['org']['height'])) ||
+                    (is_numeric($this->allowedSizes[$sizeType]['org']['width']) && intval($this->allowedSizes[$sizeType]['org']['width']) <= 0) ||
+                    (is_numeric($this->allowedSizes[$sizeType]['org']['height']) && intval($this->allowedSizes[$sizeType]['org']['height']) <= 0)
+
+
+                ) {
+                     throw new Exception(get_class($this)." class error.\r\n\r\nallowedSizes['org'] value must be an array containing only one array with the following structure:\r\n\r\narray('org' => array('width' => false or numeric, 'height' => false or numeric))");
+                }
+            } elseif ($sizeType == 'width') {
+                foreach ($this->allowedSizes[$sizeType] as $widthKey => $widthValue){
+                    if (!is_numeric($widthKey)) {
+                        throw new Exception(get_class($this)." class error.\r\n\r\nallowedSizes['width'] keys must be numeric (greater than 0)");
+                    }
+
+                    if (
+                        !isset($widthValue['width']) ||
+                        !isset($widthValue['height']) ||
+                        !is_numeric($widthValue['width']) ||
+                        $widthValue['height'] !== false ||
+                        intval($widthKey) != intval($widthValue['width']) ||
+                        intval($widthKey) <= 0 ||
+                        intval($widthValue['width']) <= 0
+                    ) {
+
+                       throw new Exception(get_class($this)." class error.\r\n\r\nallowedSizes['width'] value must be an array containing arrays with the following structure:\r\n\r\n'1920' => array('width' => '1920' (equal to parent array key), 'height' => false (always false))");
+                    }
+                }
+            } elseif ($sizeType == 'height') {
+                foreach ($this->allowedSizes[$sizeType] as $heighthKey => $heightValue){
+                    if (!is_numeric($widthKey)) {
+                        throw new Exception(get_class($this)." class error.\r\n\r\n allowedSizes['height'] keys must be numeric (greater than 0)");
+                    }
+
+                    if (
+                        !isset($heightValue['height']) ||
+                        !isset($heightValue['width']) ||
+                        !is_numeric($heightValue['height']) ||
+                        $heightValue['width'] !== false ||
+                        intval($heighthKey) != intval($heightValue['height']) ||
+                        intval($heighthKey) <= 0 ||
+                        intval($heightValue['height']) <= 0
+                    ) {
+
+                       throw new Exception(get_class($this)." class error.\r\n\r\nallowedSizes['height'] value must be an array containing arrays with the following structure:\r\n\r\n'1080' => array('width' => false (always false), 'height' => '1080' (equal to parent array key))");
+                    }
+                }
+            } elseif ($sizeType == 'fixed') {
+                foreach ($this->allowedSizes[$sizeType] as $fixedKey => $fixedValue){
+                    $keyParts = explode('-', $fixedKey);
+
+                    if (
+                        count($keyParts) != 2 ||
+                        !is_numeric($keyParts[0]) ||
+                        !is_numeric($keyParts[1]) ||
+                        $keyParts[0] <= 0 ||
+                        $keyParts[1] <= 0
+                    ) {
+                        throw new Exception(get_class($this)." class error.\r\n\r\nallowedSizes['fixed'] keys must be 'numeric (greater than 0)-numeric (greater than 0)' eg. '1920-1080'");
+                    }
+
+                    if (
+                        !isset($fixedValue['width']) ||
+                        !isset($fixedValue['height']) ||
+                        !is_numeric($fixedValue['width']) ||
+                        !is_numeric($fixedValue['height']) ||
+                        intval($fixedValue['width']) != intval($keyParts[0]) ||
+                        intval($fixedValue['height']) != intval($keyParts[1])
+                    ) {
+
+                       throw new Exception(get_class($this)." class error.\r\n\r\nallowedSizes['fixed'] value must be an array containing arrays with the following structure:\r\n\r\n'1920-1080' => array('width' => 1920 (equal to the first part of parent array key), 'height' => '1080' (equal to the second part of parent array key))");
+                    }
+                }
             }
         }
     }
@@ -309,7 +496,7 @@ class Images extends Base
             mkdir($folder, 0755, true);
         }
 
-        $destination = $folder.$this->name.'.'.$this->fileFormat;
+        $destination = $folder.$this->name.'.'.$this->imageFormat;
 
         $this->imagick->writeImage($destination);
 
@@ -329,7 +516,7 @@ class Images extends Base
     }
 
     /**
-     * Adds watermark to current imagick file
+     * Adds watermark to current image
      */
     public function addWatermark()
     {
@@ -360,11 +547,17 @@ class Images extends Base
     }
 
     /**
-     * Resizes current Imagick file by the setted params
+     * Resizes current image by the setted params
+     * If $this->sizeType = 'org' and width anf height are bigger than 0 it will resize the image keeping the aspect ratio
+     * If $this->sizeType = 'org' and only width or height are bigger than 0 it will resize the image by give param
+     * If $this->sizeType = 'org' and only width or height are bigger than 0 it will resize the image by give param
+     * If $this->sizeType = 'width' or $this->sizeType = 'height' and is bigger than 0 it will resize the image by give param
+     * If $this->sizeType = 'fixed' and both width and height are bigger than 0 it will resize the image strict by give params
+     * In all $this->sizeType except 'fixed' if the given size is bigger than the original size and $this->allowSizeOverflow is not set to true the original size will be used
      */
     public function resize()
     {
-        if (!$this->width && !$this->height) {
+        if (!$this->width && !$this->height && $this->sizeType == 'org') {
             return false;
         }
 
@@ -393,7 +586,7 @@ class Images extends Base
             }
         } else {
             if ($wr >= $hr) {
-                if($cw > $this->width) {
+                if($cw > $this->width || $this->allowSizeOverflow) {
                     $this->imagick->resizeImage($this->width, null, imagick::FILTER_LANCZOS, 1);
                 }
 
@@ -401,7 +594,7 @@ class Images extends Base
                     $this->imagick->resizeImage(null, $this->height, imagick::FILTER_LANCZOS, 1);
                 }
             } else {
-                if ($ch > $this->height) {
+                if ($ch > $this->height || $this->allowSizeOverflow) {
                     $this->imagick->resizeImage(null, $this->height, imagick::FILTER_LANCZOS,1);
                 }
 
@@ -413,25 +606,25 @@ class Images extends Base
     }
 
     /**
-     * Sets Imagick  by given file name
+     * Sets Imagick by given file name
      */
     public function setImagick(string $file){
         $this->imagick = new Imagick($file);
     }
 
     /**
-     * If is empty $this->fileFormat sets it to the format of the given file location.
-     * Else if the format of the given file is not the same as $this->fileFormat, sets the Imagick format to $this->fileFormat.
+     * If is empty $this->imageFormat sets it to the format of the given file location.
+     * Else if the format of the given file is not the same as $this->imageFormat, sets the Imagick format to $this->imageFormat.
      * @param strin $fileLocation
      */
-    private function setFileFormat(string $fileLocation){
-        if(empty($this->fileFormat)){
+    private function setImageFormat(string $fileLocation){
+        if(empty($this->imageFormat)){
             $fileMimeType            = mime_content_type($fileLocation);
-            $this->fileFormat = substr($fileMimeType, strrpos($fileMimeType, '/') + 1);
+            $this->imageFormat = substr($fileMimeType, strrpos($fileMimeType, '/') + 1);
         }
 
-        if(strtolower($this->imagick->getImageFormat()) != strtolower($this->fileFormat)){
-            $this->imagick->setImageFormat(strtolower($this->fileFormat));
+        if(strtolower($this->imagick->getImageFormat()) != strtolower($this->imageFormat)){
+            $this->imagick->setImageFormat(strtolower($this->imageFormat));
         }
     }
 
@@ -440,10 +633,9 @@ class Images extends Base
      * @param string $file - contents of the file
      */
     public function previewImage(string $file){
-        header("Content-Type: image/".$this->fileFormat);
+        header("Content-Type: image/".$this->imageFormat);
 
-        echo $file;
-        die;
+        die($file);
     }
 
     /**

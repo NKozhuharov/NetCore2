@@ -120,7 +120,9 @@ class ExceptionHandler
         if ($Core->ajax) {
             echo $this->handleAjaxMessage($exception->getMessage());
         } else {
+            echo '<pre style="font-family: unset;">';
             echo $exception->getMessage();
+            echo '</pre>';
         }
     }
 
