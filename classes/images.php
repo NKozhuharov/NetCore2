@@ -242,19 +242,31 @@ class Images extends Base
 
     /**
      * Stores the original image and sets the responce data for the current file(image location)
+     * Throws Exception if $Core->imagesStorage is equal to $Core->imagesDir and watermark is required
+     * @throws Exception
      */
     public function upload(){
         global $Core;
+
+        $addOrgFolder = '';
+
+        if ($Core->imagesStorage === $Core->imagesDir) {
+            if ($this->watermarkFile) {
+               throw new Exception('Adding watermark is not allowed when `$Core->imagesStorage` is the same as `$Core->imagesDir`');
+            }
+
+            $addOrgFolder = 'org/';
+        }
+
+        $folderNumber = $Core->globalfunctions->getFolder($Core->imagesStorage.$addOrgFolder, true);
+
+        $this->resize();
 
         if(!$this->allowDuplicate){
             $exists = $this->isExistingImage($this->orgMd5);
         }else{
             $exists = false;
         }
-
-        $this->resize();
-
-        $folderNumber = $Core->globalfunctions->getFolder($Core->imagesStorage, true);
 
         if(!$exists){
             if($this->watermarkFile){
@@ -265,12 +277,12 @@ class Images extends Base
 
             $this->name = $Core->globalfunctions->getHref($Core->globalfunctions->getUrl($this->name), $this->tableName, 'name');
             //Keep original witout watermark
-            $this->insertImage($Core->imagesStorage.$folderNumber.'/', $this->orgMd5, 1, $hasWatermark);
+            $this->insertImage($Core->imagesStorage.$addOrgFolder.$folderNumber.'/', $this->orgMd5, 1, $hasWatermark);
         }else{
             $this->name = $exists;
         }
 
-        return $Core->imagesStorage.$folderNumber.'/'.$this->name.'.'.$this->imageFormat;
+        return $Core->imagesStorage.$addOrgFolder.$folderNumber.'/'.$this->name.'.'.$this->imageFormat;
     }
 
      /**
@@ -364,6 +376,40 @@ class Images extends Base
         $this->insertImage($Core->imagesDir.$this->currentFolder, md5($file), 0, $hasWatermark);
 
         $this->previewImage($file);
+    }
+
+    /**
+     * Saves image image file and stores its info in $this->tableName
+     * @param string $folder - the destination of the file
+     * @param string $md5 - md5 hash of the file
+     * @param int $isOrg - flag showing is the file the original image
+     * @param int $isOrg - flag showing if the file is having watermark when it's not the original or if it's the original that his children should have watermark
+     */
+    public function insertImage(string $folder, string $md5, int $isOrg = 0, int $watermark = 0)
+    {
+        global $Core;
+
+        if(!is_dir($folder)){
+            mkdir($folder, 0755, true);
+        }
+
+        $destination = $folder.$this->name.'.'.$this->imageFormat;
+
+        $this->imagick->writeImage($destination);
+
+        if(!$isOrg){
+            $destination = str_ireplace($Core->imagesDir, '', $Core->imagesWebDir.$destination);
+        }
+
+        $this->insert(
+            array(
+                'name'      => $this->name,
+                'hash'      => $md5,
+                'src'       => $destination,
+                'org'       => $isOrg,
+                'watermark' => $watermark,
+            )
+        );
     }
 
     /**
@@ -479,40 +525,6 @@ class Images extends Base
         }
 
         return false;
-    }
-
-    /**
-     * Saves image image file and stores its info in $this->tableName
-     * @param string $folder - the destination of the file
-     * @param string $md5 - md5 hash of the file
-     * @param int $isOrg - flag showing is the file the original image
-     * @param int $isOrg - flag showing if the file is having watermark when it's not the original or if it's the original that his children should have watermark
-     */
-    public function insertImage(string $folder, string $md5, int $isOrg = 0, int $watermark = 0)
-    {
-        global $Core;
-
-        if(!is_dir($folder)){
-            mkdir($folder, 0755, true);
-        }
-
-        $destination = $folder.$this->name.'.'.$this->imageFormat;
-
-        $this->imagick->writeImage($destination);
-
-        if(!$isOrg){
-            $destination = str_ireplace($Core->imagesDir, '', $Core->imagesWebDir.$destination);
-        }
-
-        $this->insert(
-            array(
-                'name'      => $this->name,
-                'hash'      => $md5,
-                'src'       => $destination,
-                'org'       => $isOrg,
-                'watermark' => $watermark,
-            )
-        );
     }
 
     /**
