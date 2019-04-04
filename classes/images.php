@@ -481,7 +481,7 @@ class Images extends Base
     private function validateHeightImageSizeType()
     {
         foreach ($this->allowedSizes['height'] as $heighthKey => $heightValue){
-            if (!is_numeric($widthKey)) {
+            if (!is_numeric($heighthKey)) {
                 throw new Exception(
                     get_class($this)." class error.".PHP_EOL.PHP_EOL.
                     "allowedSizes['height'] keys must be numeric (greater than 0)"
