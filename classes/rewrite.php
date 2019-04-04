@@ -61,6 +61,7 @@ class Rewrite
         }
 
         $matches = $matches[1];
+        
         $this->urlBreakdown = $matches;
 
         if (stristr($q, '?')) {
@@ -69,14 +70,14 @@ class Rewrite
 
         if (isset($_REQUEST['page']) && is_numeric($_REQUEST['page']) && intval($_REQUEST['page']) !== 1) {
             $this->currentPage = $_REQUEST['page'];
-        } else if (
+        } elseif (
             isset($matches[count($matches) - 1]) &&
             is_numeric($matches[count($matches) - 1]) &&
             intval($matches[count($matches) -1]) !== 1
         ) {
             $this->currentPage = $matches[count($matches) - 1];
             unset($matches[count($matches) - 1]);
-        } else if (
+        } elseif (
             $Core->allowFirstPage &&
             isset($matches[count($matches) - 1]) &&
             is_numeric($matches[count($matches) - 1]) &&
@@ -88,8 +89,13 @@ class Rewrite
         if ($this->currentPage <= 0) {
             $this->showPageNotFound();
         }
-
-        $path = implode('/', $matches);
+        
+        if ("/$matches[0]/" == $Core->filesWebDir) {
+            $path = $matches[0];
+        } else{
+            $path = implode('/', $matches);
+        }
+        
         $this->url = '/'.$path;
 
         if (isset($Core->rewriteOverride[$path])) {

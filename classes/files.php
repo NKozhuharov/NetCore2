@@ -305,6 +305,34 @@ class Files extends Base
     }
     
     /**
+     * Gives a preview of a file from the system
+     * It works by providing the file src or the file id
+     * Throws Exception if the file does not exist
+     * @param mixed @fileTo
+     * @throws Exception
+     */
+    public function preview($fileTo)
+    {
+        global $Core;
+
+        if (is_numeric($fileTo) && $file = $this->getById($fileTo)) {
+            $fileTo = $Core->filesDir.$file['dir'].'/'.$file['hashed_name'];
+        } else {
+            $file = $this->getBySrc($fileTo);
+            $fileTo = GLOBAL_PATH.substr(SITE_PATH, 0, -1).$fileTo;
+        }
+        
+        if (is_file($fileTo)) {
+            header('Content-Disposition: filename="' . $file['name'] . '";');
+            header('Content-Length: ' . $file['size']);
+            header('Content-Type: ' . $file['type']);
+            exit(file_get_contents($fileTo));
+        } else {
+            throw new Exception('File not found');
+        }
+    }
+    
+    /**
      * Deletes a file, both from the file system and the database
      * It works by providing the file src or the file id
      * Throws Exception if the file does not exist
@@ -314,19 +342,20 @@ class Files extends Base
     public function deleteFile($fileTo)
     {
         global $Core;
-
+        
         if (is_numeric($fileTo) && $file = $this->getById($fileTo)) {
             $fileTo = $Core->filesDir.$file['dir'].'/'.$file['hashed_name'];
         } else {
             $file = $this->getBySrc($fileTo);
+            $fileTo = GLOBAL_PATH.substr(SITE_PATH, 0, -1).$fileTo;
         }
-
+        
         if (!is_file($fileTo)) {
             throw new Exception('File not found');
         }
 
         unlink($fileTo);
-        $this->delete($file['id']);
+        $this->deleteById($file['id']);
     }
     
     /**

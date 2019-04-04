@@ -114,28 +114,34 @@ class Core
     private $defaultLanguageId = 24;
     
     /**
-     * @var bool
+     * @var string
      * Set the name of the model, used to handle the user session (default is User)
      */
     private $userModel;
     
     /**
-     * @var bool
+     * @var string
      * Set the name of the model, used to log the requests (default is RequestLogs)
      */
     private $requestLogsModel;
     
     /**
-     * @var bool
+     * @var string
      * Set the name of the model, used to draw the menu in the admin panel (default is Menu)
      */
     private $menuModel;
     
     /**
-     * @var bool
+     * @var string
      * Set the name of the model, used to handle the user messages (default is Messages)
      */
     private $messagesModel;
+    
+    /**
+     * @var string
+     * Set the name of the model, used to handle the files (default is Files)
+     */
+    private $filesModel;
     
     /**
      * @var string
