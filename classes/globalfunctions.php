@@ -113,7 +113,7 @@ class GlobalFunctions
     public function sendEmail($from = false, $fromName = false, $subject = false, $addAddress = false, $body = false, $isHTML = false, $attachment = false, $isAdnmin = false)
     {
         global $Core;
-        require_once(GLOBAL_PATH.'platform/classes/PHPMailer-master/PHPMailerAutoload.php');
+        require_once(GLOBAL_PATH.'platform/external/PHPMailer-master/PHPMailerAutoload.php');
         $mail = new PHPMailer;
         $mail->isSMTP();
 
