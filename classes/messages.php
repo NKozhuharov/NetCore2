@@ -60,19 +60,20 @@ class Messages extends Base{
 
     public function getMessages($userId, $limit = false, $type = false){
         global $Core;
-
+        
+        $additional = " $this->parentField = $userId";
+        
         if($type){
             if(!is_array($type)){
-                $type = '`type` = '.$type;
+                $additional .= '`type` = '.$type;
             }else{
-                $type = '`type` IN ('.(implode(',', $type)).')';
+                $additional .= '`type` IN ('.(implode(',', $type)).')';
             }
         }
 
-        $this->messages = $this->getByParentId($userId, $limit, $type);
+        $this->messages = $this->getAll($limit, $additional);
+        
         return $this->messages;
-
-        return false;
     }
 
     public function drawMessages($check = false, $opened = false, $userId = false){
@@ -166,7 +167,7 @@ class Messages extends Base{
             $count   = $current['count'] - 1;
 
             if($count >= 0){
-                $this->update($current['id'], array('count' => $count));
+                $this->updateById($current['id'], array('count' => $count));
             }
 
             $this->changeTableName($tableName);
