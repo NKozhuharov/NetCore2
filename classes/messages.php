@@ -1,5 +1,6 @@
 <?php
-class Messages extends Base{
+class Messages extends Base
+{
     protected $tableName            = 'messages';
     protected $hasMessagesTableName = false;
     public    $messages             = array();

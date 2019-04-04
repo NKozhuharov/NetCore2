@@ -22,8 +22,7 @@ class RequestLogs extends Base
     {
         global $Core;
         
-        if (    
-            $Core->logRequests === true && 
+        if (
             $Core->{$Core->userModel}->logged_in &&
             isset($_REQUEST) && 
             !empty($_REQUEST) && 

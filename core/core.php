@@ -109,9 +109,27 @@ class Core
     
     /**
      * @var bool
-     * Set to true to turn on the RequestLogs model
+     * Set the name of the model, used to handle the user session (default is User)
      */
-    private $logRequests = false;
+    private $userModel;
+    
+    /**
+     * @var bool
+     * Set the name of the model, used to log the requests (default is RequestLogs)
+     */
+    private $requestLogsModel;
+    
+    /**
+     * @var bool
+     * Set the name of the model, used to draw the menu in the admin panel (default is Menu)
+     */
+    private $menuModel;
+    
+    /**
+     * @var bool
+     * Set the name of the model, used to handle the user messages (default is Messages)
+     */
+    private $messagesModel;
 
     private $doNotStrip                = false;          //do not strip these parameters
     private $pageNotFoundLocation      = '/not-found';   //moust not be numeric so the rewrite can work
@@ -122,12 +140,7 @@ class Core
     private $siteName;
     //rewrite override
     private $rewriteOverride           = array('' => 'index');
-    //user model name
-    private $userModel = null;
-    //menu model name
-    private $menuModel                 = false;
-    //notifications(messages) model name
-    private $messagesModel             = false;
+    
     //limits
     private $folderLimit               = 30000;
     //pagination limits
