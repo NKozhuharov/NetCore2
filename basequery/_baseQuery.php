@@ -52,6 +52,25 @@
         }
         
         /**
+         * Allows the user to get the query string
+         * Throws Exception if another property is requested
+         * @param string $varName - only 'qeury' is allowed
+         * @return string
+         * @throws Exception
+         */
+        public function __get(string $varName)
+        {
+            if (strtolower($varName) === 'query') {
+                if (empty($this->query)) {
+                    $this->build();
+                }
+                return $this->query;
+            }
+            
+            throw new Exception("Only 'query' is allowed!");
+        }
+        
+        /**
          * Set the name of the table for the query
          * Throws Exception if table name is empty
          * @param string $tableName - the name for the table
@@ -98,7 +117,7 @@
          * By default, it dies after the echo
          * @param bool @die - if set to false, the script will not die after the echo
          */
-        public function toString(bool $die = null)
+        public function dumpString(bool $die = null)
         {
             echo $this->build();
             if ($die !== false) {
