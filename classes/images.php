@@ -382,17 +382,17 @@ class Images extends Base
      * @param string $folder - the destination of the file
      * @param string $md5 - md5 hash of the file
      * @param int $isOrg - flag showing is the file the original image
-     * @param int $isOrg - flag showing if the file must have watermark when it's not the original. 
+     * @param int $isOrg - flag showing if the file must have watermark when it's not the original.
      * If it's the original, his children must have watermark
      */
     public function insertImage(string $folder, string $md5, int $isOrg = null, int $watermark = null)
     {
         global $Core;
-        
+
         if ($isOrg === null) {
             $isOrg = 0;
         }
-        
+
         if ($watermark === null) {
             $watermark = 0;
         }
@@ -419,9 +419,10 @@ class Images extends Base
             )
         );
     }
-    
+
     /**
-     * @todo Dexter
+     * Validates org size type, using the allowedSizes property
+     * @throws Exception
      */
     private function validateOrgImageSizeType()
     {
@@ -442,9 +443,10 @@ class Images extends Base
              );
         }
     }
-    
+
     /**
-     * @todo Dexter
+     * Validates width size type, using the allowedSizes property
+     * @throws Exception
      */
     private function validateWidthImageSizeType()
     {
@@ -474,9 +476,10 @@ class Images extends Base
             }
         }
     }
-    
-    /**
-     * @todo Dexter
+
+   /**
+     * Validates height size type, using the allowedSizes property
+     * @throws Exception
      */
     private function validateHeightImageSizeType()
     {
@@ -506,9 +509,10 @@ class Images extends Base
             }
         }
     }
-    
+
     /**
-     * @todo Dexter
+     * Validates fixed size type, using the allowedSizes property
+     * @throws Exception
      */
     private function validateFixedImageSizeType()
     {

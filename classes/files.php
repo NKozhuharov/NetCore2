@@ -273,6 +273,5 @@ class Files extends Base
 
         unlink($fileTo);
         $this->delete($file['id']);
-        return true;
     }
 }
