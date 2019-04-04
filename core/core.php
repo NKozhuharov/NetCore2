@@ -106,6 +106,12 @@ class Core
      * The id of the default language
      */
     private $defaultLanguageId = 24;
+    
+    /**
+     * @var bool
+     * Set to true to turn on the RequestLogs model
+     */
+    private $logRequests = false;
 
     private $doNotStrip                = false;          //do not strip these parameters
     private $pageNotFoundLocation      = '/not-found';   //moust not be numeric so the rewrite can work
