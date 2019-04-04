@@ -75,7 +75,13 @@ class Core
      * Allows the platform to dump the controller variables in JSON format
      */
     private $json = false;
-
+    
+    /**
+     * @var bool
+     * Set to true if the current script is bot
+     */
+    private $isBot = false;
+    
     /**
     * @var array
     * Files that should be included before the current controller, array
@@ -130,32 +136,48 @@ class Core
      * Set the name of the model, used to handle the user messages (default is Messages)
      */
     private $messagesModel;
+    
+    /**
+     * @var string
+     * Where to store the files of the project
+     */
+    private $filesDir = 'files/';
+    
+    /**
+     * @var string
+     * The url to the files of the project
+     */
+    private $filesWebDir = '/files/';
+    
+    /**
+     * @var int
+     * How many files to store in a signe folder
+     */
+    private $folderLimit = 30000;
+    
 
     private $doNotStrip                = false;          //do not strip these parameters
     private $pageNotFoundLocation      = '/not-found';   //moust not be numeric so the rewrite can work
     private $allowFirstPage            = false;          //if allowed url like "/1" won't redirect to $pageNotFoundLocation
-    private $isBot                     = false;          //current script is bot
+    
     //domain
     private $siteDomain;
     private $siteName;
     //rewrite override
     private $rewriteOverride           = array('' => 'index');
     
-    //limits
-    private $folderLimit               = 30000;
     //pagination limits
     private $itemsPerPage              = 25;
     private $numberOfPagesInPagination = 5;
+    
     //images
     private $imagesModel               = null;
     private $imagesStorage             = 'images_org/'; //original images not web accessible
     private $imagesDir                 = 'images/';
     private $imagesWebDir              = '/images/';
-    //files
-    private $filesDir                  = 'files/';
-    private $filesWebDir               = '/files/';
+    
     //mail config
-    private $mailConfig                = array(
+    private $mailConfig = array(
         'Username'   => 'noreply@site.bg',
         'Password'   => 'pass',
         'Host'       => 'mail.site.bg',

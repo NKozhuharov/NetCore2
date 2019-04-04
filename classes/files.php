@@ -1,5 +1,5 @@
 <?php
-/*
+/**
 *For private files, not directly accessible through web
 *rewrite NGINX like this
 *    location ^~ /files{
@@ -12,111 +12,157 @@
 */
 class Files extends Base
 {
-    private $filePath   = false;
-    public  $tableName  = 'files';
-
+    /**
+     * Creates an instance of the Files Base Model
+     * By default uses the 'files' table
+     */
     public function __construct()
     {
-        global $Core;
-
-        $this->filePath = $Core->filesDir;
+        $this->tableName = 'files';
     }
-
-    public function getByHash($hash)
+    
+    /**
+     * Gets file info from the database, using the file hash
+     * Throws Exception if an ivalid hash is provided or the file does not exist
+     * @param string $hash - the hash of the file
+     * @throws Exception
+     * @return array
+     */
+    public function getByHash(string $hash)
     {
         global $Core;
 
-        $hash = $Core->db->escape($hash);
+        $hash = $Core->db->escape(trim($hash));
         if (empty($hash)) {
-            throw new exception ('Invalid hash');
+            throw new Exception ('Invalid hash');
         }
-
-        $Core->db->query("SELECT * FROM `{$Core->dbName}`.`{$this->tableName}` WHERE `hash`='$hash'",$Core->cacheTime,'fetch_assoc',$result);
-
+        
+        $result = $this->getAll(1, "`hash`='$hash'");
+        
         if (empty($result)) {
-            throw new exception('File not found');
+            throw new Exception('File not found');
         }
 
-        return $result;
+        return current($result);
     }
-
-    public function getBySrc($src)
+    
+    /**
+     * Gets file info from the database, using the file src
+     * Throws Exception if an ivalid src is provided or the file does not exist
+     * @param string $src - the src of the file
+     * @throws Exception
+     * @return array
+     */
+    public function getBySrc(string $src)
     {
         global $Core;
 
-        $src = $Core->db->escape($src);
+        $src = $Core->db->escape(trim($src));
 
-        if (!is_string($src) || empty($src)) {
-            throw new exception ('Invalid file source');
+        if (empty($src)) {
+            throw new Exception ('Invalid file source');
         }
 
         $src   = explode('/', $src);
         $count = count($src);
 
         if ($count < 2) {
-            throw new exception('Invalid file source');
+            throw new Exception('Invalid file source');
         }
 
-        $hashedName = $src[$count-1];
-        $dir        = $src[$count-2];
-
-        $Core->db->query("SELECT * FROM `{$Core->dbName}`.`{$this->tableName}` WHERE `dir` = '$dir' AND `hashed_name`='$hashedName'", $Core->cacheTime, 'fetch_assoc', $result);
-
+        $hashedName = $src[$count - 1];
+        $dir        = $src[$count - 2];
+        
+        $result = $this->getAll(1, "`dir` = '$dir' AND `hashed_name`='$hashedName'");
+        
         if (empty($result)) {
-            throw new exception('File not found');
+            throw new Exception('File not found');
         }
-        return $result;
+        
+        return current($result);
     }
-
-    private function getFileHash($file)
+    
+    /**
+     * Gets the src of a file
+     * @param array $file - the file info from the database
+     * @return string
+     */
+    public function getSrc(array $file)
     {
-        return sha1($file['name'].'_'.$file['size'].'_'.time());
+        global $Core;
+        return $Core->filesWebDir.$file['dir'].'/'.$file['hashed_name'];
     }
-
-    private function getHashedName($file)
+    
+    /**
+     * Gets the unique hash for every file body
+     * @param array $file - an uploaded file
+     * @return string
+     */
+    private function getFileHash(array $file)
+    {
+        return md5_file($file['tmp_name']);
+    }
+    
+    /**
+     * Gets the unique hash for every file name
+     * @param array $file - an uploaded file
+     * @return string
+     */
+    private function getHashedName(array $file)
     {
         return sha1($file['name'].'the_file_name'.time().uniqid());
     }
 
-    private function insertFile($currentDirId, $file)
+    /**
+     * Inserts an uploaded file. Checks for exceeding of maximum files per directory limit
+     * Returns the id of the directory, where the file is uploaded
+     * @param int $currentDirId - the current upload file directory id (default 1)
+     * @param array $file - an uploaded file
+     * @return int
+     */
+    private function insertFile(int $currentDirId, array $file)
     {
         global $Core;
-        if (!is_dir($this->filePath.$currentDirId)) {
-            mkdir($this->filePath.$currentDirId,0755);
+        if (!is_dir($Core->filesDir.$currentDirId)) {
+            mkdir($Core->filesDir.$currentDirId,0755);
         }
 
-        $fi = new FilesystemIterator($this->filePath.$currentDirId, FilesystemIterator::SKIP_DOTS);
+        $fi = new FilesystemIterator($Core->filesDir.$currentDirId, FilesystemIterator::SKIP_DOTS);
         $fCount = iterator_count($fi);
         if ($fCount < $Core->folderLimit) {
-            move_uploaded_file($file['tmp_name'],$this->filePath.$currentDirId.'/'.$file['hashed_name']);
+            move_uploaded_file($file['tmp_name'],$Core->filesDir.$currentDirId.'/'.$file['hashed_name']);
             return $currentDirId;
         }
+        
         return $this->insertFile($currentDirId + 1, $file);
     }
-
-    public function addFiles($files, $insertInDb = true)
+    
+    /**
+     * Uploads an array of files
+     * Throws Exception if something is wrong the inputted files, or the upload fails
+     * @param array $files - an array with files to upload
+     * @param bool $insertInDb - if this is false, it will not insert a row in the database
+     * @return array
+     */
+    public function addFiles(array $files, bool $insertInDb = null)
     {
         global $Core;
 
-        if (is_array($files['tmp_name'])) {
-            $files = $Core->globalfunctions->reArrangeRequestFiles($files);
-        } else {
-            $files = array($files);
-        }
+        $files = $Core->GlobalFunctions->reArrangeRequestFiles($files);
 
         foreach ($files as $file) {
             if (empty($file)) {
-                throw new exception('Please provide a valid file');
-            }elseif ($file['error']) {
-                throw new exception($this->codeToMessage($file['error']));
+                throw new Exception('Please provide a valid file');
+            } elseif ($file['error']) {
+                throw new Exception($this->codeToMessage($file['error']));
             }
 
             $file['hash'] = $this->getFileHash($file);
             $file['hashed_name'] = $this->getHashedName($file);
 
-            $currentDirId = $this->insertFile(1,$file);
+            $currentDirId = $this->insertFile(1, $file);
 
-            if (is_file($this->filePath.$currentDirId.'/'.$file['hashed_name'])) {
+            if (is_file($Core->filesDir.$currentDirId.'/'.$file['hashed_name'])) {
                 $inputArr = array(
                     'name' => $file['name'],
                     'hashed_name' => $file['hashed_name'],
@@ -126,36 +172,24 @@ class Files extends Base
                     'size' => $file['size']
                 );
 
-                if ($insertInDb) {
-                    $this->add($inputArr);
+                if ($insertInDb !== false) {
+                    $this->insert($inputArr);
                     $return[] = $Core->siteDomain.'/'.$currentDirId.$Core->filesWebDir.$file['hash'];
                 } else {
                     $return[] = $inputArr;
                 }
-            }
-            else{
-                throw new exception('Error occured. Please try again and if the problem persits contact support');
+            } else {
+                throw new Exception('Error occured. Please try again and if the problem persits contact support');
             }
         }
         return $return;
     }
-
-    public function insertFileIntoDb($inputArr, $returnId = false)
-    {
-        global $Core;
-        if (!is_array($inputArr)) {
-            throw new exception('Please provide a valid array');
-        }
-
-        $id = $this->add($inputArr);
-
-        if ($returnId) {
-            return $id;
-        }
-
-        return $Core->siteDomain.'/'.$inputArr['dir'].$Core->filesWebDir.$inputArr['hash'];
-    }
-
+    
+    /**
+     * Converts a file upload error message code to human-readble text
+     * @param string $code
+     * @return string
+     */
     private function codeToMessage($code)
     {
         switch ($code) {
@@ -187,7 +221,13 @@ class Files extends Base
         return $message;
     }
 
-    public function typeMap($type,$name)
+    /**
+     * Gets the code of a file type
+     * @param string $type - the type of the file
+     * @param string $name - the name of the file
+     * @return string 
+     */
+    public function typeMap(string $type, string $name)
     {
         if ($type == 'application/octet-stream') {
             $name = strrev($name);
@@ -197,7 +237,7 @@ class Files extends Base
                 return $name;
             }
         }
-        if (stristr($type,'image')) {
+        if (stristr($type, 'image')) {
             return 'pic';
         }
         if ($type == 'application/pdf') {
@@ -209,18 +249,25 @@ class Files extends Base
         if ($type == 'application/vnd.openxmlformats-officedocument.pres') {
             return 'ppt';
         }
-        if (stristr($type,'application') || stristr($type,'text')) {
+        if (stristr($type, 'application') || stristr($type, 'text')) {
             return 'doc';
         }
-        if (stristr($type,'video')) {
+        if (stristr($type, 'video')) {
             return 'mov';
         }
-        if (stristr($type,'audio') || stristr($type,'music')) {
+        if (stristr($type, 'audio') || stristr($type, 'music')) {
             return 'music';
         }
         return 'unknown';
     }
-
+    
+    /**
+     * Initiates a downloads of a file from the system
+     * It works by providing the file src or the file id
+     * Throws Exception if the file does not exist
+     * @param mixed @fileTo
+     * @throws Exception
+     */
     public function download($fileTo)
     {
         global $Core;
@@ -253,10 +300,17 @@ class Files extends Base
             fclose($handle);
             die;
         } else {
-            throw new exception('File not found');
+            throw new Exception('File not found');
         }
     }
-
+    
+    /**
+     * Deletes a file, both from the file system and the database
+     * It works by providing the file src or the file id
+     * Throws Exception if the file does not exist
+     * @param mixed @fileTo
+     * @throws Exception
+     */
     public function deleteFile($fileTo)
     {
         global $Core;
@@ -268,10 +322,30 @@ class Files extends Base
         }
 
         if (!is_file($fileTo)) {
-            throw new exception('File not found');
+            throw new Exception('File not found');
         }
 
         unlink($fileTo);
         $this->delete($file['id']);
+    }
+    
+    /**
+     * Changes the value of the is_private file property to the opposite one
+     * Throws Exception if the file does not exist
+     * @param int $fileId - the id of the file
+     * @throws Exception
+     */
+    public function changePrivacyById(int $fileId)
+    {
+        $fileInfo = $this->getById($fileId);
+        if (empty($fileInfo)) {
+            throw new Exception('File not found');
+        }
+        
+        if ($fileInfo['is_private'] == 0) {
+            $this->updateById($fileId, array('is_private' => 1));
+        } else {
+            $this->updateById($fileId, array('is_private' => 0));
+        }
     }
 }
