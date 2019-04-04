@@ -232,7 +232,7 @@ class Base
         $this->queryCacheTime = $cacheTime;
     }
 
-    //PRIVATE ADDITIONAL SELECT FUNCTIONS
+    //ADDITIONAL SELECT FUNCTIONS
 
     /**
      * Initializes a selector for all of the select queries, using BaseSelect class
@@ -240,7 +240,7 @@ class Base
      *
      * @return BaseSelect
      */
-    private function initializeBaseSelector()
+    protected function initializeBaseSelector()
     {
         $this->checkTableFields();
 
@@ -261,7 +261,7 @@ class Base
      * @param BaseSelect $selector - the current select query
      * @return BaseSelect
      */
-    private function addTimestampFieldsToGetQuery(BaseSelect $selector)
+    protected function addTimestampFieldsToGetQuery(BaseSelect $selector)
     {
         foreach ($this->tableFields->getFields() as $field => $fieldDescription) {
             if (in_array($fieldDescription['type'] ,array('timestamp', 'datetime'))) {
@@ -279,7 +279,7 @@ class Base
      * @param string $additional - the addition to the WHERE clause (if any)
      * @return string
      */
-    private function getSelectQueryWhereClause(string $additional = null)
+    protected function getSelectQueryWhereClause(string $additional = null)
     {
         $where = array();
         if (array_key_exists($this->hiddenFieldName, $this->tableFields->getFields()) && !$this->showHiddenRows) {
@@ -300,7 +300,7 @@ class Base
      * @param string $orderBy - the order by override
      * @return BaseSelect
      */
-    private function addSelectQueryOverrides(BaseSelect $selector, int $limit = null, string $orderBy = null)
+    protected function addSelectQueryOverrides(BaseSelect $selector, int $limit = null, string $orderBy = null)
     {
         global $Core;
 
@@ -323,7 +323,7 @@ class Base
      * Checks if a translation is available for the current model
      * @return bool
      */
-    private function isTranslationAvailable()
+    protected function isTranslationAvailable()
     {
         return $this->translateResult !== false && !empty($this->translationFields) ;
     }
@@ -335,7 +335,7 @@ class Base
      * @param $result - the result from a select query
      * @return array
      */
-    private function parseSelectQueryResult($result)
+    protected function parseSelectQueryResult($result)
     {
         global $Core;
 
@@ -353,7 +353,7 @@ class Base
      * @param array $result
      * @return array
      */
-    private function parseExplodeFields(array $result)
+    protected function parseExplodeFields(array $result)
     {
         if (!empty($this->explodeFields) && !empty($result)) {
             foreach ($this->explodeFields as $field) {

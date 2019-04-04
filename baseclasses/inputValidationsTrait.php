@@ -8,7 +8,7 @@
          * @param bool $isUpdate - the input query is an update query
          * @return array
          */
-        private function validateAndPrepareInputArray(array $input, bool $isUpdate = null)
+        protected function validateAndPrepareInputArray(array $input, bool $isUpdate = null)
         {
             $this->checkTableFields();
 
@@ -37,7 +37,7 @@
          * @param array $input - the input for a insert/update query
          * @throws Exception
          */
-        private function validateInputStructure(array $input)
+        protected function validateInputStructure(array $input)
         {
             if (empty($input)) {
                 throw new Exception("Input cannot be empty");
@@ -66,7 +66,7 @@
          * @param array $input - the input of query
          * @throws Exception
          */
-        private function checkInputForFieldId(array $input)
+        protected function checkInputForFieldId(array $input)
         {
             if (isset($input['id'])) {
                 throw new Exception("Field `id` is not allowed", null, get_class($this));
@@ -79,7 +79,7 @@
          * @param array $input - the input of query
          * @throws BaseException
          */
-        private function checkForMissingFields(array $input)
+        protected function checkForMissingFields(array $input)
         {
             $missingFields = array();
 
@@ -100,7 +100,7 @@
          * @param array $input - the input of query
          * @throws BaseException
          */
-        private function checkRequiredFieldsForEmptyValues(array $input)
+        protected function checkRequiredFieldsForEmptyValues(array $input)
         {
             $emptyFields = array();
 
@@ -125,7 +125,7 @@
          * @param array $input - the input of query
          * @throws BaseException
          */
-        private function checkForFieldsThatDoNotExistInTheTable(array $input)
+        protected function checkForFieldsThatDoNotExistInTheTable(array $input)
         {
             $unexistingFields = array();
 
@@ -146,7 +146,7 @@
          * @param array $input - the input for the query
          * @return array
          */
-        private function validateInputValues(array $input)
+        protected function validateInputValues(array $input)
         {
             $inputErrors = array();
 
@@ -213,7 +213,7 @@
          * @param array $input - the input for a insert/update query
          * @return array
          */
-        private function parseInputExplodeFields(array $input)
+        protected function parseInputExplodeFields(array $input)
         {
             if (!empty($this->explodeFields)) {
                 foreach ($input as $fieldName => $value) {
@@ -238,7 +238,7 @@
          * @param int $value - the value of the field
          * @return string
          */
-        private function validateIntegerField(string $fieldName, int $value)
+        protected function validateIntegerField(string $fieldName, int $value)
         {
             $fieldType = $this->tableFields->getFieldType($fieldName);
             $info = $this->tableFields->getFieldInfo($fieldName);
@@ -305,7 +305,7 @@
          * @param string $value - the value of the field
          * @return string
          */
-        private function validateVarcharField(string $fieldName, string $value)
+        protected function validateVarcharField(string $fieldName, string $value)
         {
             $info = $this->tableFields->getFieldInfo($fieldName);
 
@@ -323,7 +323,7 @@
          * @param string $value - the value of the field
          * @return string
          */
-        private function validateTextOrBlobField(string $fieldName, string $value)
+        protected function validateTextOrBlobField(string $fieldName, string $value)
         {
             $fieldType = $this->tableFields->getFieldType($fieldName);
             $valueLength = strlen($value);
@@ -346,7 +346,7 @@
          * @param string $fieldName - the name of the field
          * @return string
          */
-        private function validateDateField(string $value)
+        protected function validateDateField(string $value)
         {
             $t = explode('-', $value);
             if (count($t) < 3 || !checkdate($t[1], $t[2], $t[0])) {
@@ -364,7 +364,7 @@
          * @throws Exception
          * @thorws BaseException
          */
-        private function validateTranslateExplodeFields(array $input, array $objectInfo)
+        protected function validateTranslateExplodeFields(array $input, array $objectInfo)
         {
             if (!empty($this->explodeFields)) {
                 foreach ($input as $fieldName => $value) {
@@ -402,7 +402,7 @@
          * @param int $value - the provided parent id
          * @throws Exception
          */
-        private function validateParentField(int $value)
+        protected function validateParentField(int $value)
         {
             if (empty($this->parentField)) {
                 throw new Exception("Set a parent field in model `".get_class($this)."`");
