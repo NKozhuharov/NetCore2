@@ -15,15 +15,15 @@
             $this->validateInputStructure($input);
 
             $this->checkInputForFieldId($input);
-            
+
             $this->checkForFieldsThatDoNotExistInTheTable($input);
-            
+
             if (empty($isUpdate)) {
                 $this->checkForMissingFields($input);
             } else {
                 $this->checkRequiredFieldsForEmptyValues($input);
             }
-            
+
             $this->validateInputValues($input);
 
             return $this->parseInputExplodeFields($input);
@@ -82,18 +82,18 @@
         private function checkForMissingFields(array $input)
         {
             $missingFields = array();
-            
+
             foreach ($this->tableFields->getRequiredFields() as $requiredField) {
                 if (!isset($input[$requiredField])) {
                     $missingFields[$requiredField] = 'Is required';
-                } 
+                }
             }
 
             if (!empty($missingFields)) {
                 throw new BaseException("The following fields are not valid", $missingFields, get_class($this));
             }
         }
-        
+
         /**
          * Checks the input array for required values, which are empty
          * Throws BaseException if an empty value is found
@@ -103,11 +103,11 @@
         private function checkRequiredFieldsForEmptyValues(array $input)
         {
             $emptyFields = array();
-            
+
             foreach ($this->tableFields->getRequiredFields() as $requiredField) {
                 if (isset($input[$requiredField])) {
                     $input[$requiredField] = trim($input[$requiredField]);
-                    
+
                     if (empty($input[$requiredField]) && $input[$requiredField] != '0') {
                         $emptyFields[] = $requiredField;
                     }
@@ -154,7 +154,7 @@
                 if (empty($value)) {
                     continue;
                 }
-                
+
                 $fieldType = $this->tableFields->getFieldType($fieldName);
 
                 if ((strstr($fieldType, 'int') || $fieldType === 'double' || $fieldType === 'float')) {
@@ -195,7 +195,7 @@
 
                     foreach ($value as $explodeFieldKey => $explodeFieldValue) {
                         if (strstr($explodeFieldValue, $this->explodeDelimiter)) {
-                            $inputErrors[$fieldName] = "The following %%{$this->explodeDelimiter}%% is not allowed for an explode field";
+                            $inputErrors[$fieldName] = "The following %%`{$this->explodeDelimiter}`%% is not allowed in explode field";
                         }
                     }
                 }
@@ -310,7 +310,7 @@
             $info = $this->tableFields->getFieldInfo($fieldName);
 
             if (strlen($value) > $info) {
-                return 'Must not be longer than '.$info.' sybmols';
+                return "Must not be longer than %%{$info}%% sybmols";
             }
 
             return '';
@@ -355,7 +355,7 @@
 
             return '';
         }
-        
+
         /**
          * If there are any explode fields, it will validate the input array for a translate funtion
          * Makes sure all the parts are available and not empty

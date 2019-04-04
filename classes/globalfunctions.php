@@ -159,11 +159,10 @@ class GlobalFunctions
 
         if (!$mail->send()) {
             if ($isAdnmin) {
-                $msg = $mail->ErrorInfo;
+                throw new Exception($mail->ErrorInfo);
             } else {
-                $msg = $Core->language->generalEmailError;
+                throw new BaseException($Core->generalErrorText);
             }
-            throw new BaseException($msg);
         }
     }
 
@@ -542,7 +541,7 @@ class GlobalFunctions
         global $Core;
         $this->validateBasicUrl($url);
         if (!preg_match("{".$pattern."}",$url)) {
-            throw new BaseException("%%`{$url}`%% not valid");
+            throw new BaseException("%%`{$url}`%% is not valid");
         }
         return true;
     }

@@ -1,5 +1,6 @@
 <?php
-class Core{
+class Core
+{
     //PLATFORM VAIRABLES
     /**
      * @var db
@@ -147,7 +148,7 @@ class Core{
      * @var string
      * The text to show when unhandled exception occurs
      */
-    private $generalErrorText = 'Sorry There has been some kind of an error with your request. If this persists please Contact Us.';
+    private $generalErrorText = 'Sorry, there has been some kind of an error with your request. Please try again later.';
 
     /**
      * @var array
