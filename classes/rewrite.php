@@ -103,9 +103,9 @@ class Rewrite
         } elseif (!empty($Core->rewriteOverride) && in_array($path, $Core->rewriteOverride)) {
             $this->showPageNotFound();
         }
-
-        $this->controller = $path;
-        $this->view = $path;
+        
+        $this->controller = $Core->Links->parseLink($path);
+        $this->view = $Core->Links->parseLink($path);
     }
 
     /**

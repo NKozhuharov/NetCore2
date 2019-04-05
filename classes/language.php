@@ -196,7 +196,7 @@ class Language extends Base
     }
 
     /**
-     * Allows the user to manually change the current language
+     * Allows the user to manually change the current language by it's short
      * @param string $language - the short name of the language
      */
     public function changeLanguage(string $language)
@@ -212,7 +212,7 @@ class Language extends Base
     }
     
     /**
-     * Allows the user to manually change the current language
+     * Allows the user to manually change the current language by its id
      * @param int $languageId - the id name of the language
      */
     public function changeLanguageById(int $languageId)

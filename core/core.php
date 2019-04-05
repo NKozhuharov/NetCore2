@@ -114,6 +114,12 @@ class Core
     private $defaultLanguageId = 24;
     
     /**
+     * @var bool
+     * Set to true, if the links of the site must be available in multiple languages
+     */
+    private $multiLanguageLinks = false;
+    
+    /**
      * @var string
      * Set the name of the model, used to handle the user session (default is User)
      */
