@@ -384,13 +384,15 @@ class Base
 
     /**
      * Gets an object of the BaseSelect class, using the properties of the model
+     * @param int $limit - the limit override
+     * @param string $orderBy - the order by override
      * @return BaseSelect
      */
-    public function getSelector()
+    public function getSelector(int $limit = null, string $orderBy = null)
     {
         $selector = new BaseSelect($this->tableName);
 
-        $selector = $this->addSelectQueryOverrides($selector);
+        $selector = $this->addSelectQueryOverrides($selector, $limit, $orderBy);
 
         return $selector;
     }
