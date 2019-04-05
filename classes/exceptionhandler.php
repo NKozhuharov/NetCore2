@@ -6,7 +6,7 @@ class ExceptionHandler
      * @param Exception $exception - the thrown exception
      * @return string
      */
-    private function getExceptionMessage($exception)
+    protected function getExceptionMessage($exception)
     {
         $message = $exception->getMessage();
 
@@ -24,7 +24,7 @@ class ExceptionHandler
      * @param string $message - the thrown exception
      * @return string
      */
-    private function translateMessage(string $message)
+    protected function translateMessage(string $message)
     {
         global $Core;
 
@@ -94,7 +94,7 @@ class ExceptionHandler
         header('HTTP/1.1 400 Bad Request', true, 400);
 
         if ($Core->ajax) {
-            echo $this->handleAjaxMessage($this->getExceptionMessage($exception));
+            echo $this->handleAjaxMessage($this->getExceptionMessage($exception), false, $exception->getData());
         } else {
             echo $this->getExceptionMessage($exception);
         }
@@ -132,7 +132,7 @@ class ExceptionHandler
      * @param string $message - the message text
      * @param bool $isSuccess - set true, if it is a Success message
      */
-    public function handleAjaxMessage(string $message, bool $isSuccess = null)
+    public function handleAjaxMessage(string $message, bool $isSuccess = null, array $data = null)
     {
         ?>
         <div><div id="alert"><?php echo $message; ?></div></div>
