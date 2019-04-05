@@ -105,13 +105,13 @@ class Core
      * @var string
      * The short name of the default language
      */
-    private $defaultLanguage = 'bg';
+    private $defaultLanguage = 'en';
 
     /**
      * @var int
      * The id of the default language
      */
-    private $defaultLanguageId = 24;
+    private $defaultLanguageId = 41;
     
     /**
      * @var bool
