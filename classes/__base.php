@@ -601,9 +601,9 @@ class Base
      * @param string $additional - the where clause override
      * @return int
      */
-    public function delete(string $additional = null)
+    public function delete(string $additional)
     {
-        if (empty($additional)) {
+        if (empty($additional) || strlen(trim($additional)) === 0) {
             throw new Exception("A delete query without where parameter is not allowed. Use deleteAll instead. Model: `".get_class($this)."`");
         }
 
@@ -698,9 +698,9 @@ class Base
      * @throws Exception
      * @return int
      */
-    public function update(array $input, string $additional = null)
+    public function update(array $input, string $additional)
     {
-        if (empty($additional)) {
+        if (empty($additional) || strlen(trim($additional)) === 0) {
             throw new Exception("An update query without where parameter is not allowed. Use updateAll instead. Model: `".get_class($this)."`");
         }
 
