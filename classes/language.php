@@ -210,6 +210,23 @@ class Language extends Base
             throw new Exception("This language does not exist or not allowed");
         }
     }
+    
+    /**
+     * Allows the user to manually change the current language
+     * @param int $languageId - the id name of the language
+     */
+    public function changeLanguageById(int $languageId)
+    {
+        if (array_key_exists($languageId, $this->allowedLanguages)) {
+            $language = $this->getLanguageMap()[$languageId]['short'];
+            $this->currentLanguage = $language;
+            $this->currentLanguageId = $languageId;
+            setcookie('language', $language, time()+86400, '/');
+            $this->getPhrases();
+        } else {
+            throw new Exception("This language does not exist or not allowed");
+        }
+    }
 
     /**
      * Gets a map of all languages
