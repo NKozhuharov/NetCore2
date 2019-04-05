@@ -16,9 +16,9 @@
         }
 
         //get a list of the table fields
-        public function getFields(){
-            if(empty($this->tableFields))
-            {
+        public function getFields()
+        {
+            if (empty($this->tableFields)) {
                 $this->getTableInfo();
             }
 
@@ -28,7 +28,7 @@
         //get a list of the required fields
         public function getRequiredFields()
         {
-            if(empty($this->tableFields)){
+            if (empty($this->tableFields)) {
                 $this->getTableInfo();
             }
 
@@ -78,15 +78,13 @@
             }
 
             foreach ($columnsInfo as $k => $v) {
-                #if (in_array($k, $this->removedFields)) {
-                #    continue;
-                #}
-                if($v["allow_null"] == "NO" && $v['type'] != 'timestamp' && $v['default'] != 'CURRENT_TIMESTAMP'){
+                if ($v["allow_null"] == "NO" && $v['type'] != 'timestamp' && $v['default'] != 'CURRENT_TIMESTAMP') {
                     $this->requiredFields[$v['column_temp_id']] = $v['column_temp_id'];
                     $v["allow_null"] = false;
                 } else {
                     $v["allow_null"] = true;
                 }
+
                 unset($v['column_temp_id']);
                 $this->tableFields[$k] = $v;
             }

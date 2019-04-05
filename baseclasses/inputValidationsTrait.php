@@ -20,9 +20,9 @@
 
             if (empty($isUpdate)) {
                 $this->checkForMissingFields($input);
-            } else {
-                $this->checkRequiredFieldsForEmptyValues($input);
             }
+
+            $this->checkRequiredFieldsForEmptyValues($input);
 
             $this->validateInputValues($input);
 
@@ -115,7 +115,7 @@
             }
 
             if (!empty($emptyFields)) {
-                throw new BaseException("The field/s must not be empty", $emptyFields, get_class($this));
+                throw new BaseException("The following fields must not be empty", $emptyFields, get_class($this));
             }
         }
 
@@ -136,7 +136,7 @@
             }
 
             if (!empty($unexistingFields)) {
-                throw new BaseException("The field/s does not exist", $unexistingFields, get_class($this));
+                throw new BaseException("The following fields does not exist", $unexistingFields, get_class($this));
             }
         }
 
