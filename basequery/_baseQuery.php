@@ -119,7 +119,7 @@
          */
         public function dumpString(bool $die = null)
         {
-            echo $this->build();
+            echo $this->build().PHP_EOL;
             if ($die !== false) {
                 die;
             }
