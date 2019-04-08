@@ -75,13 +75,13 @@ class Core
      * Allows the platform to dump the controller variables in JSON format
      */
     private $json = false;
-    
+
     /**
      * @var bool
      * Set to true if the current script is bot
      */
     private $isBot = false;
-    
+
     /**
     * @var array
     * Files that should be included before the current controller, array
@@ -112,82 +112,82 @@ class Core
      * The id of the default language
      */
     private $defaultLanguageId = 41;
-    
+
     /**
      * @var bool
      * Set to true, if the links of the site must be available in multiple languages
      */
     private $multiLanguageLinks = false;
-    
+
     /**
      * @var string
      * Set the name of the model, used to handle the user session (default is User)
      */
     private $userModel;
-    
+
     /**
      * @var string
      * Set the name of the model, used to log the requests (default is RequestLogs)
      */
     private $requestLogsModel;
-    
+
     /**
      * @var string
      * Set the name of the model, used to draw the menu in the admin panel (default is Menu)
      */
     private $menuModel;
-    
+
     /**
      * @var string
      * Set the name of the model, used to handle the user messages (default is Messages)
      */
     private $messagesModel;
-    
+
     /**
      * @var string
      * Set the name of the model, used to handle the files (default is Files)
      */
     private $filesModel;
-    
+
     /**
      * @var string
      * Where to store the files of the project
      */
     private $filesDir = 'files/';
-    
+
     /**
      * @var string
      * The url to the files of the project
      */
     private $filesWebDir = '/files/';
-    
+
     /**
      * @var int
      * How many files to store in a signe folder
      */
     private $folderLimit = 30000;
-    
+
 
     private $doNotStrip                = false;          //do not strip these parameters
     private $pageNotFoundLocation      = '/not-found';   //moust not be numeric so the rewrite can work
     private $allowFirstPage            = false;          //if allowed url like "/1" won't redirect to $pageNotFoundLocation
-    
+
     //domain
     private $siteDomain;
     private $siteName;
     //rewrite override
     private $rewriteOverride           = array('' => 'index');
-    
+
     //pagination limits
     private $itemsPerPage              = 25;
     private $numberOfPagesInPagination = 5;
-    
+
     //images
     private $imagesModel               = null;
     private $imagesStorage             = 'images_org/'; //original images not web accessible
     private $imagesDir                 = 'images/';
     private $imagesWebDir              = '/images/';
-    
+
     //mail config
     private $mailConfig = array(
         'Username'   => 'noreply@site.bg',

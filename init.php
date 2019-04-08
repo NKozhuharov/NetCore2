@@ -79,11 +79,15 @@ try {
 
     unset($info, $platformFiles, $file);
 } catch (Success $e) {
+    ob_end_clean();
     $Core->exceptionhandler->Success($e);
 } catch (Error $e) {
+    ob_end_clean();
     $Core->exceptionhandler->Error($e);
 } catch (BaseException $e) {
+    ob_end_clean();
     $Core->exceptionhandler->BaseException($e);
-} catch (exception $e) {
+} catch (Exception $e) {
+    ob_end_clean();
     $Core->exceptionhandler->Exception($e);
 }

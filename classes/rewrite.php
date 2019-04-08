@@ -221,16 +221,21 @@ class Rewrite
 
             $page = ob_get_contents();
         ob_end_clean();
-
-        if (!$Core->ajax) {
-            require_once $Core->siteDir.'/includes/header.php';
-        }
-
-        echo $page;
-
-        if (!$Core->ajax) {
-            require_once $Core->siteDir.'/includes/footer.php';
-        }
+        
+        ob_start();
+            if (!$Core->ajax) {
+                require_once $Core->siteDir.'/includes/header.php';
+            }
+    
+            echo $page;
+    
+            if (!$Core->ajax) {
+                require_once $Core->siteDir.'/includes/footer.php';
+            }
+            $page = ob_get_contents();
+        ob_end_clean();
+        
+        echo $page;                
     }
 
     /**

@@ -6,56 +6,56 @@ class MetaTags
      * The meta title
      */
     private $title;
-    
+
     /**
      * @var string
      * The meta description
      */
     private $description;
-    
+
     /**
      * @var string
      * The meta keywords
      */
     private $keywords;
-    
+
     /**
      * @var string
      * The meta open graph title
      */
     private $og_title;
-    
+
     /**
      * @var string
      * The meta open graph description
      */
     private $og_description;
-    
+
     /**
      * @var string
      * The meta open graph type
      */
     private $og_type;
-    
+
     /**
      * @var string
      * The meta open graph url
      */
     private $og_url;
-    
+
     /**
      * @var string
      * The meta open graph image
      */
     private $og_image;
-    
+
     /**
      * Attempts to get the a property of the meta class
      * Retursn empty string if the property is not found
      * @param string $property - the name of the propery
      * @return string
      */
-    public function __get(string $property) 
+    public function __get(string $property)
     {
         $property = strtolower($property);
         if (isset($this->$property)) {
@@ -63,7 +63,7 @@ class MetaTags
         }
         return '';
     }
-    
+
     /**
      * Sets the meta property value
      * Throws exception if the property does not exist
@@ -77,10 +77,10 @@ class MetaTags
         if (!array_key_exists($property, get_object_vars($this))) {
             throw new Exception("This variable ({$property}) does not exist!");
         }
-        
+
         $this->$property = $value;
     }
-    
+
     /**
      * Outputs the entire meta tags as HTML
      * Use this in the header
