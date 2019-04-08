@@ -556,11 +556,23 @@ class Base
         $selector->setCacheTime($this->queryCacheTime);
         $selector->setGlobalTemplate('fetch_assoc');
         
+        $selector = $this->getCountSelectHook($selector);
+        
         if ($this->dumpQueries === true) {
             echo "getCount: ".$selector->get().PHP_EOL;
         }
         
         return $selector->execute()['ct'];
+    }
+    
+    /**
+     * Allows to add additional settings to the getCount selector
+     * @param BaseSelect $selector - the selector from getCount
+     * @return BaseSelect
+     */
+    public function getCountSelectHook(BaseSelect $selector)
+    {
+        return $selector;
     }
 
     /**
@@ -580,13 +592,25 @@ class Base
             $additional = " AND {$additional}";
         }
         
+        $selector = $this->getCountByParentIdSelectHook($selector);
+        
         if ($this->dumpQueries === true) {
             echo "getCountByParentId: ".$selector->get().PHP_EOL;
         }
         
         return $this->getCount("`{$this->parentField}` = {$parentId}{$additional}");
     }
-
+    
+    /**
+     * Allows to add additional settings to the getCountByParentId selector
+     * @param BaseSelect $selector - the selector from getCountByParentId
+     * @return BaseSelect
+     */
+    public function getCountByParentIdSelectHook(BaseSelect $selector)
+    {
+        return $selector;
+    }
+    
     /**
      * It will return the value of the parent field of the provided row
      * @param int $rowId - the id of the row
