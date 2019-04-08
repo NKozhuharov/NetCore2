@@ -410,8 +410,6 @@ class Base
      */
     public function getAll(int $limit = null, string $additional = null, string $orderBy = null)
     {
-        global $Core;
-
         $selector = $this->initializeBaseSelector();
 
         $selector->setWhere($this->getSelectQueryWhereClause($additional));
@@ -420,7 +418,19 @@ class Base
 
         $selector->setCacheTime($this->queryCacheTime);
 
+        $selector = $this->getAllSelectHook($selector);
+
         return $this->parseSelectQueryResult($selector->execute());
+    }
+    
+    /**
+     * Allows to add additional settings to the getAll selector
+     * @param BaseSelect $selector - the selector from getAll
+     * @return BaseSelect
+     */
+    public function getAllSelectHook(BaseSelect $selector)
+    {
+        return $selector;
     }
 
     /**
@@ -447,8 +457,20 @@ class Base
         $selector = $this->addSelectQueryOverrides($selector, $limit, $orderBy);
 
         $selector->setCacheTime($this->queryCacheTime);
+        
+        $selector = $this->getByParentIdSelectHook($selector);
 
         return $this->parseSelectQueryResult($selector->execute());
+    }
+    
+    /**
+     * Allows to add additional settings to the getByParentId selector
+     * @param BaseSelect $selector - the selector from getByParentId
+     * @return BaseSelect
+     */
+    public function getByParentIdSelectHook(BaseSelect $selector)
+    {
+        return $selector;
     }
 
     /**
@@ -474,13 +496,26 @@ class Base
         }
 
         $selector = $this->initializeBaseSelector();
+        
         $selector->setWhere($this->getSelectQueryWhereClause("`id` = $rowId"));
+        
+        $selector = $this->getByIdSelectHook($selector);
 
         $Core->db->query($selector->build(), $this->queryCacheTime, 'simpleArray', $result);
 
         $result = $this->parseSelectQueryResult($result);
 
         return !empty($result) ? current($result) : array();
+    }
+    
+    /**
+     * Allows to add additional settings to the getById selector
+     * @param BaseSelect $selector - the selector from getById
+     * @return BaseSelect
+     */
+    public function getByIdSelectHook(BaseSelect $selector)
+    {
+        return $selector;
     }
 
     /**
