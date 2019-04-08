@@ -86,7 +86,32 @@
             }
             $this->globalTemplate = $globalTemplate;
         }
-
+        
+        /**
+         * Removes a field from the current field list
+         * If a function result is provided to the field (COUNT(*)), table name must be put manually in the function
+         * @param string $field - the name of the field
+         * @param string $tableName - the name of the table, from which to select the field
+         */
+        public function removeField(string $field, string $tableName = null)
+        {
+            global $Core;
+            
+            $field = $Core->db->escape($field);
+            
+            if (empty($tableName)) {
+                $tableName = $this->tableName;
+            }
+            
+            if (strstr($field, '(') && strstr($field, ')')) {
+                $tableName = '';
+            } else {
+                $tableName = "`$tableName`.";
+            }
+            
+            unset($this->fields["{$tableName}{$field}"]);
+        }
+        
         /**
          * Adds a field to the query
          * If a function result is provided to the field (COUNT(*)), table name must be put manually in the function
@@ -112,9 +137,9 @@
             }
 
             if (!empty($alias)) {
-                $this->fields[] = "{$tableName}{$field} AS '{$alias}'";
+                $this->fields["{$tableName}{$field}"] = "{$tableName}{$field} AS '{$alias}'";
             } else {
-                $this->fields[] = "{$tableName}{$field}";
+                $this->fields["{$tableName}{$field}"] = "{$tableName}{$field}";
             }
         }
         
@@ -157,7 +182,7 @@
             global $Core;
 
             $this->query = 'SELECT ';
-            $this->query .= empty($this->fields) ? self::DEFAULT_SELECTED_FIELDS : implode(',', $this->fields);
+            $this->query .= empty($this->fields) ? self::DEFAULT_SELECTED_FIELDS : implode(', ', $this->fields);
             $this->query .= ' FROM ';
 
             $this->query .= "`".(empty($this->dbName) ? $Core->dbName : $this->dbName)."`.`{$this->tableName}`";
