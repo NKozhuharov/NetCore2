@@ -590,15 +590,18 @@ class Base
     public function getTranslation(array $result, int $languageId = null)
     {
         global $Core;
-
+        
         if ($languageId === null || !$this->isTranslationAvailable() || empty($result)) {
             return $result;
         }
+        
+        $returnSingleObject = false;
 
         if (isset($result['id'])) {
+            $returnSingleObject = true;
             $result = array($result);
         }
-
+        
         $resultObjectIds = array_column($result, 'id');
 
         if (empty($resultObjectIds)) {
@@ -626,8 +629,8 @@ class Base
                 }
             }
         }
-
-        return $result;
+        
+        return $returnSingleObject ? current($result) : $result;
     }
 
     /**
