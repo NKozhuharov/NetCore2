@@ -219,6 +219,7 @@ class User extends Base
 
     /**
      * Gets the session data from memcache and sets the data property of the class
+     * If the session is active, it will reset the expire timer
      */
     private function getSessionDataFromMemcache()
     {
@@ -228,6 +229,7 @@ class User extends Base
 
         if (isset($data['expire'], $data['data'], $data['data']['logged_in']) && $data['expire'] >= time() ? $data['data'] : false) {
             $this->data = $data['data'];
+            $this->setSessionInMemcache();
         } else {
             $this->setUserDataToDefault();
         }
