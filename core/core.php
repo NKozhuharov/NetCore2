@@ -453,12 +453,10 @@ class Core
     {
         if ($this->ajax) {
             die('<script>window.location.replace("'.$url.'")</script>');
-        } else {
-            header("Location: ".$url, 1, 302);
-            exit();
-        }
-
-        return true;
+        } 
+            
+        header("Location: ".$url, 1, 302);
+        exit();
     }
 
     /**
