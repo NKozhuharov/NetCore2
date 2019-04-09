@@ -111,12 +111,18 @@ class Links extends Base
         if (isset($_SERVER['REQUEST_URI']) && $_SERVER['REQUEST_URI'] === '/') {
             return $path;
         }
-
+        
         if ($Core->multiLanguageLinks === true) {
             foreach ($this->multiLanguageLinksInfo as $pathTranslation => $controller) {
-                if ($pathTranslation === substr($path, 0, strlen($pathTranslation))) {
+                if (
+                    $pathTranslation === $path ||
+                    (
+                        $pathTranslation === mb_substr($path, 0, mb_strlen($pathTranslation)) &&
+                        mb_substr($path, mb_strlen($pathTranslation), 1) === '/'
+                    )
+                ) {
                     $controller = explode(self::MULTI_LANGUAGE_LINKS_SEPARATOR, $controller);
-
+            
                     if ($controller[1] != $Core->Language->getCurrentLanguageId()) {
                         $Core->Language->changeLanguageById($controller[1]);
                     }
@@ -124,7 +130,7 @@ class Links extends Base
                     return $controller[0];
                 }
             }
-            
+
             return $Core->pageNotFoundLocation;
         }
 
