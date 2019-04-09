@@ -61,7 +61,7 @@ class Rewrite
         }
 
         $matches = $matches[1];
-        
+
         $this->urlBreakdown = $matches;
 
         if (stristr($q, '?')) {
@@ -89,13 +89,13 @@ class Rewrite
         if ($this->currentPage <= 0) {
             $this->showPageNotFound();
         }
-        
+
         if ("/$matches[0]/" == $Core->filesWebDir) {
             $path = $matches[0];
         } else{
             $path = implode('/', $matches);
         }
-        
+
         $this->url = '/'.$path;
 
         if (isset($Core->rewriteOverride[$path])) {
@@ -103,7 +103,7 @@ class Rewrite
         } elseif (!empty($Core->rewriteOverride) && in_array($path, $Core->rewriteOverride)) {
             $this->showPageNotFound();
         }
-        
+
         $this->controller = $Core->Links->parseLink($path);
         $this->view = $Core->Links->parseLink($path);
     }
@@ -221,21 +221,21 @@ class Rewrite
 
             $page = ob_get_contents();
         ob_end_clean();
-        
+
         ob_start();
             if (!$Core->ajax) {
                 require_once $Core->siteDir.'/includes/header.php';
             }
-    
+
             echo $page;
-    
+
             if (!$Core->ajax) {
                 require_once $Core->siteDir.'/includes/footer.php';
             }
             $page = ob_get_contents();
         ob_end_clean();
-        
-        echo $page;                
+
+        echo $page;
     }
 
     /**

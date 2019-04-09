@@ -12,8 +12,6 @@ class ExceptionHandler
 
         if (empty($message)) {
             return '';
-        } else if (stristr($message, '<script') && strstr($message, '</script>')) {
-            return $message;
         }
 
         return $this->translateMessage($message);
@@ -28,8 +26,25 @@ class ExceptionHandler
     {
         global $Core;
 
-        if (substr_count($message, '%%') > 1) {
+        $scripts = $Core->globalFunctions->getBetweenAll($message, '<script', '</script>');
 
+        foreach ($scripts as $script) {
+            $message = str_replace('<script'.$script.'</script>', '', $message);
+        }
+
+        $noscripts = $Core->globalFunctions->getBetweenAll($message, '<noscript', '</noscript>');
+
+        foreach ($noscripts as $noscript) {
+            $message = str_replace('<noscript'.$noscript.'</noscript>', '', $message);
+        }
+
+        $styles = $Core->globalFunctions->getBetweenAll($message, '<style', '</style>');
+
+        foreach ($styles as $style) {
+            $message = str_replace('<style'.$style.'</style>', '', $message);
+        }
+
+        if (substr_count($message, '%%') > 1) {
             $message = explode('%%', $message);
             $translation = '';
             foreach ($message as $messagePart) {
@@ -40,7 +55,21 @@ class ExceptionHandler
             return trim($translation);
         }
 
-        return $Core->Language->{str_replace(' ', '_', mb_strtolower($message))};
+        $message = $Core->Language->{str_replace(' ', '_', mb_strtolower($message))};
+
+        foreach ($scripts as $script) {
+            $message .= '<script'.$script.'</script>';
+        }
+
+        foreach ($scripts as $script) {
+            $message .= '<noscript'.$script.'</noscript>';
+        }
+
+        foreach ($scripts as $script) {
+            $message .= '<style'.$script.'</style>';
+        }
+
+        return $message;
     }
 
     /**

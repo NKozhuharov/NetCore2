@@ -266,8 +266,8 @@ class Core
             }
         }
 
+        //set timezone
         date_default_timezone_set($this->timezone);
-        //set locale for date functions
 
         $this->GlobalFunctions->stripTagsOfArray($_POST, $this->doNotStrip);
         $this->GlobalFunctions->stripTagsOfArray($_GET, $this->doNotStrip);
@@ -452,7 +452,7 @@ class Core
     public function redirect($url = '/')
     {
         if ($this->ajax) {
-            throw new Success('<script>window.location.replace("'.$url.'")</script>');
+            die('<script>window.location.replace("'.$url.'")</script>');
         } else {
             header("Location: ".$url, 1, 302);
             exit();

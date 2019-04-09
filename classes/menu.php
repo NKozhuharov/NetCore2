@@ -76,7 +76,7 @@ class Menu
      * @param int $level - only for the function
      * @return array - formed tree
      */
-    private function buildTree(array $elements, $parentId = 0, $level = 0)
+    public function buildTree(array $elements, $parentId = 0, $level = 0)
     {
         $branch = array();
         $level++;

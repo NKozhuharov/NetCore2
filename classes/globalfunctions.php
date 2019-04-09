@@ -321,15 +321,18 @@ class GlobalFunctions
     //returns the content between 2 points of a string
     public function getBetween($content, $start, $end)
     {
-        if (!strpos($content,$start))
+        if (!strpos($content,$start)) {
             return '';
+        }
+
         $content=substr($content,strpos($content,$start)+strlen($start));
         $content=substr($content,0,strpos($content,$end));
+
         return $content;
     }
 
     //returns the content between 2 points of a string
-    public function getBetweenAll($content, $start, $end,$return=array())
+    public function getBetweenAll($content, $start, $end, $return = array())
     {
         while(stristr($content,$start)) {
             $startpos=strpos($content,$start)+strlen($start);
@@ -338,8 +341,12 @@ class GlobalFunctions
             $b[]=substr($content,0,$endpos);
             $content=substr($content,$endpos);
         }
-        if (isset($b))
+
+        if (isset($b)) {
             return $b;
+        }
+
+        return array();
     }
 
     //strips the HTML tags all fields in an array
