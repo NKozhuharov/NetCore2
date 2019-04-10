@@ -110,7 +110,7 @@ class Language extends Base
     private function getCurrentLanguageFromRequestOrCookie()
     {
         global $Core;
-
+        
         if (isset($_REQUEST['language']) && in_array($_REQUEST['language'], $this->allowedLanguages)) {
             $this->currentLanguage = $_REQUEST['language'];
             $this->currentLanguageId = array_search($this->currentLanguage, $this->allowedLanguages);

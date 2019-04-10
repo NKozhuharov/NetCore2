@@ -96,13 +96,13 @@ class Base
      * If is set to true the results from the outupt functions will be translated if they have translation table
      */
     protected $translateResult = true;
-    
+
     /**
      * @var bool
      * Allows the user to dump all queries, executed by the model
      */
     protected $dumpQueries = false;
-    
+
     /**
      * Ensures that tableFields variable is initialized; if not it will initialize it
      * Throws Exception if the table name is not provided
@@ -425,14 +425,14 @@ class Base
         $selector->setCacheTime($this->queryCacheTime);
 
         $selector = $this->getAllSelectHook($selector);
-        
+
         if ($this->dumpQueries === true) {
             echo "getAll: ".$selector->get().PHP_EOL;
         }
 
         return $this->parseSelectQueryResult($selector->execute());
     }
-    
+
     /**
      * Allows to add additional settings to the getAll selector
      * @param BaseSelect $selector - the selector from getAll
@@ -467,16 +467,16 @@ class Base
         $selector = $this->addSelectQueryOverrides($selector, $limit, $orderBy);
 
         $selector->setCacheTime($this->queryCacheTime);
-        
+
         $selector = $this->getByParentIdSelectHook($selector);
-        
+
         if ($this->dumpQueries === true) {
             echo "getByParentId: ".$selector->get().PHP_EOL;
         }
-        
+
         return $this->parseSelectQueryResult($selector->execute());
     }
-    
+
     /**
      * Allows to add additional settings to the getByParentId selector
      * @param BaseSelect $selector - the selector from getByParentId
@@ -510,22 +510,22 @@ class Base
         }
 
         $selector = $this->initializeBaseSelector();
-        
+
         $selector->setWhere($this->getSelectQueryWhereClause("`id` = $rowId"));
-        
+
         $selector = $this->getByIdSelectHook($selector);
-        
+
         if ($this->dumpQueries === true) {
             echo "getById: ".$selector->get().PHP_EOL;
         }
-        
+
         $Core->db->query($selector->build(), $this->queryCacheTime, 'simpleArray', $result);
 
         $result = $this->parseSelectQueryResult($result);
 
         return !empty($result) ? current($result) : array();
     }
-    
+
     /**
      * Allows to add additional settings to the getById selector
      * @param BaseSelect $selector - the selector from getById
@@ -555,16 +555,16 @@ class Base
 
         $selector->setCacheTime($this->queryCacheTime);
         $selector->setGlobalTemplate('fetch_assoc');
-        
+
         $selector = $this->getCountSelectHook($selector);
-        
+
         if ($this->dumpQueries === true) {
             echo "getCount: ".$selector->get().PHP_EOL;
         }
-        
+
         return $selector->execute()['ct'];
     }
-    
+
     /**
      * Allows to add additional settings to the getCount selector
      * @param BaseSelect $selector - the selector from getCount
@@ -591,16 +591,16 @@ class Base
         if (!empty($additional)) {
             $additional = " AND {$additional}";
         }
-        
+
         $selector = $this->getCountByParentIdSelectHook($selector);
-        
+
         if ($this->dumpQueries === true) {
             echo "getCountByParentId: ".$selector->get().PHP_EOL;
         }
-        
+
         return $this->getCount("`{$this->parentField}` = {$parentId}{$additional}");
     }
-    
+
     /**
      * Allows to add additional settings to the getCountByParentId selector
      * @param BaseSelect $selector - the selector from getCountByParentId
@@ -610,7 +610,7 @@ class Base
     {
         return $selector;
     }
-    
+
     /**
      * It will return the value of the parent field of the provided row
      * @param int $rowId - the id of the row
@@ -640,18 +640,18 @@ class Base
     public function getTranslation(array $result, int $languageId = null)
     {
         global $Core;
-        
+
         if ($languageId === null || !$this->isTranslationAvailable() || empty($result)) {
             return $result;
         }
-        
+
         $returnSingleObject = false;
 
         if (isset($result['id'])) {
             $returnSingleObject = true;
             $result = array($result);
         }
-        
+
         $resultObjectIds = array_column($result, 'id');
 
         if (empty($resultObjectIds)) {
@@ -660,11 +660,11 @@ class Base
 
         $selector = new BaseSelect("{$this->tableName}_lang");
         $selector->setWhere("`object_id` IN (".(implode(', ', $resultObjectIds)).") AND `lang_id`={$languageId}");
-        
+
         if ($this->dumpQueries === true) {
             echo "getTranslation: ".$selector->get().PHP_EOL;
         }
-        
+
         $Core->db->query($selector->build(), $this->queryCacheTime, 'fillArray', $translations, 'object_id');
 
         if (!empty($translations)) {
@@ -683,7 +683,7 @@ class Base
                 }
             }
         }
-        
+
         return $returnSingleObject ? current($result) : $result;
     }
 
@@ -701,12 +701,12 @@ class Base
 
         $deleter = new BaseDelete($this->tableName);
         $deleter->setWhere($additional);
-        
+
         if ($this->dumpQueries === true) {
             echo "delete: ".$deleter->get().PHP_EOL;
         }
-        
-        return $deleter->execute();
+
+        return $this->executeDeleteQuery($deleter);
     }
 
     /**
@@ -717,12 +717,12 @@ class Base
     public function deleteAll()
     {
         $deleter = new BaseDelete($this->tableName);
-        
+
         if ($this->dumpQueries === true) {
             echo "deleteAll: ".$deleter->get().PHP_EOL;
         }
-        
-        return $deleter->execute();
+
+        return $this->executeDeleteQuery($deleter);
     }
 
     /**
@@ -739,12 +739,12 @@ class Base
 
         $deleter = new BaseDelete($this->tableName);
         $deleter->setWhere("`id` = {$rowId}");
-        
+
         if ($this->dumpQueries === true) {
             echo "deleteById: ".$deleter->get().PHP_EOL;
         }
 
-        return $deleter->execute();
+        return $this->executeDeleteQuery($deleter);
     }
 
     /**
@@ -761,13 +761,55 @@ class Base
 
         $deleter = new BaseDelete($this->tableName);
         $deleter->setWhere("`{$this->parentField}` = {$parentId}");
-        
+
         if ($this->dumpQueries === true) {
             echo "deleteByParentId: ".$deleter->get().PHP_EOL;
         }
         
-        return $deleter->execute();
+        return $this->executeDeleteQuery($deleter);
     }
+    
+    /**
+     * Executes a delete query statment and parses any thrown exceptions
+     * @param BaseDelete $deleter - the deleter instance of the BaseDelete class
+     * @return int
+     */
+    private function executeDeleteQuery(BaseDelete $deleter)
+    {
+        try {
+            return $deleter->execute();
+        } catch (Exception $ex) {
+            $this->parseDeleteMySQLError($ex);
+        }
+    }
+    
+    /**
+     * Parses a MySQL Error, occured when using any of the delete functions
+     * Looks for foreign key constraint fails and returns a human readble error with BaseException
+     * It will throw the same Exception if it wasn't parsed
+     * @param Exception $ex - an Exception thrown when executing a delete query
+     * @throws BaseException
+     * @throws Exception
+     * 
+     */
+    private function parseDeleteMySQLError(Exception $ex)
+    {
+        global $Core;
+        
+        $message = $ex->getMessage();
+        
+        if (stristr($message, 'Mysql Error: Cannot delete or update a parent row: a foreign key constraint fails')) {
+            $modelName = strtolower(get_class($this));
+            $referencedTableName = substr($message, strpos($message, 'constraint fails (') + strlen('constraint fails ('));
+            $referencedTableName = str_replace("`$Core->dbName`.", "", $referencedTableName);
+            $referencedTableName = str_replace("`", "", $referencedTableName);
+            $referencedTableName = substr($referencedTableName, 0, strpos($referencedTableName, ','));
+            
+            throw new BaseException("You cannot delete from %%{$modelName}%% if there are %%$referencedTableName%% attached to it");
+        } 
+        
+        throw new Exception($ex->getMessage());
+    } 
 
     /**
      * Inserts a rows into the model table
@@ -791,11 +833,11 @@ class Base
         }
 
         $inserter->setFieldsAndValues($this->validateAndPrepareInputArray($input));
-        
+
         if ($this->dumpQueries === true) {
             echo "insert: ".$inserter->get().PHP_EOL;
         }
-        
+
         return $inserter->execute();
     }
 
@@ -819,11 +861,11 @@ class Base
         $updater = new BaseUpdate($this->tableName);
         $updater->setFieldsAndValues($this->validateAndPrepareInputArray($input, true));
         $updater->setWhere($additional);
-        
+
         if ($this->dumpQueries === true) {
             echo "update: ".$updater->get().PHP_EOL;
         }
-        
+
         return $updater->execute();
     }
 
@@ -847,11 +889,11 @@ class Base
         $updater = new BaseUpdate($this->tableName);
         $updater->setFieldsAndValues($this->validateAndPrepareInputArray($input, true));
         $updater->setWhere(" `id` = {$ojbectId} ".(!empty($additional) ? " AND {$additional}" : ""));
-        
+
         if ($this->dumpQueries === true) {
             echo "updateById: ".$updater->get().PHP_EOL;
         }
-        
+
         return $updater->execute();
     }
 
@@ -873,11 +915,11 @@ class Base
         $updater = new BaseUpdate($this->tableName);
         $updater->setFieldsAndValues($this->validateAndPrepareInputArray($input, true));
         $updater->setWhere(" `{$this->parentField}` = {$parentId} ".(!empty($additional) ? " AND {$additional}" : ""));
-        
+
         if ($this->dumpQueries === true) {
             echo "updateByParentId: ".$updater->get().PHP_EOL;
         }
-        
+
         return $updater->execute();
     }
 
@@ -892,11 +934,11 @@ class Base
     {
         $updater = new BaseUpdate($this->tableName);
         $updater->setFieldsAndValues($this->validateAndPrepareInputArray($input, true));
-        
+
         if ($this->dumpQueries === true) {
             echo "updateAll: ".$updater->get().PHP_EOL;
         }
-        
+
         return $updater->execute();
     }
 
@@ -959,7 +1001,7 @@ class Base
 
         $this->tableFields = $currentTableFields;
         unset($currentTableFields);
-        
+
         if ($this->dumpQueries === true) {
             echo "translate: ".$translator->get().PHP_EOL;
         }

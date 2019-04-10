@@ -6,7 +6,7 @@
          * The limit of the query
          */
         private $limit;
-        
+
         /**
          * Adds the LIMIT clause to the query
          * Throws Exception if limit or offset are less than 0
@@ -19,7 +19,7 @@
             if ($limit < 0) {
                 throw new Exception("Limit must be bigger than -1!");
             }
-            
+
             $this->limit = $limit;
             if ($offset !== null) {
                 if ($offset < 0) {
@@ -28,7 +28,7 @@
                 $this->limit .= ', '.$offset;
             }
         }
-        
+
         /**
          * Adds the LIMIT clause of the query
          */
