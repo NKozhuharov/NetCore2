@@ -73,15 +73,21 @@ class Links extends Base
      * in the `multilanguage_links` table
      * @param string $controllerName - the name of the controller for the link
      * @param string $additional - an additonal string to concatenate to the link (optional)
+     * @param int $lanugageId - if a language id is provided here and multi-language links are available,
+     * it will return the link in the provided language
      * @throws Exception
      * @return string
      */
-    public function getLink(string $controllerName, string $additional = null)
+    public function getLink(string $controllerName, string $additional = null, int $lanugageId = null)
     {
         global $Core;
 
         if ($Core->multiLanguageLinks === true) {
-            $controllerName = $controllerName.self::MULTI_LANGUAGE_LINKS_SEPARATOR.$Core->Language->getCurrentLanguageId();
+            if (empty($lanugageId)) {
+                $lanugageId = $Core->Language->getCurrentLanguageId();
+            }
+            
+            $controllerName = $controllerName.self::MULTI_LANGUAGE_LINKS_SEPARATOR.$lanugageId;
             $link = array_search($controllerName, $this->multiLanguageLinksInfo);
 
             if (empty($link)) {

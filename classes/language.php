@@ -24,7 +24,7 @@ class Language extends Base
      * A collection of long translation phrases from the `phrases_text` table
      */
     private $phrasesText = null;
-    
+
     /**
      * @var array
      * A collection of platfrom translation phrases from the `phrases_platform` table
@@ -87,11 +87,11 @@ class Language extends Base
      * It will return the given phrase value if no translation is available
      */
     public function __get(string $phrase)
-    {   
+    {
         if ($this->phrases === null) {
             $this->getPhrases();
         }
-        
+
         if (isset($this->phrases[$phrase])) {
             return $this->phrases[$phrase];
         } else if (isset($this->phrasesPlatform[$phrase])) {
@@ -110,7 +110,7 @@ class Language extends Base
     private function getCurrentLanguageFromRequestOrCookie()
     {
         global $Core;
-        
+
         if (isset($_REQUEST['language']) && in_array($_REQUEST['language'], $this->allowedLanguages)) {
             $this->currentLanguage = $_REQUEST['language'];
             $this->currentLanguageId = array_search($this->currentLanguage, $this->allowedLanguages);
@@ -169,7 +169,7 @@ class Language extends Base
             'phrase',
             'translation'
         );
-        
+
         $Core->db->query(
             "SELECT
                 `phrase`,
@@ -185,14 +185,14 @@ class Language extends Base
     }
 
     /**
-     * Checks if the current language is different from the default language
+     * Checks if the current language is the default language
      * @return bool
      */
-    public function currentLanguageIsDefaultLanguage()
+    public function isCurrentLanguageDefaultLanguage()
     {
         global $Core;
 
-        return $this->currentLanguageId != $Core->defaultLanguageId;
+        return $this->currentLanguageId == $Core->defaultLanguageId;
     }
 
     /**
@@ -210,7 +210,7 @@ class Language extends Base
             throw new Exception("This language does not exist or not allowed");
         }
     }
-    
+
     /**
      * Allows the user to manually change the current language by its id
      * @param int $languageId - the id name of the language
