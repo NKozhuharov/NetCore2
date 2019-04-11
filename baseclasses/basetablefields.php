@@ -38,7 +38,7 @@
         public function getFieldType(string $fieldName)
         {
             if (!isset($this->tableFields[$fieldName])) {
-                throw new Exception("The field $fieldName does not exist!");
+                throw new Exception("The field `$fieldName` does not exist in table `{$this->tableName}`");
             }
 
             return $this->tableFields[$fieldName]['type'];
@@ -47,7 +47,7 @@
         public function getFieldInfo(string $fieldName)
         {
             if (!isset($this->tableFields[$fieldName])) {
-                throw new Exception("The field $fieldName does not exist!");
+                throw new Exception("The field `$fieldName` does not exist in table `{$this->tableName}`");
             }
 
             return $this->tableFields[$fieldName]['field_info'];

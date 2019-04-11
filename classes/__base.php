@@ -96,6 +96,12 @@ class Base
      * If is set to true the results from the outupt functions will be translated if they have translation table
      */
     protected $translateResult = true;
+    
+    /**
+     * @var string
+     * Use this field to specify in which column of the table for this model is the link
+     */
+    protected $linkField = 'link';
 
     /**
      * @var bool
@@ -685,6 +691,108 @@ class Base
         }
 
         return $returnSingleObject ? current($result) : $result;
+    }
+    
+    /**
+     * WORK IN PROGRESS
+     * @todo
+     */
+    public function getIdByLink(string $link)
+    {
+        global $Core;
+        
+        if (empty($this->linkField)) {
+            throw new Exception("You cannot use links functions, wihout specifing the linkField");
+        }
+        
+        if ($this->tableFields->getFieldType($this->linkField) !== 'varchar') {
+            throw new Exception(
+                "The specified linkField `{$this->linkField}` in table `{$this->tableName}`".
+                " must be type 'varchar'"
+            );
+        }
+        
+        $link = $Core->db->real_escape_string($link);
+        
+        if (
+            $Core->multiLanguageLinks === true && 
+            $Core->Language->getCurrentLanguageId() !== $Core->Language->getDefaultLanguageId()
+        ) {
+            $langTableFields = new BaseTableFields("{$this->tableName}_lang");
+            
+            if ($langTableFields->getFieldType($this->linkField) !== 'varchar') {
+                throw new Exception(
+                    "The specified linkField `{$this->linkField}` in table `{$this->tableName}_lang`".
+                    " must be type 'varchar'"
+                );
+            }
+            
+            $selector = new BaseSelect("{$this->tableName}_lang");
+            $selector->addField('id');
+            $selector->setWhere("`{$this->linkField}` = '$link' AND `lang_id` = ".$Core->Language->getCurrentLanguageId());
+            $selector->setLimit(1);
+            $selector->setGlobalTemplate('fetch_assoc');
+            
+            $id = $selector->execute();
+        
+            if (!empty($id)) {
+                return $id['id'];
+            }
+        } else {
+            $selector = new BaseSelect($this->tableName);
+            $selector->addField('id');
+            $selector->setWhere("`{$this->linkField}` = '$link'");
+            $selector->setLimit(1);
+            $selector->setGlobalTemplate('fetch_assoc');
+            
+            $id = $selector->execute();
+            
+            if (!empty($id)) {
+                return $id['id'];
+            }
+        }
+        
+        
+        
+        return 0;
+    }
+    
+    /**
+     * WORK IN PROGRESS
+     * @todo
+     */
+    public function getLinkById(int $rowId, int $lanugageId)
+    {
+        global $Core;
+        
+        if (empty($this->linkField)) {
+            throw new Exception("You cannot use links functions, wihout specifing the linkField");
+        }
+
+        $object = $this->getById($rowId);
+        
+        if (empty($object)) {
+            throw new Exception("Cannot get link for non existing object - ".get_class($this).", $rowId");
+        }
+        
+        if (isset($object[$this->linkField])) {
+            if ($lanugageId !== $Core->Language->getDefaultLanguageId()) {
+                if (!in_array($this->linkField, $this->translationFields, true)) {
+                    $this->translationFields[$this->linkField] = $this->linkField;
+                    $removeLinkField = true;
+                }
+                
+                $object = $this->getTranslation($object, $lanugageId);
+                
+                if (isset($removeLinkField)) {
+                    unset($this->translationFields[$this->linkField]);
+                }
+            }   
+            
+            return $Core->Links->getLink(strtolower(get_class($this)), '/'.$object[$this->linkField], $lanugageId);
+        }
+        
+        return $Core->Links->getLink(strtolower(get_class($this)), '/'.$object['id'], $lanugageId);
     }
 
     /**
