@@ -96,7 +96,7 @@ class Base
      * If is set to true the results from the outupt functions will be translated if they have translation table
      */
     protected $translateResult = true;
-    
+
     /**
      * @var string
      * Use this field to specify in which column of the table for this model is the link
@@ -692,71 +692,63 @@ class Base
 
         return $returnSingleObject ? current($result) : $result;
     }
-    
+
     /**
      * WORK IN PROGRESS
      * @todo
      */
-    public function getIdByLink(string $link)
+    public function getObjectByLink(string $link)
     {
         global $Core;
-        
+
         if (empty($this->linkField)) {
             throw new Exception("You cannot use links functions, wihout specifing the linkField");
         }
         
+        $this->checkTableFields();
+                        
         if ($this->tableFields->getFieldType($this->linkField) !== 'varchar') {
             throw new Exception(
                 "The specified linkField `{$this->linkField}` in table `{$this->tableName}`".
                 " must be type 'varchar'"
             );
         }
-        
-        $link = $Core->db->real_escape_string($link);
-        
+
+        $link = mb_strtolower($Core->db->real_escape_string($link));
+
         if (
-            $Core->multiLanguageLinks === true && 
+            $Core->multiLanguageLinks === true &&
             $Core->Language->getCurrentLanguageId() !== $Core->Language->getDefaultLanguageId()
         ) {
             $langTableFields = new BaseTableFields("{$this->tableName}_lang");
-            
+
             if ($langTableFields->getFieldType($this->linkField) !== 'varchar') {
                 throw new Exception(
                     "The specified linkField `{$this->linkField}` in table `{$this->tableName}_lang`".
                     " must be type 'varchar'"
                 );
             }
-            
+
             $selector = new BaseSelect("{$this->tableName}_lang");
             $selector->addField('id');
-            $selector->setWhere("`{$this->linkField}` = '$link' AND `lang_id` = ".$Core->Language->getCurrentLanguageId());
+            $selector->setWhere("LOWER(`{$this->linkField}`) = '$link' AND `lang_id` = ".$Core->Language->getCurrentLanguageId());
             $selector->setLimit(1);
             $selector->setGlobalTemplate('fetch_assoc');
-            
             $id = $selector->execute();
-        
+            
             if (!empty($id)) {
-                return $id['id'];
+                return $this->getById($id['id']);
             }
         } else {
-            $selector = new BaseSelect($this->tableName);
-            $selector->addField('id');
-            $selector->setWhere("`{$this->linkField}` = '$link'");
-            $selector->setLimit(1);
-            $selector->setGlobalTemplate('fetch_assoc');
-            
-            $id = $selector->execute();
-            
-            if (!empty($id)) {
-                return $id['id'];
+            $object = $this->getAll(1, "LOWER(`{$this->linkField}`) = '$link'");
+            if (!empty($object)) {
+                return current($object);
             }
         }
-        
-        
-        
-        return 0;
+
+        return array();
     }
-    
+
     /**
      * WORK IN PROGRESS
      * @todo
@@ -764,35 +756,62 @@ class Base
     public function getLinkById(int $rowId, int $lanugageId)
     {
         global $Core;
-        
+
         if (empty($this->linkField)) {
             throw new Exception("You cannot use links functions, wihout specifing the linkField");
         }
-
+        
+        if ($this->translateResult === true) {
+            $turnOnTranslation = true;
+            $this->turnOffTranslation();
+        }
+        
         $object = $this->getById($rowId);
         
+        if (isset($turnOnTranslation)) {
+            $this->turnOnTranslation();
+        }
+
         if (empty($object)) {
             throw new Exception("Cannot get link for non existing object - ".get_class($this).", $rowId");
         }
-        
+
         if (isset($object[$this->linkField])) {
             if ($lanugageId !== $Core->Language->getDefaultLanguageId()) {
                 if (!in_array($this->linkField, $this->translationFields, true)) {
                     $this->translationFields[$this->linkField] = $this->linkField;
                     $removeLinkField = true;
                 }
+
+                $translatedObject = $this->getTranslation($object, $lanugageId);
                 
-                $object = $this->getTranslation($object, $lanugageId);
+                if ($translatedObject[$this->linkField] === $object[$this->linkField]) {
+                    return $Core->Links->getLink(str_replace('/', '', $Core->pageNotFoundLocation), false, $lanugageId);
+                }
                 
                 if (isset($removeLinkField)) {
                     unset($this->translationFields[$this->linkField]);
                 }
-            }   
+            }
             
-            return $Core->Links->getLink(strtolower(get_class($this)), '/'.$object[$this->linkField], $lanugageId);
+            try {
+                return $Core->Links->getLink(strtolower(get_class($this)), '/'.mb_strtolower($object[$this->linkField]), $lanugageId);
+            } catch (Exception $ex) {
+                if (strstr($ex->getMessage(), 'The following controller was not found')) {
+                    return '/'.mb_strtolower($object[$this->linkField]);
+                }
+                throw new Exception ($ex->getMessage());
+            }
         }
         
-        return $Core->Links->getLink(strtolower(get_class($this)), '/'.$object['id'], $lanugageId);
+        try {
+            return $Core->Links->getLink(strtolower(get_class($this)), '/'.$object['id'], $lanugageId);
+        } catch (Exception $ex) {
+            if (strstr($ex->getMessage(), 'The following controller was not found')) {
+                return '/'.$object['id'];
+            }
+            throw new Exception ($ex->getMessage());
+        }
     }
 
     /**
@@ -909,7 +928,7 @@ class Base
         if (stristr($message, 'Mysql Error: Cannot delete or update a parent row: a foreign key constraint fails')) {
             $modelName = strtolower(get_class($this));
             $referencedTableName = substr($message, strpos($message, 'constraint fails (') + strlen('constraint fails ('));
-            $referencedTableName = str_replace("`$Core->dbName`.", "", $referencedTableName);
+            $referencedTableName = str_replace("`{$Core->dbName}`.", "", $referencedTableName);
             $referencedTableName = str_replace("`", "", $referencedTableName);
             $referencedTableName = substr($referencedTableName, 0, strpos($referencedTableName, ','));
 

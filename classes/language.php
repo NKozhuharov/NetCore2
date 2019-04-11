@@ -43,7 +43,7 @@ class Language extends Base
      * Maps the allowed languaes id => name
      */
     private $allowedLanguages = null;
-
+    
     /**
      * Creates an instance of the Language class
      * Makes a query to the databse to get a list of the allowed languages
@@ -375,5 +375,58 @@ class Language extends Base
             return $this->getDefaultLanguageName();
         }
     	return $this->currentLanguage;
+    }
+    
+    /**
+     * 
+     * 
+     * @param string $modelName
+     * @param int $objectId
+     * @return array
+     */
+    public function getLanguageChangeLinksOfModel(string $modelName, int $objectId)
+    {
+        global $Core;
+        
+        if (empty($modelName)) {
+            throw new Exception("Provide a model name");
+        }
+        
+        if ($objectId <= 0) {
+            throw new Exception("Provide an object id");
+        }
+        
+        if ($Core->$modelName === false) {
+            throw new Exception("Model {$modelName} does not exist!");
+        }
+        
+        $links = array();
+        
+        foreach ($this->allowedLanguages as $langId => $langShort) {
+            if ($langId !== $this->currentLanguageId) {
+                $links[$langId] = $Core->$modelName->getLinkById($objectId, $langId);
+            }
+        }
+        
+        return $links;
+    }
+    
+    public function getLanguageChangeLinksOfController(string $controllerName = null)
+    {
+        global $Core;
+        
+        $links = array();
+        
+        if ($controllerName === null) {
+            $controllerName = $Core->Rewrite->controller;
+        }
+        
+        foreach ($this->allowedLanguages as $langId => $langShort) {
+            if ($langId !== $this->currentLanguageId) {
+                $links[$langId] = $Core->Links->getLink($controllerName, null, $langId);
+            }
+        }
+        
+        return $links;
     }
 }

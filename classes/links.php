@@ -86,8 +86,8 @@ class Links extends Base
             if (empty($lanugageId)) {
                 $lanugageId = $Core->Language->getCurrentLanguageId();
             }
-            
-            $controllerName = $controllerName.self::MULTI_LANGUAGE_LINKS_SEPARATOR.$lanugageId;
+
+            $controllerName = strtolower($controllerName).self::MULTI_LANGUAGE_LINKS_SEPARATOR.$lanugageId;
             $link = array_search($controllerName, $this->multiLanguageLinksInfo);
 
             if (empty($link)) {
@@ -117,7 +117,7 @@ class Links extends Base
         if (isset($_SERVER['REQUEST_URI']) && $_SERVER['REQUEST_URI'] === '/') {
             return $path;
         }
-        
+
         if ($Core->multiLanguageLinks === true) {
             foreach ($this->multiLanguageLinksInfo as $pathTranslation => $controller) {
                 if (
@@ -128,7 +128,7 @@ class Links extends Base
                     )
                 ) {
                     $controller = explode(self::MULTI_LANGUAGE_LINKS_SEPARATOR, $controller);
-            
+
                     if ($controller[1] != $Core->Language->getCurrentLanguageId()) {
                         $Core->Language->changeLanguageById($controller[1]);
                     }
