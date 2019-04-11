@@ -786,7 +786,7 @@ class Base
                 $translatedObject = $this->getTranslation($object, $lanugageId);
                 
                 if ($translatedObject[$this->linkField] === $object[$this->linkField]) {
-                    return $Core->Links->getLink($Core->pageNotFoundLocation, false, $lanugageId);
+                    return $Core->Links->getLink(strtolower(get_class($this)), false, $lanugageId);
                 }
                 
                 $object = $translatedObject;
