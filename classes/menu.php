@@ -94,7 +94,7 @@ class Menu
                 $element['level']       = $level;
                 $element['parentsIds']  = $this->findParents($elements, $element['id']);
                 $element['childrenIds'] = $this->findChildren($element, $element['id']);
-                $branch[]               = $element;
+                $branch[$k]               = $element;
             }
         }
 

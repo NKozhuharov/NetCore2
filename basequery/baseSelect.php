@@ -86,7 +86,7 @@
             }
             $this->globalTemplate = $globalTemplate;
         }
-        
+
         /**
          * Removes a field from the current field list
          * If a function result is provided to the field (COUNT(*)), table name must be put manually in the function
@@ -96,22 +96,22 @@
         public function removeField(string $field, string $tableName = null)
         {
             global $Core;
-            
+
             $field = $Core->db->escape($field);
-            
+
             if (empty($tableName)) {
                 $tableName = $this->tableName;
             }
-            
+
             if (strstr($field, '(') && strstr($field, ')')) {
                 $tableName = '';
             } else {
                 $tableName = "`$tableName`.";
             }
-            
+
             unset($this->fields["{$tableName}{$field}"]);
         }
-        
+
         /**
          * Adds a field to the query
          * If a function result is provided to the field (COUNT(*)), table name must be put manually in the function
@@ -125,11 +125,11 @@
 
             $field = $Core->db->escape($field);
             $alias = $Core->db->escape($alias);
-            
+
             if (empty($tableName)) {
                 $tableName = $this->tableName;
             }
-            
+
             if (strstr($field, '(') && strstr($field, ')')) {
                 $tableName = '';
             } else {
@@ -142,7 +142,7 @@
                 $this->fields["{$tableName}{$field}"] = "{$tableName}{$field}";
             }
         }
-        
+
         /**
          * Allows to add multiple fields, without aliases
          * The array keys of the fields parameter are ignored
@@ -157,7 +157,7 @@
                 }
             }
         }
-        
+
         /**
          * Allows to add multiple fields, with aliases
          * The array keys of the fields parameter are the fields, the values are the aliases
@@ -172,7 +172,7 @@
                 }
             }
         }
-        
+
         /**
          * Builds the query from all of it's parts
          * @return string
@@ -186,9 +186,9 @@
             $this->query .= ' FROM ';
 
             $this->query .= "`".(empty($this->dbName) ? $Core->dbName : $this->dbName)."`.`{$this->tableName}`";
-            
+
             $this->addJoinsToQuery();
-            
+
             $this->addWhereToQuery();
             $this->addOrderByToQuery();
             $this->addLimitToQuery();

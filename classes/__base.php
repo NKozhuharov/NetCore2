@@ -765,10 +765,10 @@ class Base
         if ($this->dumpQueries === true) {
             echo "deleteByParentId: ".$deleter->get().PHP_EOL;
         }
-        
+
         return $this->executeDeleteQuery($deleter);
     }
-    
+
     /**
      * Executes a delete query statment and parses any thrown exceptions
      * @param BaseDelete $deleter - the deleter instance of the BaseDelete class
@@ -782,7 +782,7 @@ class Base
             $this->parseDeleteMySQLError($ex);
         }
     }
-    
+
     /**
      * Parses a MySQL Error, occured when using any of the delete functions
      * Looks for foreign key constraint fails and returns a human readble error with BaseException
@@ -790,26 +790,26 @@ class Base
      * @param Exception $ex - an Exception thrown when executing a delete query
      * @throws BaseException
      * @throws Exception
-     * 
+     *
      */
     private function parseDeleteMySQLError(Exception $ex)
     {
         global $Core;
-        
+
         $message = $ex->getMessage();
-        
+
         if (stristr($message, 'Mysql Error: Cannot delete or update a parent row: a foreign key constraint fails')) {
             $modelName = strtolower(get_class($this));
             $referencedTableName = substr($message, strpos($message, 'constraint fails (') + strlen('constraint fails ('));
             $referencedTableName = str_replace("`$Core->dbName`.", "", $referencedTableName);
             $referencedTableName = str_replace("`", "", $referencedTableName);
             $referencedTableName = substr($referencedTableName, 0, strpos($referencedTableName, ','));
-            
+
             throw new BaseException("You cannot delete from %%{$modelName}%% if there are %%$referencedTableName%% attached to it");
-        } 
-        
+        }
+
         throw new Exception($ex->getMessage());
-    } 
+    }
 
     /**
      * Inserts a rows into the model table

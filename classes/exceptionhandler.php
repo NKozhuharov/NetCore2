@@ -126,12 +126,12 @@ class ExceptionHandler
             echo $this->handleAjaxMessage($this->getExceptionMessage($exception), false, $exception->getData());
         } else {
             echo $this->getExceptionMessage($exception);
-        }
 
-        if (!empty($exception->getData())) {
-            echo ':';
-            foreach ($exception->getData() as $fieldName => $message) {
-                echo '<br>'.$this->translateMessage($fieldName).' - '.$this->translateMessage($message);
+            if (!empty($exception->getData())) {
+                echo ':';
+                foreach ($exception->getData() as $fieldName => $message) {
+                    echo '<br>'.$this->translateMessage($fieldName).' - '.$this->translateMessage($message);
+                }
             }
         }
     }

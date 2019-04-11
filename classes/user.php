@@ -673,7 +673,7 @@ class User extends Base
             $inserter->addFieldAndValue('type_id', $typeId);
         }
 
-        return $inserter->execute();;
+        return $inserter->execute();
     }
 
     /**
@@ -730,7 +730,7 @@ class User extends Base
             throw new BaseException("The following fields are not valid", $errorsInFields, get_class($this));
         }
 
-        return $this->updateById($userId, array('password' => $this->hashPassword($password)));
+        return $this->updateById($userId, array('password' => $this->hashPassword($newPassword)));
     }
 
     //RECOVERY FUNCTIONS
