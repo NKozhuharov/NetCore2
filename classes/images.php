@@ -205,14 +205,14 @@ class Images extends Base
     }
 
     /**
-     * Sets uploaded file/s and sets the needed class variables
+     * Checks the uploaded file
      * Throws BaseException if the uploaded file is not a valid image or bigger thnan $this->sizeLimit
-     * Returns the temp file location
+     * Returns bool
      * @param array $file - temp file
      * @throws BaseException
-     * @return string
+     * @return bool
      */
-    private function setUpload(array $file)
+    private function checkUploadedImage(array $file)
     {
         global $Core;
 
@@ -223,6 +223,19 @@ class Images extends Base
         } elseif ($this->sizeLimit && filesize($file['tmp_name']) > $this->sizeLimit) {
             throw new BaseException("Image must not be bigger than %%{$Core->GlobalFunctions->formatBytes($this->sizeLimit)}%%");
         }
+    }
+
+    /**
+     * Sets uploaded file/s and sets the needed class variables
+     * Returns the temp file location
+     * @param array $file - temp file
+     * @return string - file location
+     */
+    private function setUpload(array $file)
+    {
+        global $Core;
+
+        $this->checkUploadedImage($file);
 
         $this->name          = substr($file['name'], 0, strripos($file['name'], '.'));
         $this->sizeType      = 'org';
