@@ -1,9 +1,6 @@
 <?php
 class User extends Base
 {
-    const BEFORE_PASS = 'WERe]r#$%{}^JH[~ghGHJ45 #$';
-    const AFTER_PASS = '9 Y{]}innv89789#$%^&';
-
     const DEFAULT_USER_ROLE     = "Nobody";
     const DEFAULT_USER_LEVEL    = 0;
     const DEFAULT_USER_LEVEL_ID = 0;
@@ -251,7 +248,8 @@ class User extends Base
      */
     public function hashPassword(string $password)
     {
-        return md5(self::BEFORE_PASS.sha1($password).self::AFTER_PASS);
+        global $Core;
+        return md5($Core->userModelBeforePass.sha1($password).$Core->userModelAfterPass);
     }
 
     /**
@@ -605,33 +603,34 @@ class User extends Base
             throw new Exception("Email is not valid");
         }
     }
-
+    
     /**
-     * Allows the registration of users with username and password
-     * Allows to set a user level id and user type id (if requried by the project)
+     * Validates the provided user level
+     * Throws Exception if something is wrong
+     * @param int $levelId - the type of the user
+     * @throws Exception
+     */
+    private function validateUserLevel(int $levelId = null)
+    {
+        if ($this->usersLevelTableName && (empty($levelId) || !isset($this->getUserLevels()[$levelId]))) {
+            throw new Exception("User level is not supported or invalid");
+        }
+    }
+    
+    /**
      * Throws BaseException if something is wrong with the credentials of the user
-     * Throws Exception if something is wrong with the platform setup
      * @param string $username - the user's username
      * @param string $password - the user's password
      * @param string $repeatPassword - the repeated user's password
      * @param int $levelId - the level of the user (optional)
      * @param int $typeId - the type of the user (optional)
      * @throws BaseException
-     * @throws Exception
      */
-    public function register(string $username, string $password, string $repeatPassword, int $levelId = null, int $typeId = null)
+    public function validateRegisterationValues(string $username, string $password, string $repeatPassword, int $levelId = null, int $typeId = null)
     {
-        global $Core;
-
-        if ($this->usersLevelTableName && (empty($levelId) || !isset($this->getUserLevels()[$levelId]))) {
-            throw new Exception("User level is not supported or invalid");
-        }
+        $this->validateUserLevel($levelId);
 
         $this->validateUserType($typeId);
-
-        $username = $Core->db->escape(trim($username));
-        $password = $Core->db->escape(trim($password));
-        $repeatPassword = $Core->db->escape(trim($repeatPassword));
 
         $errorsInFields = array();
 
@@ -659,21 +658,40 @@ class User extends Base
         if (!empty($errorsInFields)) {
             throw new BaseException("The following fields are not valid", $errorsInFields, get_class($this));
         }
+    }
 
-        $password = $this->hashPassword($password);
+    /**
+     * Allows the registration of users with username and password
+     * Allows to set a user level id and user type id (if requried by the project)
+     * Returns the registered user id
+     * @param array $input - the user credentials; it must have the fields 'username', 'password', 'repeat_password'
+     * @return int
+     */
+    public function register(array $input)
+    {
+        global $Core;
+        
+        $input['username']        = isset($input['username'])        ? trim($input['username']) : '';
+        $input['password']        = isset($input['password'])        ? trim($input['password']) : '';
+        $input['repeat_password'] = isset($input['repeat_password']) ? trim($input['repeat_password']) : '';
+        $input['level_id']        = isset($input['level_id'])        ? intval($input['level_id']) : null;
+        $input['type_id']         = isset($input['type_id'])         ? intval($input['type_id']) : null;
+        
+        $this->validateRegisterationValues($input['username'], $input['password'], $input['repeat_password'], $input['level_id'], $input['type_id']);
 
-        $inserter = new BaseInsert($this->tableName);
-        $inserter->addFieldAndValue('username', $username);
-        $inserter->addFieldAndValue('password', $password);
-
-        if ($levelId !== null) {
-            $inserter->addFieldAndValue('level_id', $levelId);
+        $input['password'] = $this->hashPassword($input['password']);
+        
+        if ($input['level_id'] === null) {
+            unset($input['level_id']);
         }
-        if ($typeId !== null) {
-            $inserter->addFieldAndValue('type_id', $typeId);
+        
+        if ($input['type_id'] === null) {
+            unset($input['type_id']);
         }
-
-        return $inserter->execute();
+        
+        unset($input['repeat_password']);
+        
+        return $this->insert($input);
     }
 
     /**
