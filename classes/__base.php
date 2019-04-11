@@ -730,14 +730,14 @@ class Base
             }
 
             $selector = new BaseSelect("{$this->tableName}_lang");
-            $selector->addField('id');
+            $selector->addField('object_id');
             $selector->setWhere("LOWER(`{$this->linkField}`) = '$link' AND `lang_id` = ".$Core->Language->getCurrentLanguageId());
             $selector->setLimit(1);
             $selector->setGlobalTemplate('fetch_assoc');
             $id = $selector->execute();
             
             if (!empty($id)) {
-                return $this->getById($id['id']);
+                return $this->getById($id['object_id']);
             }
         } else {
             $object = $this->getAll(1, "LOWER(`{$this->linkField}`) = '$link'");
@@ -786,8 +786,10 @@ class Base
                 $translatedObject = $this->getTranslation($object, $lanugageId);
                 
                 if ($translatedObject[$this->linkField] === $object[$this->linkField]) {
-                    return $Core->Links->getLink(str_replace('/', '', $Core->pageNotFoundLocation), false, $lanugageId);
+                    return $Core->Links->getLink($Core->pageNotFoundLocation, false, $lanugageId);
                 }
+                
+                $object = $translatedObject;
                 
                 if (isset($removeLinkField)) {
                     unset($this->translationFields[$this->linkField]);
