@@ -73,6 +73,12 @@ try {
     if ($Core->{$Core->userModel}) {
         $Core->{$Core->userModel}->init();
     }
+    
+    if ($Core->multiLanguageLinks === true) {
+        $Core->Links->setLanguageChangeLinks(
+            $Core->Links->getLanguageChangeLinksOfController()
+        );
+    }
 
     //get required files
     $Core->Rewrite->getFiles();

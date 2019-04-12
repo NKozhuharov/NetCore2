@@ -8,7 +8,9 @@ class Links extends Base
      * Contains a map, between the multilanguage links and their according controllers and languages
      */
     private $multiLanguageLinksInfo;
-
+    
+    private $languageChangeLinks = array();
+    
     /**
      * Creates a new instacne of the Links class
      * If the multiLanguageLinks Core variable is set to true, it will initialize the Base variables
@@ -139,7 +141,86 @@ class Links extends Base
 
             return $Core->pageNotFoundLocation;
         }
-
+        
         return $path;
+    }
+    
+    public function setLanguageChangeLinks(array $links) 
+    {
+        $this->languageChangeLinks = $links;
+    }
+    
+    public function getLanguageChangeLinks()
+    {
+        return $this->languageChangeLinks;
+    }
+    
+    /**
+     * 
+     * 
+     * @param string $modelName
+     * @param int $objectId
+     * @return array
+     */
+    public function getLanguageChangeLinksOfModel(string $modelName, int $objectId)
+    {
+        global $Core;
+        
+        if (empty($modelName)) {
+            throw new Exception("Provide a model name");
+        }
+        
+        if ($objectId <= 0) {
+            throw new Exception("Provide an object id");
+        }
+        
+        if ($Core->$modelName === false) {
+            throw new Exception("Model {$modelName} does not exist!");
+        }
+        
+        $links = array();
+        
+        if ($Core->multiLanguageLinks === true) {
+            foreach ($Core->Language->getAllowedLanguages() as $langId => $langShort) {
+                if ($langId !== $Core->Language->getCurrentLanguageId()) {
+                    try {
+                        $links[$langId] = $Core->$modelName->getLinkById($objectId, $langId);
+                    } catch (Exception $ex) {
+                        if (!strstr($ex->getMessage(), 'The following controller was not found in the `multilanguage_links` table')) {
+                            throw new Exception ($ex->getMessage());
+                        }
+                    }
+                }
+            }
+        }
+        
+        return $links;
+    }
+    
+    public function getLanguageChangeLinksOfController(string $controllerName = null)
+    {
+        global $Core;
+        
+        $links = array();
+        
+        if ($Core->multiLanguageLinks === true) {
+            if ($controllerName === null) {
+                $controllerName = $Core->Rewrite->controller;
+            }
+            
+            foreach ($Core->Language->getAllowedLanguages() as $langId => $langShort) {
+                if ($langId !== $Core->Language->getCurrentLanguageId()) {
+                    try {
+                        $links[$langId] = $Core->Links->getLink($controllerName, null, $langId);
+                    } catch (Exception $ex) {
+                        if (!strstr($ex->getMessage(), 'The following controller was not found in the `multilanguage_links` table')) {
+                            throw new Exception ($ex->getMessage());
+                        }
+                    }
+                }
+            }
+        }
+        
+        return $links;
     }
 }

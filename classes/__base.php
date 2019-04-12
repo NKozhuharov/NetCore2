@@ -435,7 +435,7 @@ class Base
         if ($this->dumpQueries === true) {
             echo "getAll: ".$selector->get().PHP_EOL;
         }
-
+        
         return $this->parseSelectQueryResult($selector->execute());
     }
 
@@ -657,9 +657,11 @@ class Base
             $returnSingleObject = true;
             $result = array($result);
         }
-
-        $resultObjectIds = array_column($result, 'id');
-
+        
+        foreach ($result as $resultKey => $resultValue) {
+            $resultObjectIds[$resultKey] = $resultValue['id'];
+        }
+        
         if (empty($resultObjectIds)) {
             throw new Exception ("Cannot translate query results, which do not contain the id column");
         }
@@ -672,10 +674,9 @@ class Base
         }
 
         $Core->db->query($selector->build(), $this->queryCacheTime, 'fillArray', $translations, 'object_id');
-
+    
         if (!empty($translations)) {
             $fieldIds = array_flip($resultObjectIds);
-
             foreach ($translations as $objectId => $row) {
                 $resultKey = $fieldIds[$objectId];
                 if (isset($result[$resultKey])) {
@@ -692,6 +693,46 @@ class Base
 
         return $returnSingleObject ? current($result) : $result;
     }
+    
+    /**
+     * Creates unique link by given string compared to $this->linkField
+     * @param string $linkInfo - string by which to create the link
+     * @param int $objectId - current object id when updating (optional)
+     * @returns string
+     */
+    public function getUniqueLink(string $linkInfo, int $objectId = null)
+    {
+        global $Core;
+
+        $linkInfo = trim(preg_replace('~\P{Xan}++~u', ' ', $linkInfo));
+        $linkInfo = preg_replace("~\s+~", '-', strtolower($linkInfo));
+        $linkInfo = substr($linkInfo, 0, 200);
+
+        $link = $Core->db->escape(substr($linkInfo, 0, 200));
+
+        $additional = null;
+
+        if ($objectId !== null) {
+            $additional = " `id` != '{$objectId}' AND ";
+        }
+
+        $count = 0;
+
+        while ($this->getAll(1, $additional."`{$this->linkField}` = '{$link}'")) {
+            $count++;
+
+            $postFix = substr($link, strripos($link, '-'));
+
+            if ($count > 1) {
+                $postFix = str_replace('-'.($count-1),'-'.$count, $postFix);
+                $link = substr($link, 0, strripos($link, '-')).$postFix;
+            } else {
+                $link .= '-'.$count;
+            }
+        }
+
+        return $link;
+    }
 
     /**
      * WORK IN PROGRESS
@@ -700,13 +741,13 @@ class Base
     public function getObjectByLink(string $link)
     {
         global $Core;
-
+        
         if (empty($this->linkField)) {
             throw new Exception("You cannot use links functions, wihout specifing the linkField");
         }
-        
+
         $this->checkTableFields();
-                        
+
         if ($this->tableFields->getFieldType($this->linkField) !== 'varchar') {
             throw new Exception(
                 "The specified linkField `{$this->linkField}` in table `{$this->tableName}`".
@@ -734,10 +775,10 @@ class Base
             $selector->setWhere("LOWER(`{$this->linkField}`) = '$link' AND `lang_id` = ".$Core->Language->getCurrentLanguageId());
             $selector->setLimit(1);
             $selector->setGlobalTemplate('fetch_assoc');
-            $id = $selector->execute();
-            
-            if (!empty($id)) {
-                return $this->getById($id['object_id']);
+            $objectId = $selector->execute();
+
+            if (!empty($objectId)) {
+                return $this->getById($objectId['object_id']);
             }
         } else {
             $object = $this->getAll(1, "LOWER(`{$this->linkField}`) = '$link'");
@@ -760,14 +801,14 @@ class Base
         if (empty($this->linkField)) {
             throw new Exception("You cannot use links functions, wihout specifing the linkField");
         }
-        
+
         if ($this->translateResult === true) {
             $turnOnTranslation = true;
             $this->turnOffTranslation();
         }
-        
+
         $object = $this->getById($rowId);
-        
+
         if (isset($turnOnTranslation)) {
             $this->turnOnTranslation();
         }
@@ -784,18 +825,18 @@ class Base
                 }
 
                 $translatedObject = $this->getTranslation($object, $lanugageId);
-                
+
                 if ($translatedObject[$this->linkField] === $object[$this->linkField]) {
                     return $Core->Links->getLink(strtolower(get_class($this)), false, $lanugageId);
                 }
-                
+
                 $object = $translatedObject;
-                
+
                 if (isset($removeLinkField)) {
                     unset($this->translationFields[$this->linkField]);
                 }
             }
-            
+
             try {
                 return $Core->Links->getLink(strtolower(get_class($this)), '/'.mb_strtolower($object[$this->linkField]), $lanugageId);
             } catch (Exception $ex) {
@@ -805,7 +846,7 @@ class Base
                 throw new Exception ($ex->getMessage());
             }
         }
-        
+
         try {
             return $Core->Links->getLink(strtolower(get_class($this)), '/'.$object['id'], $lanugageId);
         } catch (Exception $ex) {
@@ -1078,13 +1119,14 @@ class Base
      * @param int $languageId - the language id to translate to
      * @param array $input - the translated object data
      * @return int
+     * @throws Exception
      */
     public function translate(int $objectId, int $languageId, array $input)
     {
         global $Core;
 
         if (empty($this->translationFields)) {
-            throw new Exception("You cannot translate an object, without any translation fields!");
+            throw new Exception("You cannot translate an object, without any translation fields in model ".get_class($this)."`");
         }
 
         if ($objectId <= 0) {
@@ -1099,7 +1141,16 @@ class Base
             throw new Exception("Language id should be the id of an active language in model `".get_class($this)."`");
         }
 
+        $this->checkTableFields();
+
+        foreach ($this->translationFields as $translationField) {
+            if (!array_key_exists($translationField, $this->tableFields->getFields())) {
+                throw new Exception("The translation field `$translationField` does not exists in table `".$this->tableName."`");
+            }
+        }
+
         $currentTranslation = $this->translateResult;
+
         $this->translateResult = false;
 
         $objectInfo = $this->getById($objectId);
@@ -1121,6 +1172,12 @@ class Base
             throw new Exception ("Table {$this->tableName}_lang does not exist in model `".get_class($this)."`");
         }
 
+        foreach ($this->translationFields as $translationField) {
+            if (!array_key_exists($translationField, $this->tableFields->getFields())) {
+                throw new Exception("The translation field `$translationField` does not exists in table `".$this->tableName."_lang"."`");
+            }
+        }
+
         $input['object_id'] = $objectId;
         $input['lang_id'] = $languageId;
 
@@ -1137,4 +1194,6 @@ class Base
 
         return $translator->execute();
     }
+
+    
 }
