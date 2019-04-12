@@ -94,7 +94,7 @@ class Menu
                 $element['level']       = $level;
                 $element['parentsIds']  = $this->findParents($elements, $element['id']);
                 $element['childrenIds'] = $this->findChildren($element, $element['id']);
-                $branch[$k]               = $element;
+                $branch[$k]             = $element;
             }
         }
 
@@ -169,6 +169,7 @@ class Menu
         if (empty($this->pathName)) {
             return $this->getFullPathName();
         }
+
         return $this->pathName;
     }
 
@@ -183,23 +184,26 @@ class Menu
         global $Core;
 
         $delimiter = ' / ';
+
         $pages = $Core->{$Core->userModel}->pages;
 
         $fullPageName = false;
 
-        if ($pages && $pages = $this->buildTree($pages)) {
+        if ($pages) {
+            $pages = $this->buildTree($pages);
+
             $currentPage = $Core->globalFunctions->arraySearch($pages, 'url', $this->url);
 
             if (isset($currentPage[0], $currentPage[0]['parentsIds'])) {
                 $parents = $currentPage[0]['parentsIds'];
 
                 foreach ($parents as $p) {
-                    $fullPageName .= $Core->language->{(mb_strtolower(str_replace(' ', '_', $Core->globalFunctions->arraySearch($pages, 'id', $p)[0]['name'])))}.$delimiter;
+                    $fullPageName .= $Core->Language->{(mb_strtolower(str_replace(' ', '_', $Core->globalFunctions->arraySearch($pages, 'id', $p)[0]['name'])))}.$delimiter;
                 }
             }
 
             if (isset($currentPage[0], $currentPage[0]['name'])) {
-                $fullPageName .= $Core->language->{(mb_strtolower(str_replace(' ', '_', $currentPage[0]['name'])))};
+                $fullPageName .= $Core->Language->{(mb_strtolower(str_replace(' ', '_', $currentPage[0]['name'])))};
             }
 
             return $fullPageName;

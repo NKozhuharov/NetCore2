@@ -7,6 +7,12 @@ trait LinkField
      */
     protected $linkField = 'link';
     
+    /**
+     * Ensures the linkField property is configured correctly for the model and the database table structure
+     * is setup correctly
+     * Throws Exception if something is wrong
+     * @throws Exception
+     */
     private function validateLinkField()
     {
         global $Core;
@@ -36,6 +42,19 @@ trait LinkField
         }
     }
     
+    /**
+     * Gets a link from an object, from the table of the model, if the field defined in linkField property
+     * is available in the table. 
+     * It will attempt to translate the object if the provided language is different from the default one
+     * and return the result from the `_lang` table
+     * If the current model does not have a controller defined in the multilanguage links table, it will
+     * return only the value of the linkField from the table
+     * Throws Exception if there is another problem while getting the link
+     * @param array $object - a row from the table of the model
+     * @param int $languageId - get the link in this language
+     * @return string
+     * @throws Exception
+     */
     private function getLinkByIdIfLinkFieldIsPresentInObject(array $object, int $lanugageId)
     {
         global $Core;
@@ -70,8 +89,12 @@ trait LinkField
     }
     
     /**
-     * WORK IN PROGRESS
-     * @todo
+     * Gets an object by it's link from the table of the model. Uses the getById method.
+     * Requires a valid linkField set in the model and available in the table of the model.
+     * If multilanguage links are available and current language is not the default language, it will
+     * search for the link in the `_lang` table for the model.
+     * @param string $link - the link of the object
+     * @return array
      */
     public function getObjectByLink(string $link)
     {
@@ -106,8 +129,15 @@ trait LinkField
     }
 
     /**
-     * WORK IN PROGRESS
-     * @todo
+     * Gets the link for an object form the table of the model, using it's row id and the provided language id
+     * Uses the getLinkByIdIfLinkFieldIsPresentInObject function.
+     * If the current model does not have a controller defined in the multilanguage links table, it will
+     * return only the id of object.
+     * Throws Exception if there is another problem while getting the link
+     * @param int $rowId - the id of the row
+     * @param int $lanugageId - get the link in this language
+     * @return string
+     * @throws Exception
      */
     public function getLinkById(int $rowId, int $lanugageId)
     {
