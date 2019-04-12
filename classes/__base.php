@@ -7,6 +7,7 @@ define ("INSERT_ON_DUPLICATE_KEY_UPDATE", 1);
 class Base
 {
     use InputValidations;
+    use LinkField;
 
     const ORDER_ASC = 'ASC';
     const ORDER_DESC = 'DESC';
@@ -96,12 +97,6 @@ class Base
      * If is set to true the results from the outupt functions will be translated if they have translation table
      */
     protected $translateResult = true;
-
-    /**
-     * @var string
-     * Use this field to specify in which column of the table for this model is the link
-     */
-    protected $linkField = 'link';
 
     /**
      * @var bool
@@ -448,6 +443,29 @@ class Base
     {
         return $selector;
     }
+    
+    /**
+     * Executes the getAll, without translating it, but keeping the current translateResult state
+     * @param int $limit - the limit override
+     * @param string $additional - the where clause override
+     * @param string $orderBy - the order by override
+     * @return array
+     */
+    public function getAllWithoutTranslation(int $limit = null, string $additional = null, string $orderBy = null)
+    {
+        if ($this->translateResult === true) {
+            $turnOnTranslation = true;
+            $this->turnOffTranslation();
+        }
+
+        $object = $this->getAll($limit, $additional, $orderBy);
+
+        if (isset($turnOnTranslation)) {
+            $this->turnOnTranslation();
+        }
+        
+        return $object;
+    }
 
     /**
      * Basic method of the Base class
@@ -491,6 +509,29 @@ class Base
     public function getByParentIdSelectHook(BaseSelect $selector)
     {
         return $selector;
+    }
+    
+    /**
+     * Executes the getByParentId, without translating it, but keeping the current translateResult state
+     * @param int $parentId - the id for the parent field
+     * @param int $limit - the limit override
+     * @param string $orderBy - the order by override
+     * @return array
+     */
+    public function getByParentIdWithoutTranslation(int $parentId, int $limit = null, string $orderBy = null)
+    {
+        if ($this->translateResult === true) {
+            $turnOnTranslation = true;
+            $this->turnOffTranslation();
+        }
+
+        $object = $this->getByParentId($parentId, $limit, $orderBy);
+
+        if (isset($turnOnTranslation)) {
+            $this->turnOnTranslation();
+        }
+        
+        return $object;
     }
 
     /**
@@ -540,6 +581,27 @@ class Base
     public function getByIdSelectHook(BaseSelect $selector)
     {
         return $selector;
+    }
+    
+    /**
+     * Executes the getById, without translating it, but keeping the current translateResult state
+     * @param int $rowId - the id of the row
+     * @return array
+     */
+    public function getByIdWithoutTranslation(int $rowId)
+    {
+        if ($this->translateResult === true) {
+            $turnOnTranslation = true;
+            $this->turnOffTranslation();
+        }
+
+        $object = $this->getById($rowId);
+
+        if (isset($turnOnTranslation)) {
+            $this->turnOnTranslation();
+        }
+        
+        return $object;
     }
 
     /**
@@ -732,129 +794,6 @@ class Base
         }
 
         return $link;
-    }
-
-    /**
-     * WORK IN PROGRESS
-     * @todo
-     */
-    public function getObjectByLink(string $link)
-    {
-        global $Core;
-        
-        if (empty($this->linkField)) {
-            throw new Exception("You cannot use links functions, wihout specifing the linkField");
-        }
-
-        $this->checkTableFields();
-
-        if ($this->tableFields->getFieldType($this->linkField) !== 'varchar') {
-            throw new Exception(
-                "The specified linkField `{$this->linkField}` in table `{$this->tableName}`".
-                " must be type 'varchar'"
-            );
-        }
-
-        $link = mb_strtolower($Core->db->real_escape_string($link));
-
-        if (
-            $Core->multiLanguageLinks === true &&
-            $Core->Language->getCurrentLanguageId() !== $Core->Language->getDefaultLanguageId()
-        ) {
-            $langTableFields = new BaseTableFields("{$this->tableName}_lang");
-
-            if ($langTableFields->getFieldType($this->linkField) !== 'varchar') {
-                throw new Exception(
-                    "The specified linkField `{$this->linkField}` in table `{$this->tableName}_lang`".
-                    " must be type 'varchar'"
-                );
-            }
-
-            $selector = new BaseSelect("{$this->tableName}_lang");
-            $selector->addField('object_id');
-            $selector->setWhere("LOWER(`{$this->linkField}`) = '$link' AND `lang_id` = ".$Core->Language->getCurrentLanguageId());
-            $selector->setLimit(1);
-            $selector->setGlobalTemplate('fetch_assoc');
-            $objectId = $selector->execute();
-
-            if (!empty($objectId)) {
-                return $this->getById($objectId['object_id']);
-            }
-        } else {
-            $object = $this->getAll(1, "LOWER(`{$this->linkField}`) = '$link'");
-            if (!empty($object)) {
-                return current($object);
-            }
-        }
-
-        return array();
-    }
-
-    /**
-     * WORK IN PROGRESS
-     * @todo
-     */
-    public function getLinkById(int $rowId, int $lanugageId)
-    {
-        global $Core;
-
-        if (empty($this->linkField)) {
-            throw new Exception("You cannot use links functions, wihout specifing the linkField");
-        }
-
-        if ($this->translateResult === true) {
-            $turnOnTranslation = true;
-            $this->turnOffTranslation();
-        }
-
-        $object = $this->getById($rowId);
-
-        if (isset($turnOnTranslation)) {
-            $this->turnOnTranslation();
-        }
-
-        if (empty($object)) {
-            throw new Exception("Cannot get link for non existing object - ".get_class($this).", $rowId");
-        }
-
-        if (isset($object[$this->linkField])) {
-            if ($lanugageId !== $Core->Language->getDefaultLanguageId()) {
-                if (!in_array($this->linkField, $this->translationFields, true)) {
-                    $this->translationFields[$this->linkField] = $this->linkField;
-                    $removeLinkField = true;
-                }
-
-                $translatedObject = $this->getTranslation($object, $lanugageId);
-
-                if ($translatedObject[$this->linkField] === $object[$this->linkField]) {
-                    return $Core->Links->getLink(strtolower(get_class($this)), false, $lanugageId);
-                }
-
-                $object = $translatedObject;
-
-                if (isset($removeLinkField)) {
-                    unset($this->translationFields[$this->linkField]);
-                }
-            }
-
-            try {
-                return $Core->Links->getLink(strtolower(get_class($this)), '/'.mb_strtolower($object[$this->linkField]), $lanugageId);
-            } catch (Exception $ex) {
-                if (strstr($ex->getMessage(), 'The following controller was not found')) {
-                    return '/'.mb_strtolower($object[$this->linkField]);
-                }
-                throw new Exception ($ex->getMessage());
-            }
-        }
-
-        try {
-            return $Core->Links->getLink(strtolower(get_class($this)), '/'.$object['id'], $lanugageId);
-        } catch (Exception $ex) {
-            if (strstr($ex->getMessage(), 'The following controller was not found')) {
-                return '/'.$object['id'];
-            }
-            throw new Exception ($ex->getMessage());
-        }
     }
 
     /**
@@ -1194,6 +1133,4 @@ class Base
 
         return $translator->execute();
     }
-
-    
 }
