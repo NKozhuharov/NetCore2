@@ -98,12 +98,15 @@ class Links extends Base
 
             if (empty($link)) {
                 $controllerName = explode(self::MULTI_LANGUAGE_LINKS_SEPARATOR, $controllerName);
-
-                throw new Exception (
-                    "The following controller was not found in the `{$this->tableName}` table - ".
-                    "`{$controllerName[0]}` for language id {$controllerName[1]} ".
-                    "({$Core->language->getActiveLanguages()[$controllerName[1]]['name']})"
-                );
+                
+                if ($Core->clientIsDeveoper()) {
+                    throw new Exception (
+                        "The following controller was not found in the `{$this->tableName}` table - ".
+                        "`{$controllerName[0]}` for language id {$controllerName[1]} ".
+                        "({$Core->language->getActiveLanguages()[$controllerName[1]]['name']})"
+                    );
+                }
+                return '';
             }
 
             return "/{$link}{$additional}";
@@ -150,23 +153,33 @@ class Links extends Base
 
         return $path;
     }
-
+    
+    /**
+     * Sets the links for changing to different language to the provided array
+     * @param array $links - the new langugage change links
+     */
     public function setLanguageChangeLinks(array $links)
     {
         $this->languageChangeLinks = $links;
     }
-
+    
+    /**
+     * Gets the links for changing to different language
+     */
     public function getLanguageChangeLinks()
     {
         return $this->languageChangeLinks;
     }
 
     /**
-     *
-     *
-     * @param string $modelName
-     * @param int $objectId
+     * Gets the links to change the language, according to the provided model and the object id
+     * If multilanguage links are not turend on, it will return empty array
+     * Throws Exception if any of the parameters are incorrect
+     * Throws Exception if the model is not present in the multilanguage_links table and the user is developer
+     * @param string $modelName - a name of a model of the site
+     * @param int $objectId - the id of row of the object from the table of the database
      * @return array
+     * @throws Exception
      */
     public function getLanguageChangeLinksOfModel(string $modelName, int $objectId)
     {
@@ -196,6 +209,10 @@ class Links extends Base
                             throw new Exception ($ex->getMessage());
                         }
                     }
+                    
+                    if (empty($links[$langId])) {
+                        unset($links[$langId]);
+                    }
                 }
             }
         }
@@ -203,6 +220,15 @@ class Links extends Base
         return $links;
     }
 
+    /**
+     * Gets the links to change the language, according to the provided controller.
+     * If the contrller is not provided, it will get the links for the current controller
+     * If multilanguage links are not turend on, it will return empty array
+     * Throws Exception if the controller is not present in the multilanguage_links table and the user is developer
+     * @param string $controllerName - a name of a controller of the site (optional)
+     * @return array
+     * @throws Exception
+     */
     public function getLanguageChangeLinksOfController(string $controllerName = null)
     {
         global $Core;
@@ -221,12 +247,16 @@ class Links extends Base
                     } catch (Exception $ex) {
                         if (!strstr($ex->getMessage(), 'The following controller was not found in the `multilanguage_links` table')) {
                             throw new Exception ($ex->getMessage());
-                        }
+                        } 
+                    }
+                    
+                    if (empty($links[$langId])) {
+                        unset($links[$langId]);
                     }
                 }
             }
         }
-
+        
         return $links;
     }
 }

@@ -181,7 +181,7 @@ class Core
 
 
     private $doNotStrip                = false;          //do not strip these parameters
-    private $pageNotFoundLocation      = 'not-found';   //moust not be numeric so the rewrite can work
+    private $pageNotFoundLocation      = 'not-found';    //moust not be numeric so the rewrite can work
     private $allowFirstPage            = false;          //if allowed url like "/1" won't redirect to $pageNotFoundLocation
 
     //domain
