@@ -750,6 +750,26 @@ class User extends Base
 
         return $this->updateById($userId, array('password' => $this->hashPassword($newPassword)));
     }
+    
+    /**
+     * Generates a random alpanumeric string, with a specific length
+     * Throws exception if the provided length is negative, zero or larger than 32
+     * @param int $length - the length of the password to generate (between 1 and 32 symbols)
+     * @return string
+     * @throws Exception
+     */
+    public function generatePassword(int $length)
+    {
+        if ($length <= 0) {
+            throw new Exception("Password length must be bigger than 0");
+        }
+        
+        if ($length > 32) {
+            throw new Exception("Password length must be less than 32");
+        }
+        
+        return strtoupper(substr(md5(time()), rand(0, (32 - $length)), $length));
+    }
 
     //RECOVERY FUNCTIONS
 
