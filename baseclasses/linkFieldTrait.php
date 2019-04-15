@@ -6,7 +6,7 @@ trait LinkField
      * Use this field to specify in which column of the table for this model is the link
      */
     protected $linkField = 'link';
-    
+
     /**
      * Ensures the linkField property is configured correctly for the model and the database table structure
      * is setup correctly
@@ -16,7 +16,7 @@ trait LinkField
     private function validateLinkField()
     {
         global $Core;
-        
+
         if (empty($this->linkField)) {
             throw new Exception("You cannot use links functions, wihout specifing the linkField");
         }
@@ -29,10 +29,10 @@ trait LinkField
                 " must be type 'varchar'"
             );
         }
-        
+
         if ($Core->multiLanguageLinks === true) {
             $langTableFields = new BaseTableFields("{$this->tableName}_lang");
-    
+
             if ($langTableFields->getFieldType($this->linkField) !== 'varchar') {
                 throw new Exception(
                     "The specified linkField `{$this->linkField}` in table `{$this->tableName}_lang`".
@@ -41,10 +41,10 @@ trait LinkField
             }
         }
     }
-    
+
     /**
      * Gets a link from an object, from the table of the model, if the field defined in linkField property
-     * is available in the table. 
+     * is available in the table.
      * It will attempt to translate the object if the provided language is different from the default one
      * and return the result from the `_lang` table
      * If the current model does not have a controller defined in the multilanguage links table, it will
@@ -58,7 +58,7 @@ trait LinkField
     private function getLinkByIdIfLinkFieldIsPresentInObject(array $object, int $lanugageId)
     {
         global $Core;
-        
+
         if ($lanugageId !== $Core->Language->getDefaultLanguageId()) {
             if (!in_array($this->linkField, $this->translationFields, true)) {
                 $this->translationFields[$this->linkField] = $this->linkField;
@@ -87,7 +87,7 @@ trait LinkField
             throw new Exception ($ex->getMessage());
         }
     }
-    
+
     /**
      * Gets an object by it's link from the table of the model. Uses the getById method.
      * Requires a valid linkField set in the model and available in the table of the model.
@@ -99,7 +99,7 @@ trait LinkField
     public function getObjectByLink(string $link)
     {
         global $Core;
-        
+
         $this->validateLinkField();
 
         $link = mb_strtolower($Core->db->real_escape_string($link));

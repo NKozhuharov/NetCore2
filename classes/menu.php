@@ -14,6 +14,12 @@ class Menu
     private $url = '';
 
     /**
+     * @var string
+     * Use this field to specify the link field
+     */
+    protected $linkField = 'link';
+
+    /**
      * Creates a new instance of the Menu class
      */
     public function __construct()
@@ -128,9 +134,9 @@ class Menu
             }
             if ($t['children']) {
             ?>
-                <li id="<?php echo $t['id']; ?>" class="hasMenu<?php echo ($t['url'] == $this->url ? ' is-current' : '' ).($isResp ? ' respPad' : '').(in_array($t['id'], $parents) ? ' active' : ''); ?>" title="<?php echo $name; ?>">
-                    <?php if ($t['url']) { ?>
-                        <a class="menu-name" href="<?php echo $t['url']; ?>"><?php echo $t['icon']; ?><?php echo $name; ?></a>
+                <li id="<?php echo $t['id']; ?>" class="hasMenu<?php echo ($t[$this->linkField] == $this->url ? ' is-current' : '' ).($isResp ? ' respPad' : '').(in_array($t['id'], $parents) ? ' active' : ''); ?>" title="<?php echo $name; ?>">
+                    <?php if ($t[$this->linkField]) { ?>
+                        <a class="menu-name" href="<?php echo $t[$this->linkField]; ?>"><?php echo $t['icon']; ?><?php echo $name; ?></a>
                     <?php } else { ?>
                         <div class="menu-name"><?php echo $t['icon']; ?><?php echo $name; ?></div>
                     <?php } ?>
@@ -139,9 +145,9 @@ class Menu
                     </ul>
                 </li>
             <?php } else { ?>
-                <li id="<?php echo $t['id']; ?>" class="noMenu <?php echo $t['url'] == $this->url ? ' is-current' : ''; ?>" title="<?php echo $name; ?>">
-                    <?php if ($t['url']) { ?>
-                        <a href="<?php echo $t['url']; ?>"><?php echo $t['icon']; ?><?php echo $name; ?></a>
+                <li id="<?php echo $t['id']; ?>" class="noMenu <?php echo $t[$this->linkField] == $this->url ? ' is-current' : ''; ?>" title="<?php echo $name; ?>">
+                    <?php if ($t[$this->linkField]) { ?>
+                        <a href="<?php echo $t[$this->linkField]; ?>"><?php echo $t['icon']; ?><?php echo $name; ?></a>
                     <?php } else { ?>
                         <div class="menu-name"><?php echo $t['icon']; ?><?php echo $name; ?></div>
                     <?php } ?>

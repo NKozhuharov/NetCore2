@@ -327,7 +327,7 @@ class User extends Base
             $selector = new BaseSelect($this->pagesTableName);
             $selector->addField('level', 'level', $this->usersLevelTableName);
             $selector->addLeftJoin($this->usersLevelTableName, 'id', 'level_id');
-            $selector->setWhere("`{$Core->dbName}`.`{$this->pagesTableName}`.`url` = '".$Core->db->escape($Core->rewrite->url)."'");
+            $selector->setWhere("`{$Core->dbName}`.`{$this->pagesTableName}`.`link` = '".$Core->db->escape($Core->rewrite->url)."'");
             $selector->setGlobalTemplate('fetch_assoc');
             $level = $selector->execute();
             if (!empty($level) && isset($level['level']) && $level['level'] == 0) {
@@ -335,7 +335,7 @@ class User extends Base
             }
         } else {
             foreach ($this->data['pages'] as $page) {
-                if ($Core->Rewrite->url == $page['url']) {
+                if ($Core->Rewrite->url == $page['link']) {
                     return;
                 }
             }
@@ -603,7 +603,7 @@ class User extends Base
             throw new Exception("Email is not valid");
         }
     }
-    
+
     /**
      * Validates the provided user level
      * Throws Exception if something is wrong
@@ -616,7 +616,7 @@ class User extends Base
             throw new Exception("User level is not supported or invalid");
         }
     }
-    
+
     /**
      * Throws BaseException if something is wrong with the credentials of the user
      * @param string $username - the user's username
@@ -670,27 +670,27 @@ class User extends Base
     public function register(array $input)
     {
         global $Core;
-        
+
         $input['username']        = isset($input['username'])        ? trim($input['username']) : '';
         $input['password']        = isset($input['password'])        ? trim($input['password']) : '';
         $input['repeat_password'] = isset($input['repeat_password']) ? trim($input['repeat_password']) : '';
         $input['level_id']        = isset($input['level_id'])        ? intval($input['level_id']) : null;
         $input['type_id']         = isset($input['type_id'])         ? intval($input['type_id']) : null;
-        
+
         $this->validateRegisterationValues($input['username'], $input['password'], $input['repeat_password'], $input['level_id'], $input['type_id']);
 
         $input['password'] = $this->hashPassword($input['password']);
-        
+
         if ($input['level_id'] === null) {
             unset($input['level_id']);
         }
-        
+
         if ($input['type_id'] === null) {
             unset($input['type_id']);
         }
-        
+
         unset($input['repeat_password']);
-        
+
         return $this->insert($input);
     }
 
