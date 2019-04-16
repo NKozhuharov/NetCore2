@@ -90,7 +90,7 @@ trait InputValidations
         }
 
         if (!empty($missingFields)) {
-            throw new BaseException("The following fields are not valid", $missingFields, get_class($this));
+            throw new BaseException("The following fields are required", $missingFields, get_class($this));
         }
     }
 
@@ -416,6 +416,30 @@ trait InputValidations
 
         if (!array_key_exists($this->parentField, $this->tableFields->getFields())) {
             throw new Exception("The field `{$this->parentField}` does not exist in table `{$this->tableName}`");
+        }
+    }
+    
+    /**
+     * Validates the provided object id, it should be bigger than 0
+     * Throws Exception if it is not 
+     * @param int $objectId - the object id to check
+     * @throws Exception
+     */
+    protected function validateObjectId(int $objectId)
+    {
+        if ($objectId <= 0) {
+            throw new Exception("Object id must be bigger than 0 in model `".get_class($this)."`");
+        }
+    }
+    
+    /**
+     * Throws Exception if translationFields property is empty
+     * @throws Exception
+     */
+    protected function checkIfTranslationFieldsAreSet()
+    {
+        if (empty($this->translationFields)) {
+            throw new Exception("You cannot translate an object, without any translation fields in model ".get_class($this)."`");
         }
     }
 }

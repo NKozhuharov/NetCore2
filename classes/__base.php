@@ -109,7 +109,7 @@ class Base
      * Throws Exception if the table name is not provided
      * @throws Exception
      */
-    private function checkTableFields()
+    protected final function checkTableFields()
     {
         if (empty($this->tableName)) {
             throw new Exception("Provide a table name for model `".get_class($this)."`");
@@ -842,9 +842,7 @@ class Base
      */
     public function deleteById(int $rowId)
     {
-        if ($rowId <= 0) {
-            throw new Exception("Object id must be bigger than 0 in model `".get_class($this)."`");
-        }
+        $this->validateObjectId($objectId);
 
         $deleter = new BaseDelete($this->tableName);
         $deleter->setWhere("`id` = {$rowId}");
@@ -949,7 +947,7 @@ class Base
 
         return $inserter->execute();
     }
-
+    
     /**
      * Updates a rows into the model table by the provided where override
      * Returns the number of affected rows
@@ -989,15 +987,13 @@ class Base
      * @throws Exception
      * @return int
      */
-    public function updateById(int $ojbectId, array $input, string $additional = null)
+    public function updateById(int $objectId, array $input, string $additional = null)
     {
-        if ($ojbectId <= 0) {
-            throw new Exception("Object id must be bigger than 0 in model `".get_class($this)."`");
-        }
+        $this->validateObjectId($objectId);
 
         $updater = new BaseUpdate($this->tableName);
         $updater->setFieldsAndValues($this->validateAndPrepareInputArray($input, true));
-        $updater->setWhere(" `id` = {$ojbectId} ".(!empty($additional) ? " AND {$additional}" : ""));
+        $updater->setWhere(" `id` = {$objectId} ".(!empty($additional) ? " AND {$additional}" : ""));
 
         if ($this->dumpQueries === true) {
             echo "updateById: ".$updater->get().PHP_EOL;
@@ -1064,13 +1060,9 @@ class Base
     {
         global $Core;
 
-        if (empty($this->translationFields)) {
-            throw new Exception("You cannot translate an object, without any translation fields in model ".get_class($this)."`");
-        }
+        $this->checkIfTranslationFieldsAreSet();
 
-        if ($objectId <= 0) {
-            throw new Exception("Object id should be bigger than 0 in model `".get_class($this)."`");
-        }
+        $this->validateObjectId($objectId);
 
         if ($languageId <= 0) {
             throw new Exception("Language id should be bigger than 0 in model `".get_class($this)."`");
