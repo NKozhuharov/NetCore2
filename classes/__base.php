@@ -8,6 +8,7 @@ class Base
 {
     use InputValidations;
     use LinkField;
+    use QueryExecuters;
 
     const ORDER_ASC = 'ASC';
     const ORDER_DESC = 'DESC';
@@ -486,7 +487,7 @@ class Base
 
         $selector = $this->initializeBaseSelector();
 
-        $selector->setWhere($this->getSelectQueryWhereClause("`{$this->parentField}` = {$parentId}"));
+        $selector->setWhere($this->getSelectQueryWhereClause("`{$this->tableName}`.`{$this->parentField}` = {$parentId}"));
 
         $selector = $this->addSelectQueryOverrides($selector, $limit, $orderBy);
 
@@ -558,7 +559,7 @@ class Base
 
         $selector = $this->initializeBaseSelector();
 
-        $selector->setWhere($this->getSelectQueryWhereClause("`id` = $rowId"));
+        $selector->setWhere($this->getSelectQueryWhereClause("`{$this->tableName}`.`id` = $rowId"));
 
         $selector = $this->getByIdSelectHook($selector);
 
@@ -876,47 +877,9 @@ class Base
         return $this->executeDeleteQuery($deleter);
     }
 
-    /**
-     * Executes a delete query statment and parses any thrown exceptions
-     * @param BaseDelete $deleter - the deleter instance of the BaseDelete class
-     * @return int
-     */
-    private function executeDeleteQuery(BaseDelete $deleter)
-    {
-        try {
-            return $deleter->execute();
-        } catch (Exception $ex) {
-            $this->parseDeleteMySQLError($ex);
-        }
-    }
-
-    /**
-     * Parses a MySQL Error, occured when using any of the delete functions
-     * Looks for foreign key constraint fails and returns a human readble error with BaseException
-     * It will throw the same Exception if it wasn't parsed
-     * @param Exception $ex - an Exception thrown when executing a delete query
-     * @throws BaseException
-     * @throws Exception
-     *
-     */
-    private function parseDeleteMySQLError(Exception $ex)
-    {
-        global $Core;
-
-        $message = $ex->getMessage();
-
-        if (stristr($message, 'Mysql Error: Cannot delete or update a parent row: a foreign key constraint fails')) {
-            $modelName = strtolower(get_class($this));
-            $referencedTableName = substr($message, strpos($message, 'constraint fails (') + strlen('constraint fails ('));
-            $referencedTableName = str_replace("`{$Core->dbName}`.", "", $referencedTableName);
-            $referencedTableName = str_replace("`", "", $referencedTableName);
-            $referencedTableName = substr($referencedTableName, 0, strpos($referencedTableName, ','));
-
-            throw new BaseException("You cannot delete from %%{$modelName}%% if there are %%$referencedTableName%% attached to it");
-        }
-
-        throw new Exception($ex->getMessage());
-    }
+    
+    
+    
 
     /**
      * Inserts a rows into the model table
@@ -945,7 +908,7 @@ class Base
             echo "insert: ".$inserter->get().PHP_EOL;
         }
 
-        return $inserter->execute();
+        return $this->executeInsertQuery($inserter);
     }
     
     /**
