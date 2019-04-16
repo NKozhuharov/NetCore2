@@ -547,9 +547,7 @@ class Base
     {
         global $Core;
 
-        if ($rowId <= 0) {
-            throw new Exception("Id should be bigger than 0 in model `".get_class($this)."`");
-        }
+        $this->validateObjectId($rowId);
 
         $this->checkTableFields();
 
@@ -843,7 +841,7 @@ class Base
      */
     public function deleteById(int $rowId)
     {
-        $this->validateObjectId($objectId);
+        $this->validateObjectId($rowId);
 
         $deleter = new BaseDelete($this->tableName);
         $deleter->setWhere("`id` = {$rowId}");
