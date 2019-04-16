@@ -292,7 +292,24 @@ class Language extends Base
 
         return $this->activeLangMap;
     }
+    
+    /**
+     * Gets an array with the ids of all active languages
+     * @return array
+     */
+    public function getActiveLanguagesIds()
+    {
+        $activeLanguagesIds = array();
 
+        foreach ($this->getActiveLanguages() as $languageKey => $language) {
+            if (is_numeric($languageKey)) {
+                $activeLanguagesIds[] = $languageKey;
+            }
+        }
+        
+        return $activeLanguagesIds;
+    }
+    
     /**
      * Gets an array of all allowed languages shorts
      * @return array
