@@ -120,7 +120,7 @@ class Menu
             $isResp = true;
         }
 
-        $parents = $Core->globalFunctions->arraySearch($tree, 'url', $this->url);
+        $parents = $Core->globalFunctions->arraySearch($tree, $this->linkField, $this->url);
 
         if (isset($parents[0], $parents[0]['parentsIds'])) {
             $parents = $parents[0]['parentsIds'];
@@ -132,11 +132,34 @@ class Menu
             if(empty($name)){
                 continue;
             }
+
             if ($t['children']) {
+                $subMenu = false;
+
+                foreach ($t['children'] as $child) {
+                    if ($child['name']) {
+                        $subMenu = true;
+
+                        break;
+                    }
+                }
             ?>
-                <li id="<?php echo $t['id']; ?>" class="hasMenu<?php echo ($t[$this->linkField] == $this->url ? ' is-current' : '' ).($isResp ? ' respPad' : '').(in_array($t['id'], $parents) ? ' active' : ''); ?>" title="<?php echo $name; ?>">
+                <li
+                    id="<?php echo $t['id']; ?>"
+                    title="<?php echo $name; ?>"
+                    class="
+                    <?php echo
+                        ($t[$this->linkField] == $this->url ? ' is-current' : '' ).
+                        ($subMenu ? ' hasMenu' : ' ').
+                        ($isResp ? ' respPad' : '').
+                        (in_array($t['id'], $parents) ? ' active' : '');
+                    ?>"
+
+                >
                     <?php if ($t[$this->linkField]) { ?>
-                        <a class="menu-name" href="<?php echo $t[$this->linkField]; ?>"><?php echo $t['icon']; ?><?php echo $name; ?></a>
+                        <a class=" <?php echo $subMenu ? 'menu-name' : '';?>" href="<?php echo $t[$this->linkField]; ?>">
+                            <?php echo $t['icon']; ?><?php echo $name; ?>
+                        </a>
                     <?php } else { ?>
                         <div class="menu-name"><?php echo $t['icon']; ?><?php echo $name; ?></div>
                     <?php } ?>
@@ -145,7 +168,11 @@ class Menu
                     </ul>
                 </li>
             <?php } else { ?>
-                <li id="<?php echo $t['id']; ?>" class="noMenu <?php echo $t[$this->linkField] == $this->url ? ' is-current' : ''; ?>" title="<?php echo $name; ?>">
+                <li
+                    id="<?php echo $t['id']; ?>"
+                    title="<?php echo $name; ?>"
+                    class="noMenu <?php echo $t[$this->linkField] == $this->url ? ' is-current' : ''; ?>"
+                >
                     <?php if ($t[$this->linkField]) { ?>
                         <a href="<?php echo $t[$this->linkField]; ?>"><?php echo $t['icon']; ?><?php echo $name; ?></a>
                     <?php } else { ?>
@@ -198,13 +225,15 @@ class Menu
         if ($pages) {
             $pages = $this->buildTree($pages);
 
-            $currentPage = $Core->globalFunctions->arraySearch($pages, 'url', $this->url);
+            $currentPage = $Core->globalFunctions->arraySearch($pages, $this->linkField, $this->url);
 
             if (isset($currentPage[0], $currentPage[0]['parentsIds'])) {
                 $parents = $currentPage[0]['parentsIds'];
 
                 foreach ($parents as $p) {
-                    $fullPageName .= $Core->Language->{(mb_strtolower(str_replace(' ', '_', $Core->globalFunctions->arraySearch($pages, 'id', $p)[0]['name'])))}.$delimiter;
+                    $fullPageName .= $Core->Language->{
+                        (mb_strtolower(str_replace(' ', '_', $Core->globalFunctions->arraySearch($pages, 'id', $p)[0]['name'])))
+                    }.$delimiter;
                 }
             }
 
