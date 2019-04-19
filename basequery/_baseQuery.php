@@ -31,7 +31,7 @@
          * @return string
          */
         public abstract function build();
-        
+
         /**
          * Creates a new instance of the BaseQuery class
          * Throws Exception if table name is empty
@@ -41,16 +41,16 @@
         public function __construct(string $tableName)
         {
             global $Core;
-            
+
             if (empty($tableName)) {
                 throw new Exception("Provide a table name!");
             }
-            
+
             $this->tableName = $tableName;
-            
+
             $this->dbName = $Core->dbName;
         }
-        
+
         /**
          * Allows the user to get the query string
          * Throws Exception if another property is requested
@@ -66,10 +66,10 @@
                 }
                 return $this->query;
             }
-            
+
             throw new Exception("Only 'query' is allowed!");
         }
-        
+
         /**
          * Set the name of the table for the query
          * Throws Exception if table name is empty
@@ -94,7 +94,7 @@
         {
             if (empty($dbName)) {
                 throw new Exception("Provide a databse name!");
-            }    
+            }
             $this->dbName = $dbName;
         }
 
@@ -111,7 +111,7 @@
                 ($die === false) ? false : true
             );
         }
-        
+
         /**
          * Echoes the body of the query.
          * By default, it dies after the echo
@@ -124,7 +124,7 @@
                 die;
             }
         }
-        
+
         /**
          * Returns the body of the query
          * @return string
@@ -133,7 +133,7 @@
         {
             return $this->build();
         }
-        
+
         /**
          * Executes the query and returns the result
          * @return mixed

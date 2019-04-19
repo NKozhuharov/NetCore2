@@ -431,7 +431,7 @@ class Base
         if ($this->dumpQueries === true) {
             echo "getAll: ".$selector->get().PHP_EOL;
         }
-        
+
         return $this->parseSelectQueryResult($selector->execute());
     }
 
@@ -444,7 +444,7 @@ class Base
     {
         return $selector;
     }
-    
+
     /**
      * Executes the getAll, without translating it, but keeping the current translateResult state
      * @param int $limit - the limit override
@@ -464,7 +464,7 @@ class Base
         if (isset($turnOnTranslation)) {
             $this->turnOnTranslation();
         }
-        
+
         return $object;
     }
 
@@ -511,7 +511,7 @@ class Base
     {
         return $selector;
     }
-    
+
     /**
      * Executes the getByParentId, without translating it, but keeping the current translateResult state
      * @param int $parentId - the id for the parent field
@@ -531,7 +531,7 @@ class Base
         if (isset($turnOnTranslation)) {
             $this->turnOnTranslation();
         }
-        
+
         return $object;
     }
 
@@ -581,7 +581,7 @@ class Base
     {
         return $selector;
     }
-    
+
     /**
      * Executes the getById, without translating it, but keeping the current translateResult state
      * @param int $rowId - the id of the row
@@ -599,7 +599,7 @@ class Base
         if (isset($turnOnTranslation)) {
             $this->turnOnTranslation();
         }
-        
+
         return $object;
     }
 
@@ -718,11 +718,11 @@ class Base
             $returnSingleObject = true;
             $result = array($result);
         }
-        
+
         foreach ($result as $resultKey => $resultValue) {
             $resultObjectIds[$resultKey] = $resultValue['id'];
         }
-        
+
         if (empty($resultObjectIds)) {
             throw new Exception ("Cannot translate query results, which do not contain the id column");
         }
@@ -735,7 +735,7 @@ class Base
         }
 
         $Core->db->query($selector->build(), $this->queryCacheTime, 'fillArray', $translations, 'object_id');
-    
+
         if (!empty($translations)) {
             $fieldIds = array_flip($resultObjectIds);
             foreach ($translations as $objectId => $row) {
@@ -754,7 +754,7 @@ class Base
 
         return $returnSingleObject ? current($result) : $result;
     }
-    
+
     /**
      * Creates unique link by given string compared to $this->linkField
      * @param string $linkInfo - string by which to create the link
@@ -875,10 +875,6 @@ class Base
         return $this->executeDeleteQuery($deleter);
     }
 
-    
-    
-    
-
     /**
      * Inserts a rows into the model table
      * Returns the id of the inserted row
@@ -908,7 +904,7 @@ class Base
 
         return $this->executeInsertQuery($inserter);
     }
-    
+
     /**
      * Updates a rows into the model table by the provided where override
      * Returns the number of affected rows
