@@ -9,6 +9,7 @@ class Base
     use InputValidations;
     use LinkField;
     use QueryExecuters;
+    use SearchTrait;
 
     const ORDER_ASC = 'ASC';
     const ORDER_DESC = 'DESC';
@@ -171,6 +172,8 @@ class Base
      */
     public function changeOrderByField(string $field)
     {
+        $this->checkTableFields();
+        
         if (!array_key_exists($field, $this->tableFields->getFields())) {
             throw new Exception("The field `$field` does not exist in table `{$this->tableName}`");
         }
@@ -290,11 +293,13 @@ class Base
     protected function getSelectQueryWhereClause(string $additional = null)
     {
         $where = array();
+        
         if (array_key_exists($this->hiddenFieldName, $this->tableFields->getFields()) && !$this->showHiddenRows) {
             $where[] = "(`{$this->hiddenFieldName}` IS NULL OR `{$this->hiddenFieldName}` = 0)";
         }
+        
         if (!empty($additional)) {
-            $where[] = $additional;
+            $where[] = "({$additional})";
         }
 
         return implode(" AND ", $where);
@@ -475,19 +480,24 @@ class Base
      * It will attempt to select all fields from the table of the model (SELECT *)
      * It will use the default parameters for limiting and ordering of the result
      * If limit or orderBy is provided, it will override the default parameters
-     *
+     * The additional parameter can be used to put an additional where clause on the query
      * @param int $parentId - the id for the parent field
      * @param int $limit - the limit override
+     * @param string $additional - the where clause override
      * @param string $orderBy - the order by override
      * @return array
      */
-    public function getByParentId(int $parentId, int $limit = null, string $orderBy = null)
+    public function getByParentId(int $parentId, int $limit = null, string $additional = null, string $orderBy = null)
     {
         $this->validateParentField($parentId);
 
         $selector = $this->initializeBaseSelector();
+        
+        if (!empty($additional)) {
+            $additional = " AND ({$additional})";
+        }
 
-        $selector->setWhere($this->getSelectQueryWhereClause("`{$this->tableName}`.`{$this->parentField}` = {$parentId}"));
+        $selector->setWhere($this->getSelectQueryWhereClause("`{$this->tableName}`.`{$this->parentField}` = {$parentId}{$additional}"));
 
         $selector = $this->addSelectQueryOverrides($selector, $limit, $orderBy);
 
@@ -656,7 +666,7 @@ class Base
         $this->validateParentField($parentId);
 
         if (!empty($additional)) {
-            $additional = " AND {$additional}";
+            $additional = " AND ({$additional})";
         }
 
         $selector = $this->getCountByParentIdSelectHook($selector);
