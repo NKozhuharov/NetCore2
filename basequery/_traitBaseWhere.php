@@ -15,6 +15,15 @@
         {
             $this->where = trim($where);
         }
+        
+        /**
+         * Gets the current WHERE clause of the query
+         * @return string
+         */
+        public function getWhere()
+        {
+            return $this->where;
+        }
 
         /**
          * Adds the WHERE clause of the query
