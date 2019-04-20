@@ -98,10 +98,14 @@ class ExceptionHandler
         global $Core;
 
         header('HTTP/1.1 400 Bad Request', true, 400);
-
-        $message = $error->__toString();
-        $message .= PHP_EOL;
-        $message .= "Thrown in ".$error->getFile()." on line ".$error->getLine();
+        
+        if ($Core->clientIsDeveoper()) {     
+            $message = $error->__toString();
+            $message .= PHP_EOL;
+            $message .= "Thrown in ".$error->getFile()." on line ".$error->getLine();
+        } else {
+            $message = $this->translateMessage($Core->generalErrorText);
+        }
 
         if ($Core->ajax) {
             echo $this->handleAjaxMessage($message);
