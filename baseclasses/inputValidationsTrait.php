@@ -310,7 +310,7 @@ trait InputValidations
         $info = $this->tableFields->getFieldInfo($fieldName);
 
         if (strlen($value) > $info) {
-            return "Must not be longer than %%{$info}%% sybmols";
+            return "Must not be longer than %%{$info}%% symbols";
         }
 
         return '';
@@ -329,13 +329,13 @@ trait InputValidations
         $valueLength = strlen($value);
 
         if (($fieldType === 'text' || $fieldType === 'blob') && $valueLength > 65535) {
-            return 'Must not be longer than %%65535%% sybmols';
+            return 'Must not be longer than %%65535%% symbols';
         } else if (strstr($fieldType, 'tiny') && $valueLength > 255) {
-            return 'Must not be longer than %%255%% sybmols';
+            return 'Must not be longer than %%255%% symbols';
         } else if (strstr($fieldType, 'medium') && $valueLength > 16777215) {
-            return 'Must not be longer than %%16777215%% sybmols';
+            return 'Must not be longer than %%16777215%% symbols';
         } else if (strstr($fieldType, 'long') && $valueLength > 4294967295) {
-            return 'Must not be longer than %%4294967295%% sybmols';
+            return 'Must not be longer than %%4294967295%% symbols';
         }
 
         return '';
