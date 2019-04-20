@@ -255,4 +255,13 @@ class Rewrite
     {
         $this->view = $view;
     }
+    
+    /**
+     * Allows the user to change the current page
+     * @param int $page - the new number of the current page
+     */
+    public function setCurrentPage(int $page)
+    {
+        $this->currentPage = $page;
+    }
 }
