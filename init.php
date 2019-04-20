@@ -1,4 +1,6 @@
 <?php
+#THIS IS A TEST COMMIT
+
 if (!defined('PROJECT_PATH')) {
     exit("Define a PROJECT_PATH global variable");
 }
