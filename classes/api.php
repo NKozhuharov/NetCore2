@@ -88,7 +88,7 @@ class API
 
             $this->getMethodFromAction();
 
-            if (empty($this->action) {
+            if (empty($this->action)) {
                 throw new Error("Define action!");
             }
 
