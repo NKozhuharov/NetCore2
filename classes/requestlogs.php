@@ -27,7 +27,7 @@ class RequestLogs extends Base
             isset($_REQUEST) && 
             !empty($_REQUEST) && 
             isset($_SERVER['REQUEST_URI']) && 
-            $Core->Rewrite->url != $Core->{$Core->messagesModel}->link
+            (empty($Core->messagesModel) || $Core->Rewrite->url != $Core->{$Core->messagesModel}->link)
         ) {
             $this->insert(
                 array(
