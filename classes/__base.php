@@ -669,23 +669,11 @@ class Base
             $additional = " AND ({$additional})";
         }
 
-        $selector = $this->getCountByParentIdSelectHook($selector);
-
         if ($this->dumpQueries === true) {
             echo "getCountByParentId: ".$selector->get().PHP_EOL;
         }
 
         return $this->getCount("`{$this->parentField}` = {$parentId}{$additional}");
-    }
-
-    /**
-     * Allows to add additional settings to the getCountByParentId selector
-     * @param BaseSelect $selector - the selector from getCountByParentId
-     * @return BaseSelect
-     */
-    public function getCountByParentIdSelectHook(BaseSelect $selector)
-    {
-        return $selector;
     }
 
     /**
