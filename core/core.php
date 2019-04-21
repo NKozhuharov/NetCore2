@@ -517,12 +517,17 @@ class Core
 
     /**
      * Checks if the client IP address is in the debug ips
-     * If the client has no IP address (is bot) or no debug ips are specified, he is considered developer
+     * If the client has no IP address and is not bot, he is considered intruder and therefore, not developer
+     * If the client has is bot or no debug ips are specified, he is considered developer
      * @return bool
      */
     public function clientIsDeveoper()
     {
-        if ($this->isBot || !isset($_SERVER['REMOTE_ADDR']) || empty($this->debugIps)) {
+        if (!isset($_SERVER['REMOTE_ADDR']) && !$this->isBot) {
+            return false;
+        }
+        
+        if ($this->isBot || empty($this->debugIps)) {
             return true;
         }
 
