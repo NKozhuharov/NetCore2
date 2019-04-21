@@ -186,12 +186,15 @@
                             $this->memcache->set($cacheName,array('cacheTime' => time(),'query' => ($results)));
                         }
                     }else{
-                        if(isset($_SERVER['REMOTE_ADDR']) && in_array($_SERVER['REMOTE_ADDR'], $Core->debugIps)){
-                            if(isset($this->select->error)){
-                                $Core->dump('ERROR: '.$this->select->error, false);
+                        if (isset($_SERVER['REMOTE_ADDR']) && $Core->clientIsDeveoper()) {
+                            $info = array();
+                            if (isset($this->select->error)) {
+                                $info['error'] = "##{$this->select->error}##";
                             }
 
-                            $Core->dump('QUERY: '.PHP_EOL.$sql);
+                            $info['query'] = "##{$sql}##";
+                            
+                            throw new BaseException("MySQL query execution error", $info);
                         }
                         throw new Exception($Core->generalErrorText);
                     }
