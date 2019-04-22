@@ -87,13 +87,17 @@ try {
 } catch (Success $e) {
     ob_end_clean();
     $Core->exceptionhandler->Success($e);
+    die;
 } catch (Error $e) {
     ob_end_clean();
     $Core->exceptionhandler->Error($e);
+    die;
 } catch (BaseException $e) {
     ob_end_clean();
     $Core->exceptionhandler->BaseException($e);
+    die;
 } catch (Exception $e) {
     ob_end_clean();
     $Core->exceptionhandler->Exception($e);
+    die;
 }
