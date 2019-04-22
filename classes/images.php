@@ -600,7 +600,7 @@ class Images extends Base
      */
     public function isWatermarkRequired()
     {
-        if($this->getAll(null, "`hash` = '{$this->orgMd5}' AND `org` = 1 AND `watermark` = 1")) {
+        if($this->getAll(0, "`hash` = '{$this->orgMd5}' AND `org` = 1 AND `watermark` = 1")) {
             return true;
         }
 
@@ -742,7 +742,7 @@ class Images extends Base
      */
     public function isExistingImage(string $md5)
     {
-        if ($res = $this->getAll(null, "`hash` = '{$md5}'")) {
+        if ($res = $this->getAll(0, "`hash` = '{$md5}'")) {
             return current($res)['name'];
         }
 
@@ -756,7 +756,7 @@ class Images extends Base
      */
     public function getIdBySrc(string $src)
     {
-        if ($res = $this->getAll(null, "`src` = '{$src}'")) {
+        if ($res = $this->getAll(0, "`src` = '{$src}'")) {
             return intval(current($res)['id']);
         }
 

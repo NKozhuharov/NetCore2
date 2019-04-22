@@ -3,6 +3,8 @@ class Tags extends Base
 {
     use InputAndTranslate;
     
+    const DEFAULT_AUTOCOMPLETE_LIMIT = 5;
+    
     /**
      * Creates an instance of Tags class
      */
@@ -108,11 +110,13 @@ class Tags extends Base
     /**
      * Gets the tag rows, as objects for an autocomplete.
      * Searches using RIGHT match in all languages
+     * If the limit paremeter is null, it will use the DEFAULT_AUTOCOMPLETE_LIMIT value instead
      * @param string $phrase - the phrase to search for
      * @param array $existingTagIds - it will skip theese tag ids (optional)
+     * @param int $limit - how many tags to display (optional)
      * @return array
      */
-    public function getAutocomplete(string $phrase, array $existingTagIds = null)
+    public function getAutocomplete(string $phrase, array $existingTagIds = null, int $limit = null)
     {
         global $Core;
         
@@ -130,7 +134,11 @@ class Tags extends Base
             $additional = "`tags`.`id` NOT IN (".implode(',', $existingTagIds).") AND ($additional)";
         }
         
-        return $Core->Tags->getAll(null, $additional);
+        if ($limit === null) {
+            $limit = self::DEFAULT_AUTOCOMPLETE_LIMIT;
+        }
+        
+        return $Core->Tags->getAll($limit, $additional);
     }
     
     /**

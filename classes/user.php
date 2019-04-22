@@ -307,7 +307,7 @@ class User extends Base
             return $selector->execute();
         }
 
-        return $base->getAll(null, "`name` IS NOT NULL AND `name` != ''", "`order` ASC, `name` ASC");
+        return $this->getAll(0, "`name` IS NOT NULL AND `name` != ''", "`order` ASC, `name` ASC");
     }
 
     /**
