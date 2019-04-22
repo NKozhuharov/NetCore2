@@ -1,6 +1,9 @@
 <?php
 class ExceptionHandler
 {
+    const MESSAGE_BREAKDOWN_DELIMITER = '%%';
+    const DONT_TRANSLATE_DELIMITER = '##';
+    
     /**
      * Parses the exception message and makes sure it can be translated
      * @param Exception $exception - the thrown exception
@@ -43,19 +46,31 @@ class ExceptionHandler
         foreach ($styles as $style) {
             $message = str_replace('<style'.$style.'</style>', '', $message);
         }
-
-        if (substr_count($message, '%%') > 1) {
-            $message = explode('%%', $message);
-            $translation = '';
-            foreach ($message as $messagePart) {
+        
+        $message = explode(self::MESSAGE_BREAKDOWN_DELIMITER, $message);
+        $translation = '';
+        foreach ($message as $messagePart) {
+            if (
+                substr($messagePart, 0, strlen(self::DONT_TRANSLATE_DELIMITER)) !== self::DONT_TRANSLATE_DELIMITER && 
+                substr(
+                    $messagePart, 
+                    -(strlen(self::DONT_TRANSLATE_DELIMITER)), 
+                    strlen(self::DONT_TRANSLATE_DELIMITER)
+                ) !== self::DONT_TRANSLATE_DELIMITER
+            ) {
                 $messagePart = str_replace(' ', '_', mb_strtolower($messagePart));
                 $messagePart = trim($messagePart, ' _');
                 $translation .= $Core->Language->{$messagePart}.' ';
+            } else {
+                $translation .= substr(
+                    $messagePart,
+                    strlen(self::DONT_TRANSLATE_DELIMITER), 
+                    -(strlen(self::DONT_TRANSLATE_DELIMITER))
+                );
             }
-            return trim($translation);
         }
 
-        $message = $Core->Language->{str_replace(' ', '_', mb_strtolower($message))};
+        $message = trim($translation);
 
         foreach ($scripts as $script) {
             $message .= '<script'.$script.'</script>';
