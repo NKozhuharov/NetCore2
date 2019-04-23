@@ -13,7 +13,7 @@ class Tags extends Base
         $this->tableName = 'tags';
         $this->orderByField = 'id';
         $this->orderByType = self::ORDER_DESC;
-        $this->translationFields = array('name');
+        $this->translationFields = array('name', 'link');
         $this->turnOffTranslation();
         $this->searchByField = 'name';
     }
@@ -59,9 +59,11 @@ class Tags extends Base
         $selector->removeField('*', $this->tableName);
         $selector->addField('id', 'id', $this->tableName);
         $selector->addField('name', 'name', $this->tableName);
+        $selector->addField('link', 'link', $this->tableName);
         foreach ($activeLanguageIds as $languageId) {
             if ($languageId !== $Core->Language->getDefaultLanguageId()) {
                 $selector->addField('name', "name_{$languageId}", "lang_{$languageId}");
+                $selector->addField('link', "link_{$languageId}", "lang_{$languageId}");
                 $selector->addLeftJoin(
                     "{$this->tableName}_lang",
                     'object_id',
@@ -90,9 +92,11 @@ class Tags extends Base
         $selector->removeField('*', $this->tableName);
         $selector->addField('id', 'id', $this->tableName);
         $selector->addField('name', 'name', $this->tableName);
+        $selector->addField('link', 'link', $this->tableName);
         foreach ($activeLanguageIds as $languageId) {
             if ($languageId !== $Core->Language->getDefaultLanguageId()) {
                 $selector->addField('name', "name_{$languageId}", "lang_{$languageId}");
+                $selector->addField('link', "link_{$languageId}", "lang_{$languageId}");
                 $selector->addLeftJoin(
                     "{$this->tableName}_lang",
                     'object_id',
