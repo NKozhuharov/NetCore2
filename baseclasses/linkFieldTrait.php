@@ -110,7 +110,10 @@ trait LinkField
         ) {
             $selector = new BaseSelect("{$this->tableName}_lang");
             $selector->addField('object_id');
-            $selector->setWhere("LOWER(`{$this->linkField}`) = '$link' AND `lang_id` = ".$Core->Language->getCurrentLanguageId());
+            $selector->setWhere(
+                "LOWER(`{$this->tableName}_lang`.`{$this->linkField}`) = '$link' AND `lang_id` = ".
+                $Core->Language->getCurrentLanguageId()
+            );
             $selector->setLimit(1);
             $selector->setGlobalTemplate('fetch_assoc');
             $objectId = $selector->execute();
@@ -119,7 +122,7 @@ trait LinkField
                 return $this->getById($objectId['object_id']);
             }
         } else {
-            $object = $this->getAll(1, "LOWER(`{$this->linkField}`) = '$link'");
+            $object = $this->getAll(1, "LOWER(`{$this->tableName}`.`{$this->linkField}`) = '$link'");
             if (!empty($object)) {
                 return current($object);
             }
