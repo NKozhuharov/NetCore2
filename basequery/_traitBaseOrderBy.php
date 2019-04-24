@@ -15,10 +15,15 @@
          */
         public function setOrderBy(string $orderBy)
         {
-            if (!strstr($orderBy, self::ORDER_ASC) && !strstr($orderBy, self::ORDER_DESC)) {
-                throw new Exception("Invalid order type provided, it must contain ASC or DESC");
+            if (
+                $orderBy !== "" && 
+                !strstr($orderBy, self::ORDER_ASC) && 
+                !strstr($orderBy, self::ORDER_DESC) &&
+                !strstr($orderBy, self::ORDER_FIELD)
+            ) {
+                throw new Exception("Invalid order type provided, it must contain ASC, DESC or FIELD");
             }
-            
+                
             $this->orderBy = $orderBy;
         }
         

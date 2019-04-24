@@ -13,6 +13,7 @@ class Base
 
     const ORDER_ASC = 'ASC';
     const ORDER_DESC = 'DESC';
+    const ORDER_FIELD = 'FIELD';
 
     //main variables
     /**
