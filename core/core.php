@@ -124,24 +124,30 @@ class Core
      * Set the name of the model, used to handle the user session (default is User)
      */
     private $userModel;
-    
+
     /**
      * @var string
      * A phrase to put before the password for each user
      */
     private $userModelBeforePass = 'WERe]r#$%{}^JH[~ghGHJ45 #$';
-    
+
     /**
      * @var string
      * A phrase to put after the password for each user
      */
     private $userModelAfterPass = '9 Y{]}innv89789#$%^&';
-    
+
     /**
      * @var string
      * Set the name of the model, used to log the requests (default is RequestLogs)
      */
-    private $requestLogsModel;
+    private $requestLogsModel = 'requestlogs';
+
+    /**
+     * @var bool
+     * Set to true to log user requests when $this->requestLogsModel is called
+     */
+    private $logRequests;
 
     /**
      * @var string
@@ -178,7 +184,6 @@ class Core
      * How many files to store in a signe folder
      */
     private $folderLimit = 30000;
-
 
     private $doNotStrip                = false;          //do not strip these parameters
     private $pageNotFoundLocation      = 'not-found';    //moust not be numeric so the rewrite can work
@@ -465,8 +470,8 @@ class Core
     {
         if ($this->ajax) {
             die('<script>window.location.replace("'.$url.'")</script>');
-        } 
-            
+        }
+
         header("Location: ".$url, 1, 302);
         exit();
     }
@@ -526,7 +531,7 @@ class Core
         if (!isset($_SERVER['REMOTE_ADDR']) && !$this->isBot) {
             return false;
         }
-        
+
         if ($this->isBot || empty($this->debugIps)) {
             return true;
         }
