@@ -42,6 +42,13 @@ class Images extends Base
     protected $uploadName = 'imageUpload';
 
     /**
+     * @var string
+     * the field containing the names of the images in the table
+     * default('name')
+     */
+    protected $imageNameField = 'name';
+
+    /**
      * @var bool
      * Param when uploading images.
      * If set to true it will show the response. If count of the response is 1 it will show string otherwise JSON encoded array
@@ -121,7 +128,7 @@ class Images extends Base
      * @var string
      * Original image md5 to store when uploading or use when creating on demand
      */
-    private $orgMd5 = '';
+    protected $orgMd5 = '';
 
     /**
      * @var array
@@ -132,7 +139,7 @@ class Images extends Base
     /**
      * instance of the Imagick class
      */
-    private $imagick = false;
+    protected $imagick = false;
 
     /**
      * Creates a new instance of the Images class
@@ -212,14 +219,14 @@ class Images extends Base
      * @throws BaseException
      * @return bool
      */
-    private function checkUploadedImage(array $file)
+    protected function checkUploadedImage(array $file)
     {
         global $Core;
 
         if (empty($file['tmp_name'])) {
             throw new BaseException("Image is empty");
         } elseif (!stristr(mime_content_type($file['tmp_name']), 'image')) {
-            throw new BaseException("The file %%`{$file['name']}`%% is not valid");
+            throw new BaseException("The file %%`{$file['name']}`%% is not valid image");
         } elseif ($this->sizeLimit && filesize($file['tmp_name']) > $this->sizeLimit) {
             throw new BaseException("Image must not be bigger than %%{$Core->GlobalFunctions->formatBytes($this->sizeLimit)}%%");
         }
@@ -231,7 +238,7 @@ class Images extends Base
      * @param array $file - temp file
      * @return string - file location
      */
-    private function setUpload(array $file)
+    protected function setUpload(array $file)
     {
         global $Core;
 
@@ -252,7 +259,7 @@ class Images extends Base
      * Throws Exception if $Core->imagesStorage is equal to $Core->imagesDir and watermark is required
      * @throws Exception
      */
-    public function upload()
+    private function upload()
     {
         global $Core;
 
@@ -283,7 +290,7 @@ class Images extends Base
                 $hasWatermark = 0;
             }
 
-            $this->name = $Core->globalfunctions->getHref($Core->globalfunctions->getUrl($this->name), $this->tableName, 'name');
+            $this->name = $Core->globalfunctions->getHref($Core->globalfunctions->getUrl($this->name), $this->tableName, $this->imageNameField);
             //Keep original witout watermark
             $this->insertImage($Core->imagesStorage.$addOrgFolder.$folderNumber.'/', $this->orgMd5, 1, $hasWatermark);
         } else {
@@ -293,13 +300,13 @@ class Images extends Base
         return $Core->imagesStorage.$addOrgFolder.$folderNumber.'/'.$this->name.'.'.$this->imageFormat;
     }
 
-     /**
+    /**
      * Sets required file and sets the needed class variables
      * Redirects no $Core->pageNotFoundLocation if the required file doesn't exists
      * Returns the original file location
      * @return string
      */
-    public function setOnDemand()
+    private function setOnDemand()
     {
         global $Core;
 
@@ -369,7 +376,7 @@ class Images extends Base
      * Resizes the image, then stores the file, saves the info in $this->tableName and then shows a preview of the image
      * Warning: imagick __toString returns different string from file_get_contents
      */
-    public function createOnDemand()
+    private function createOnDemand()
     {
         global $Core;
 
@@ -398,7 +405,7 @@ class Images extends Base
      * @param int $isOrg - flag showing if the file must have watermark when it's not the original.
      * If it's the original, his children must have watermark
      */
-    public function insertImage(string $folder, string $md5, int $isOrg = null, int $watermark = null)
+    private function insertImage(string $folder, string $md5, int $isOrg = null, int $watermark = null)
     {
         global $Core;
 
@@ -598,7 +605,7 @@ class Images extends Base
      * Checks if watermark is required
      * @return bool
      */
-    public function isWatermarkRequired()
+    private function isWatermarkRequired()
     {
         if($this->getAll(0, "`hash` = '{$this->orgMd5}' AND `org` = 1 AND `watermark` = 1")) {
             return true;
@@ -610,7 +617,7 @@ class Images extends Base
     /**
      * Adds watermark to current image
      */
-    public function addWatermark()
+    private function addWatermark()
     {
         global $Core;
 
@@ -648,7 +655,7 @@ class Images extends Base
      * In all $this->sizeType except 'fixed' if the given size is bigger than the original size and $this->allowSizeOverflow
      * is not set to true the original size will be used.
      */
-    public function resize()
+    private function resize()
     {
         if (!$this->width && !$this->height && $this->sizeType == 'org') {
             return false;
@@ -702,7 +709,7 @@ class Images extends Base
      * Sets Imagick by given file name
      * @param string $file - the name of the file
      */
-    public function setImagick(string $file)
+    private function setImagick(string $file)
     {
         $this->imagick = new Imagick($file);
     }
@@ -728,7 +735,7 @@ class Images extends Base
      * Previews image
      * @param string $file - contents of the file
      */
-    public function previewImage(string $file)
+    private function previewImage(string $file)
     {
         header("Content-Type: image/".$this->imageFormat);
 
@@ -740,7 +747,7 @@ class Images extends Base
      * @param string $md5 - the file md5()
      * @return string - if file exists returns it's file name
      */
-    public function isExistingImage(string $md5)
+    private function isExistingImage(string $md5)
     {
         if ($res = $this->getAll(0, "`hash` = '{$md5}'")) {
             return current($res)['name'];
