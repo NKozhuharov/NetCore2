@@ -166,18 +166,31 @@ class Base
     }
 
     /**
-     * Set the order by field to a new value
-     * Throws Exception if the provided field does not exist
+     * Set the order by field to a new value.
+     * Ensures the field exists in the table; if returnTimestamps is true, it will also consider '_timestamp' fields
+     * as existing.
+     * Throws Exception if the provided field does not exist in the table
      * @param string $field - the name of the new field
      * @throws Exception
      */
     public function changeOrderByField(string $field)
     {
         $this->checkTableFields();
+            
+        $fieldsToCheck = array_keys($this->tableFields->getFields());
         
-        if (!array_key_exists($field, $this->tableFields->getFields())) {
+        if ($this->returnTimestamps === true) {
+            foreach ($this->tableFields->getFields() as $field => $fieldDescription) {
+                if (in_array($fieldDescription['type'], array('timestamp', 'datetime'))) {
+                    $fieldsToCheck[] = "{$field}_timestamp";
+                }
+            }
+        }
+        
+        if (!in_array($field, $fieldsToCheck)) {
             throw new Exception("The field `$field` does not exist in table `{$this->tableName}`");
         }
+        
         $this->orderByField = $field;
     }
 
@@ -276,7 +289,7 @@ class Base
     protected function addTimestampFieldsToGetQuery(BaseSelect $selector)
     {
         foreach ($this->tableFields->getFields() as $field => $fieldDescription) {
-            if (in_array($fieldDescription['type'] ,array('timestamp', 'datetime'))) {
+            if (in_array($fieldDescription['type'], array('timestamp', 'datetime'))) {
                 $selector->addField("UNIX_TIMESTAMP(`{$field}`)", "{$field}_timestamp");
             }
         }
@@ -294,11 +307,11 @@ class Base
     protected function getSelectQueryWhereClause(string $additional = null)
     {
         $where = array();
-        
+
         if (array_key_exists($this->hiddenFieldName, $this->tableFields->getFields()) && !$this->showHiddenRows) {
             $where[] = "(`{$this->hiddenFieldName}` IS NULL OR `{$this->hiddenFieldName}` = 0)";
         }
-        
+
         if (!empty($additional)) {
             $where[] = "({$additional})";
         }
@@ -493,7 +506,7 @@ class Base
         $this->validateParentField($parentId);
 
         $selector = $this->initializeBaseSelector();
-        
+
         if (!empty($additional)) {
             $additional = " AND ({$additional})";
         }
@@ -752,6 +765,41 @@ class Base
         }
 
         return $returnSingleObject ? current($result) : $result;
+    }
+    
+    /**
+     * Creates search query from the $_REQUEST
+     * Works only for fields that exist in the table of the model
+     * Usefull in admin panel listings
+     * @return string
+     */
+    public function getSelectQueryAdditionalFromRequest()
+    {
+        global $Core;
+
+        if (isset($_REQUEST) && !empty($_REQUEST)) {
+            $this->checkTableFields();
+            
+            $query = array();
+
+            foreach ($_REQUEST as $parameterName => $parameterValue) {
+                if (
+                    array_key_exists(strtolower($parameterName), $this->tableFields->getFields()) && 
+                    (is_string($parameterValue) || is_numeric($parameterValue)) && trim($parameterValue) !== ''
+                ) {
+                    $query[] = " `$parameterName` = '{$Core->db->escape($parameterValue)}' ";
+                }
+            }
+            
+            //put ints/timestamps before strings
+            natcasesort($query);
+            
+            $query = implode(' AND ', $query);
+
+            return $query;
+        }
+
+        return '';
     }
 
     /**
