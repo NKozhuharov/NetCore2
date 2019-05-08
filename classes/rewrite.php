@@ -90,7 +90,7 @@ class Rewrite
             $this->showPageNotFound();
         }
 
-        if ("/$matches[0]/" == $Core->filesWebDir) {
+        if (!empty($matches) && "/$matches[0]/" == $Core->filesWebDir) {
             $path = $matches[0];
         } else{
             $path = implode('/', $matches);
