@@ -671,14 +671,14 @@ class Images extends Base
         if ($this->sizeType == 'fixed') {
             if($witdhRatio >= $heightRatio){
                 $newHeight = floor($currentHeight * $witdhRatio);
-                $this->imagick->resizeImage($this->width, null, imagick::FILTER_LANCZOS,1);
+                $this->imagick->resizeImage($this->width, null, imagick::FILTER_LANCZOS, 1);
 
                 if ($this->height != 0 && $newHeight > $this->height) {
                     $this->imagick->cropImage($this->width, $this->height, 0, floor(($newHeight - $this->height) / 2));
                 }
             } else {
                 $newWidth = floor($currentWidth * $heightRatio);
-                $this->imagick->resizeImage(null, $this->height, imagick::FILTER_LANCZOS,1);
+                $this->imagick->resizeImage(null, $this->height, imagick::FILTER_LANCZOS, 1);
 
                 if ($this->width != 0 && $newWidth > $this->width) {
                     $this->imagick->cropImage($this->width, $this->height, ceil(($newWidth - $this->width) / 2 ), 0);
@@ -695,7 +695,7 @@ class Images extends Base
                 }
             } else {
                 if ($currentHeight > $this->height || $this->allowSizeOverflow) {
-                    $this->imagick->resizeImage(null, $this->height, imagick::FILTER_LANCZOS,1);
+                    $this->imagick->resizeImage(null, $this->height, imagick::FILTER_LANCZOS, 1);
                 }
 
                 if ($this->width != 0 && $this->imagick->getImageWidth() > $this->width) {
