@@ -802,45 +802,7 @@ class Base
         return '';
     }
 
-    /**
-     * Creates unique link by given string compared to $this->linkField
-     * @param string $linkInfo - string by which to create the link
-     * @param int $objectId - current object id when updating (optional)
-     * @returns string
-     */
-    public function getUniqueLink(string $linkInfo, int $objectId = null)
-    {
-        global $Core;
-
-        $linkInfo = trim(preg_replace('~\P{Xan}++~u', ' ', $linkInfo));
-        $linkInfo = preg_replace("~\s+~", '-', strtolower($linkInfo));
-        $linkInfo = substr($linkInfo, 0, 200);
-
-        $link = $Core->db->escape(substr($linkInfo, 0, 200));
-
-        $additional = null;
-
-        if ($objectId !== null) {
-            $additional = " `id` != '{$objectId}' AND ";
-        }
-
-        $count = 0;
-
-        while ($this->getAll(1, $additional."`{$this->linkField}` = '{$link}'")) {
-            $count++;
-
-            $postFix = substr($link, strripos($link, '-'));
-
-            if ($count > 1) {
-                $postFix = str_replace('-'.($count-1),'-'.$count, $postFix);
-                $link = substr($link, 0, strripos($link, '-')).$postFix;
-            } else {
-                $link .= '-'.$count;
-            }
-        }
-
-        return $link;
-    }
+    
 
     /**
      * Deletes all rows in the table of the model that match the provided where override
@@ -1080,7 +1042,7 @@ class Base
 
         foreach ($this->translationFields as $translationField) {
             if (!array_key_exists($translationField, $this->tableFields->getFields())) {
-                throw new Exception("The translation field `$translationField` does not exists in table `".$this->tableName."`");
+                throw new Exception("The translation field `$translationField` does not exists in table `{$this->tableName}`");
             }
         }
 

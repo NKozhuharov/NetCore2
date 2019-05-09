@@ -167,4 +167,122 @@ trait LinkField
             throw new Exception ($ex->getMessage());
         }
     }
+    
+    /**
+     * Creates unique link by given string compared to $this->linkField
+     * @param string $string - string by which to create the link
+     * @param int $objectId - current object id when updating (optional)
+     * @returns string
+     */
+    public function getUniqueLink(string $string, int $objectId = null)
+    {
+        $link = $this->getLinkFromString($string);
+
+        $additional = null;
+
+        if ($objectId !== null) {
+            $additional = " `id` != '{$objectId}' AND ";
+        }
+
+        $count = 0;
+
+        while ($this->getAll(1, $additional."`{$this->linkField}` = '{$link}'")) {
+            $count++;
+
+            $postFix = substr($link, strripos($link, '-'));
+
+            if ($count > 1) {
+                $postFix = str_replace('-'.($count-1),'-'.$count, $postFix);
+                $link = substr($link, 0, strripos($link, '-')).$postFix;
+            } else {
+                $link .= '-'.$count;
+            }
+        }
+
+        return $link;
+    }
+    
+    /**
+     * Creates unique link by given string compared to $this->linkField in the translation table
+     * Throws Exception if either languageId or objectId is provided and the other is not
+     * @param string $string - string by which to create the link
+     * @param int $languageId - current language id when updating (optional)
+     * @param int $objectId - current object id when updating (optional)
+     * @throws Exception
+     * @returns string
+     */
+    public function getUniqueLinkTranslation(string $string, int $languageId = null, int $objectId = null)
+    {
+        if (($languageId === null && $objectId !== null) || ($languageId !== null && $objectId === null)) {
+            throw new Exception("Provide both language id and object id");
+        }
+        
+        try {
+            $this->tableFields = new BaseTableFields("{$this->tableName}_lang");
+        } catch (Exception $ex) {
+            throw new Exception ("Table {$this->tableName}_lang does not exist in model `".get_class($this)."`");
+        }
+        
+        foreach ($this->translationFields as $translationField) {
+            if (!array_key_exists($this->linkField, $this->tableFields->getFields())) {
+                throw new Exception("The translation field `{$this->linkField}` does not exists in table `{$this->tableName}_lang`");
+            }
+        }
+        
+        $additional = '';
+        
+        if ($objectId !== null) {
+            $additional = " `id` != (
+                SELECT 
+                    `id` 
+                FROM 
+                    `{$this->tableName}_lang` 
+                WHERE 
+                    `object_id` = '{$objectId}' 
+                AND `lang_id` = $languageId
+            ) 
+            AND ";
+        }
+        
+        $link = $this->getLinkFromString($string);
+        
+        $selector = new BaseSelect("{$this->tableName}_lang");
+        $selector->setWhere($additional."`{$this->linkField}` = '{$link}'");
+        $selector->setLimit(1);
+        $selector->setGlobalTemplate('fetch_assoc');
+        
+        $count = 0;
+        
+        while (count($selector->execute()) > 0) {
+            if ($count > 0) {
+                if ($count == 1) {
+                    $link .= '-1';
+                } else {
+                    $link = substr($link, 0, (-strlen($count) - 1));
+                    $link .= '-'.$count;
+                }
+            }
+            $selector->setWhere($additional."`{$this->linkField}` = '{$link}'");
+            $count++;
+        }
+        
+        return $link;
+    }
+    
+    /**
+     * Creates a link from the provided string. Replaces all special characters and spaces with dashes (-)
+     * 
+     * @param string $string - string by which to create the link
+     * @return string
+     */
+    private function getLinkFromString(string $string) 
+    {
+        global $Core;
+        
+        $string = trim(preg_replace('~\P{Xan}++~u', ' ', $string));
+        $string = preg_replace("~\s+~", '-', strtolower($string));
+        $string = substr($string, 0, 200);
+
+        return $Core->db->escape(substr($string, 0, 200));
+    }
 }
