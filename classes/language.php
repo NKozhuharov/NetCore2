@@ -393,4 +393,40 @@ class Language extends Base
         }
     	return $this->currentLanguage;
     }
+    
+    /**
+     * Returns the name of the language with the provided langugage id
+     * Throws Exception if the language does not exist
+     * @param int $langId - the id of the language
+     * @throws Exception
+     * @return string
+     */
+    public function getNameById(int $langId)
+    {
+        $info = $this->getById($langId);
+        
+        if (empty($info)) {
+            throw new Exception("This language does not exist");
+        }
+        
+        return $info['name'];
+    }
+    
+    /**
+     * Returns the native name of the language with the provided langugage id
+     * Throws Exception if the language does not exist
+     * @param int $langId - the id of the language
+     * @throws Exception
+     * @return string
+     */
+    public function getNativeNameById(int $langId)
+    {
+        $info = $this->getById($langId);
+        
+        if (empty($info)) {
+            throw new Exception("This language does not exist");
+        }
+        
+        return $info['native_name'];
+    }
 }
