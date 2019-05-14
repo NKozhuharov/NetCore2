@@ -278,7 +278,7 @@ class Core
         //if classes tree is provided, initialie the Core classesRequriementTree
         if (!empty($this->classesRequriementTree)) {
             foreach ($this->classesRequriementTree as $child => $parent) {
-                $this->classesRequriementTree[strtolower($child)] = strtolower($parent);
+                $this->classesRequriementTree[mb_strtolower($child)] = mb_strtolower($parent);
                 unset($this->classesRequriementTree[$child]);
             }
         }
@@ -430,12 +430,11 @@ class Core
             return $this->$varName;
         }
 
-        $varName = strtolower($varName);
+        $varName = mb_strtolower($varName);
 
         if ($varName === 'exceptionhandler') {
-
             if (empty($this->exceptionhandler)) {
-                return $this->requireModel(strtolower($this->exceptionHandlerName));
+                return $this->requireModel(mb_strtolower($this->exceptionHandlerName));
             } else {
                 return $this->exceptionhandler;
             }
