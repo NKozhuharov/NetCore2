@@ -176,9 +176,9 @@ class Base
     public function changeOrderByField(string $field)
     {
         $this->checkTableFields();
-            
+
         $fieldsToCheck = array_keys($this->tableFields->getFields());
-        
+
         if ($this->returnTimestamps === true) {
             foreach ($this->tableFields->getFields() as $field => $fieldDescription) {
                 if (in_array($fieldDescription['type'], array('timestamp', 'datetime'))) {
@@ -186,11 +186,11 @@ class Base
                 }
             }
         }
-        
+
         if (!in_array($field, $fieldsToCheck)) {
             throw new Exception("The field `$field` does not exist in table `{$this->tableName}`");
         }
-        
+
         $this->orderByField = $field;
     }
 
@@ -766,7 +766,7 @@ class Base
 
         return $returnSingleObject ? current($result) : $result;
     }
-    
+
     /**
      * Creates search query from the $_REQUEST
      * Works only for fields that exist in the table of the model
@@ -779,21 +779,21 @@ class Base
 
         if (isset($_REQUEST) && !empty($_REQUEST)) {
             $this->checkTableFields();
-            
+
             $query = array();
 
             foreach ($_REQUEST as $parameterName => $parameterValue) {
                 if (
-                    array_key_exists(strtolower($parameterName), $this->tableFields->getFields()) && 
+                    array_key_exists(strtolower($parameterName), $this->tableFields->getFields()) &&
                     (is_string($parameterValue) || is_numeric($parameterValue)) && trim($parameterValue) !== ''
                 ) {
                     $query[] = " `$parameterName` = '{$Core->db->escape($parameterValue)}' ";
                 }
             }
-            
+
             //put ints/timestamps before strings
             natcasesort($query);
-            
+
             $query = implode(' AND ', $query);
 
             return $query;
@@ -801,8 +801,6 @@ class Base
 
         return '';
     }
-
-    
 
     /**
      * Deletes all rows in the table of the model that match the provided where override
