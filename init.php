@@ -32,12 +32,15 @@ if (isset($_SERVER['REQUEST_METHOD'])) {
     if ($_SERVER['REQUEST_METHOD'] == 'DELETE') {
         parse_str(file_get_contents('php://input'), $_DELETE);
         $_REQUEST = array_merge($_REQUEST, $_DELETE);
-    } else if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
+    } elseif ($_SERVER['REQUEST_METHOD'] == 'PUT') {
         parse_str(file_get_contents('php://input'), $_PUT);
         $_REQUEST = array_merge($_REQUEST, $_PUT);
-    } else if ($_SERVER['REQUEST_METHOD'] == 'PATCH') {
+    } elseif ($_SERVER['REQUEST_METHOD'] == 'PATCH') {
         parse_str(file_get_contents('php://input'), $_PATCH);
         $_REQUEST = array_merge($_REQUEST, $_PATCH);
+    } elseif ($_SERVER['REQUEST_METHOD'] == 'POST') {
+        parse_str(file_get_contents('php://input'), $_POST);
+        $_REQUEST = array_merge($_REQUEST, $_POST);
     }
 }
 
