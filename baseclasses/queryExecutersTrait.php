@@ -81,6 +81,7 @@ trait QueryExecuters
         $message = $ex->getMessage();
         
         $this->parseDuplicateKeyMysqlError($message);
+        $this->parseForeignKeyMysqlError($message);
         
         throw new Exception($ex->getMessage());
     }
@@ -96,6 +97,7 @@ trait QueryExecuters
         $message = $ex->getMessage();
         
         $this->parseDuplicateKeyMysqlError($message);
+        $this->parseForeignKeyMysqlError($message);
         
         throw new Exception($ex->getMessage());
     }
@@ -121,7 +123,30 @@ trait QueryExecuters
                 $modelName = substr($modelName, 0, -1);
             }
             
-            throw new BaseException("The following %%{$modelName}%% alredy exists %%`{$duplicatedValue}`%%");
+            throw new BaseException(
+                "The following %%{$modelName}%% alredy exists %%`{$duplicatedValue}`%%",
+                null,
+                get_class($this)
+            );
+        }
+    }
+    
+    /**
+     * Parses a Foreign key MySQL Error
+     * It will throw BaseException with the parsed error
+     * If the error is not a Foreign Key Error, it will not do anything
+     * @param string $message - the message text of the error
+     * @throws BaseException
+     */
+    private function parseForeignKeyMysqlError(string $message)
+    {
+        if (strstr($message, 'Mysql Error: Cannot add or update a child row: a foreign key constraint fails')) {
+            $message = substr($message, strpos($message, 'FOREIGN KEY') + 12);
+            $message = substr($message, 0, strpos($message, 'REFERENCES') - 1);
+            $message = trim(str_replace(array(')','(','`'), '', $message));
+            $message = str_replace('_id', '', $message);
+            
+            throw new BaseException("This %%{$message}%% does not exist", null, get_class($this));
         }
     }
 }
