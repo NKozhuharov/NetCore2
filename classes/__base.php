@@ -937,7 +937,7 @@ class Base
             echo "update: ".$updater->get().PHP_EOL;
         }
 
-        return $updater->execute();
+        return $this->executeUpdateQuery($updater);
     }
 
     /**
@@ -963,7 +963,7 @@ class Base
             echo "updateById: ".$updater->get().PHP_EOL;
         }
 
-        return $updater->execute();
+        return $this->executeUpdateQuery($updater);
     }
 
     /**
@@ -989,7 +989,7 @@ class Base
             echo "updateByParentId: ".$updater->get().PHP_EOL;
         }
 
-        return $updater->execute();
+        return $this->executeUpdateQuery($updater);
     }
 
     /**
@@ -1008,7 +1008,7 @@ class Base
             echo "updateAll: ".$updater->get().PHP_EOL;
         }
 
-        return $updater->execute();
+        return $this->executeUpdateQuery($updater);
     }
 
     /**
