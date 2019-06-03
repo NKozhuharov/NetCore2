@@ -64,7 +64,11 @@ trait QueryExecuters
             $referencedTableName = str_replace("`", "", $referencedTableName);
             $referencedTableName = substr($referencedTableName, 0, strpos($referencedTableName, ','));
 
-            throw new BaseException("You cannot delete from %%{$modelName}%% if there are %%$referencedTableName%% attached to it");
+            throw new BaseException(
+                "You cannot delete from %%{$modelName}%% if there are %%$referencedTableName%% attached to it",
+                null,
+                get_class($this)
+            );
         }
 
         throw new Exception($ex->getMessage());
