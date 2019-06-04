@@ -109,7 +109,7 @@ trait InputValidations
                 $input[$requiredField] = trim($input[$requiredField]);
 
                 if (empty($input[$requiredField]) && $input[$requiredField] != '0') {
-                    $emptyFields[] = $requiredField;
+                    $emptyFields[$requiredField] = 'Must not be empty';
                 }
             }
         }
