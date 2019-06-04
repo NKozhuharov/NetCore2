@@ -69,7 +69,7 @@ trait InputValidations
     protected function checkInputForFieldId(array $input)
     {
         if (isset($input['id'])) {
-            throw new Exception("Field `id` is not allowed", null, get_class($this));
+            throw new BaseException("Field `id` is not allowed", null, get_class($this));
         }
     }
 
