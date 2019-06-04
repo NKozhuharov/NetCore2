@@ -31,7 +31,7 @@ class RESTAPI extends Base
     /**
      * Parses a POST query to the API
      * It has two options: 
-     * - insert query  (POST /users # add new user; returns the user)
+     * - insert query (POST /users # add new user; returns the user)
      * - updateById query (POST /users/:id # update user data; returns the updated user)
      * Throws Exception if the $_POST array is empty
      * @throws Exception
@@ -75,8 +75,11 @@ class RESTAPI extends Base
     }
     
     /**
-     * Parses an update by id query
-     * This could happen when making a POST (with id), PUT or PATCH queries to the API
+     * Parses an update by id query.
+     * This could happen when making a POST (with id), PUT or PATCH queries to the API;
+     * The result will be the updated object.
+     * If the query has the $_GET parameter 'lang', it will translate the object instead;
+     * In this case the result witll be the translated object
      */
     private function parseUpdateById()
     {
@@ -86,20 +89,44 @@ class RESTAPI extends Base
         if (isset($_POST['id'])) {
             unset($_POST['id']);
         }
-        $this->updateById($objectId, $Core->db->escape($_POST));
         
-        $this->result = $this->getById($objectId);
+        if (isset($_GET['lang']) && !empty($_GET['lang'])) {
+            $this->parseTranslateById();
+        } else {
+            $this->updateById($objectId, $Core->db->escape($_POST));
+            $this->result = $this->getById($objectId);
+        }
+        
         $this->total = 1;
         $Core->Rewrite->setCurrentPage(1);
         $Core->setItemsPerPage(1);
     }
     
     /**
-     * Parses a DELETE query to the API
+     * Parses an update by id query.
+     * This could happen when making a POST (with id), PUT or PATCH queries to the API, when the 'lang' parameter is set
+     * to valid and active language.
+     * Throws Exception if the language does not exist, or it is not active.
+     * @throws Excception
+     */
+    private function parseTranslateById()
+    {
+        $languageId = $Core->Language->getIdByName($_GET['lang']);
+            
+        if ($Core->Language->isActiveLanguage($languageId) === false) {
+            throw new Exception("Language `{$_GET['lang']}` is not allowed!");
+        }
+        
+        $this->translate($objectId, $languageId, $Core->db->escape($_POST));
+        $this->result = $this->getTranslation($this->getById($objectId), $languageId);
+    }
+    
+    /**
+     * Parses a DELETE query to the API.
      * It has two options: 
      * - deleteById query  (DELETE /users/:id # delete user)
      * - delete query (DELETE /users?id[] # delete multiple users)
-     * Throws Exception if the $_POST array is empty
+     * Throws Exception if the $_POST array is empty.
      * @throws Exception
      */
     private function parseDelete()
@@ -124,7 +151,7 @@ class RESTAPI extends Base
     }
     
     /**
-     * Parses a GET query to the API
+     * Parses a GET query to the API.
      * It has two options: 
      * - getAll query  (GET /users?q=search&page=1&limit=10&sort=-name,age; reurns user list and pagination)
      * - getById query (GET /users/:id # get user data; returns the user)
@@ -141,8 +168,8 @@ class RESTAPI extends Base
     }
     
     /**
-     * Parses a getById query to the API
-     * The result is single object
+     * Parses a getById query to the API.
+     * The result is single object.
      */
     private function parseGetById()
     {
@@ -159,8 +186,8 @@ class RESTAPI extends Base
     }
     
     /**
-     * Parses a getAll query to the API
-     * The result is an array of objects
+     * Parses a getAll query to the API.
+     * The result is an array of objects.
      * @todo - order and search
      */
     private function parseGetAll()
@@ -177,12 +204,12 @@ class RESTAPI extends Base
     }
     
     /**
-     * Sets the currentPage variable of the Rewrite class using the 'page' key in the $_REQUEST array
-     * If it's not set, uses the DEFAULT_PAGE constan of the class
-     * Sets the Core itemsPerPage variable, according to the 'items_per_page' or 'limit' keys in the $_REQUEST array
-     * If both keys are present, the 'limit' key is considered
-     * If none are present it uses the DEFAULT_ITEMS_PER_PAGE constan of the class
-     * Throws Exception if the Core items per page variable is bigger than MAX_ITEMS_PER_PAGE constant
+     * Sets the currentPage variable of the Rewrite class using the 'page' key in the $_REQUEST array.
+     * If it's not set, uses the DEFAULT_PAGE constant of the class.
+     * Sets the Core itemsPerPage variable, according to the 'items_per_page' or 'limit' keys in the $_REQUEST array.
+     * If both keys are present, the 'limit' key is considered.
+     * If none are present it uses the DEFAULT_ITEMS_PER_PAGE constant of the class.
+     * Throws Exception if the Core items per page variable is bigger than MAX_ITEMS_PER_PAGE constant.
      * @throws Exception
      */
     private function setDefaultPagination()
@@ -215,6 +242,15 @@ class RESTAPI extends Base
         $Core->setItemsPerPage($itemsPerPage);
     }
     
+    /**
+     * The output function of the RESTAPI class.
+     * Adds the header 'Content-Type: application/json';
+     * Outputs JSON formatted result, containing:
+     * 'info'  => an array of objects, requested from the API, limited by the Core variable itemsPerPage;
+     * 'total' => the number of total results for the request;
+     * 'page'  => the current page number of the pagination; uses the currentPage variable of the Rewrite class;
+     * 'limit' => the limit of the objects in the 'info' key; uses the Core variable itemsPerPage;
+     */
     private function returnResponse()
     {
         global $Core;
@@ -233,6 +269,15 @@ class RESTAPI extends Base
         );
     }
     
+    /**
+     * This function handles output, when an error occurs.
+     * Adds the header 'Content-Type: application/json';
+     * Outputs JSON formatted result, containing:
+     * error => the message of the error
+     * data  => additional data to explain the message
+     * @param string $message - the message of the error
+     * @param array $data - additional data to explain the message
+     */
     private function returnError(string $message, array $data)
     {
         header('Content-Type: application/json');
@@ -246,6 +291,12 @@ class RESTAPI extends Base
         );
     }
     
+    /**
+     * Creates an instance of the RESTAPI class.
+     * It will parse the request, considering which type it is (GET, POST, DELETE, PUT or PATCH).
+     * The result is JSON encoded array.
+     * Handles any exceptions, thrown during the parsing.
+     */
     public function __construct()
     {   
         global $Core;

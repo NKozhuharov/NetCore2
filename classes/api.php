@@ -125,10 +125,10 @@ class API
 
     /**
      * Sets the currentPage variable of the Rewrite class using the 'page' key in the $_REQUEST array
-     * If it's not set, uses the DEFAULT_PAGE constan of the class
+     * If it's not set, uses the DEFAULT_PAGE constant of the class
      * Sets the Core itemsPerPage variable, according to the 'items_per_page' or 'limit' keys in the $_REQUEST array
      * If both keys are present, the 'limit' key is considered
-     * If none are present it uses the DEFAULT_ITEMS_PER_PAGE constan of the class
+     * If none are present it uses the DEFAULT_ITEMS_PER_PAGE constant of the class
      * Throws Error if the Core items per page variable is bigger than MAX_ITEMS_PER_PAGE constant
      * @throws Error
      */
@@ -159,13 +159,13 @@ class API
     }
     
     /**
-     * The ouput function of the API class
+     * The output function of the API class
      * Adds the header 'Content-Type: application/json'
      * Outputs json formatted result, containing:
-     * 'info' => an array of objects, requested from the API, limited by the Core varaible itemsPerPage 
+     * 'info' => an array of objects, requested from the API, limited by the Core variable itemsPerPage 
      * 'total' => the number of total results for the request
      * 'page' => the current page number of the pagination; uses the currentPage variable of the Rewrite class
-     * 'limit' => the limit of the objects in the 'info' key; uses the Core varaible itemsPerPage 
+     * 'limit' => the limit of the objects in the 'info' key; uses the Core variable itemsPerPage 
      * 'remaining_queries' => the number of remainign queries for the user's IP address
      */
     private function returnResponse(int $remainingQueries)

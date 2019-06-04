@@ -311,6 +311,18 @@ class Language extends Base
     }
     
     /**
+     * Checks if the provided language is one of the active languages
+     * @param string $language - the short name of the language
+     * @return bool
+     */
+    public function isActiveLanguage(string $language)
+    {
+        $this->getActiveLanguages();
+        
+        return isset($this->activeLangMap[$language]);
+    }
+    
+    /**
      * Gets an array of all allowed languages shorts
      * @return array
      */
@@ -428,5 +440,51 @@ class Language extends Base
         }
         
         return $info['native_name'];
+    }
+    
+    /**
+     * Returns the short of the language with the provided langugage id
+     * Throws Exception if the language does not exist
+     * @param int $langId - the id of the language
+     * @throws Exception
+     * @return string
+     */
+    public function getShortById(int $langId)
+    {
+        $info = $this->getById($langId);
+        
+        if (empty($info)) {
+            throw new Exception("This language does not exist");
+        }
+        
+        return $info['short'];
+    }
+    
+    /**
+     * Returns the id of the language with the provided langugage name or short
+     * Throws Exception if the language does not exist
+     * @param string $language - the name or short of the language
+     * @throws Exception
+     * @return int
+     */
+    public function getIdByName(string $language)
+    {
+        global $Core;
+        
+        $language = $Core->db->real_escape_string($language);
+        
+        $this->translateResult = false;
+        
+        $info = $this->getAll(1, "`name` = '$language' OR `short` = '$language'");
+        
+        $this->translateResult = true;
+        
+        if (empty($info)) {
+            throw new Exception("This language does not exist");
+        }
+        
+        $info = current($info);
+        
+        return $info['id'];
     }
 }
