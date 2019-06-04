@@ -29,39 +29,19 @@ class RESTAPI extends Base
     }
     
     /**
-     * Gets the current model name, according to the request URL
-     * Throws Error if the model does not exist
-     * @throws Error
-     */
-    private function setModelNameFromRequest()
-    {
-        global $Core;
-        
-        $this->modelName = ucfirst($Core->Rewrite->controller);
-        
-        if ($this === false) {
-            $this->modelName .= 's';
-        }
-        
-        if ($this === false) {
-            throw new Error("This object does not exist!");
-        }
-    }
-    
-    /**
      * Parses a POST query to the API
      * It has two options: 
      * - insert query  (POST /users # add new user; returns the user)
      * - updateById query (POST /users/:id # update user data; returns the updated user)
-     * Throws Error if the $_POST array is empty
-     * @throws Error
+     * Throws Exception if the $_POST array is empty
+     * @throws Exception
      */
     private function parsePost()
     {
         global $Core;
         
         if (empty($_POST)) {
-            throw new Error("Cannot insert/update an empty object!");
+            throw new Exception("Cannot insert/update an empty object!");
         }
         
         if (isset($Core->Rewrite->urlBreakdown[1]) && !empty($Core->Rewrite->urlBreakdown[1])) {
@@ -79,8 +59,8 @@ class RESTAPI extends Base
      * Parses a PUT and PATCH queries to the API
      * - PUT /users/:id # update user data; returns the updated user
      * - PATCH /users/:id # update user data fields; returns the updated user
-     * Throws Error if no object id is in the request URL
-     * @throws Error
+     * Throws Exception if no object id is in the request URL
+     * @throws Exception
      */
     private function parsePutAndPatch()
     {
@@ -90,7 +70,7 @@ class RESTAPI extends Base
             
             $this->parseUpdateById();
         } else {
-            throw new Error("Provide an object id");
+            throw new Exception("Provide an object id");
         }
     }
     
@@ -119,8 +99,8 @@ class RESTAPI extends Base
      * It has two options: 
      * - deleteById query  (DELETE /users/:id # delete user)
      * - delete query (DELETE /users?id[] # delete multiple users)
-     * Throws Error if the $_POST array is empty
-     * @throws Error
+     * Throws Exception if the $_POST array is empty
+     * @throws Exception
      */
     private function parseDelete()
     {
@@ -130,13 +110,13 @@ class RESTAPI extends Base
             $this->deleteById($Core->Rewrite->currentPage);
         } else {
             if (!isset($_GET['id']) || empty($_GET['id'])) {
-                throw new Error("Provide a list with ids");
+                throw new Exception("Provide a list with ids");
             }
             
             $ids = $Core->db->real_escape_string(key($_GET['id']));
             
             if (empty($ids)) {
-                throw new Error("Provide a list with ids");
+                throw new Exception("Provide a list with ids");
             }
             
             $this->delete("`id` IN ($ids)");
@@ -202,8 +182,8 @@ class RESTAPI extends Base
      * Sets the Core itemsPerPage variable, according to the 'items_per_page' or 'limit' keys in the $_REQUEST array
      * If both keys are present, the 'limit' key is considered
      * If none are present it uses the DEFAULT_ITEMS_PER_PAGE constan of the class
-     * Throws Error if the Core items per page variable is bigger than MAX_ITEMS_PER_PAGE constant
-     * @throws Error
+     * Throws Exception if the Core items per page variable is bigger than MAX_ITEMS_PER_PAGE constant
+     * @throws Exception
      */
     private function setDefaultPagination()
     {
@@ -212,7 +192,7 @@ class RESTAPI extends Base
         $page = isset($_REQUEST['page']) && !empty($_REQUEST['page']) ? $_REQUEST['page'] : self::DEFAULT_PAGE;
         
         if (!is_numeric($page)) {
-            throw new Error("Invalid page!"); 
+            throw new Exception("Invalid page!"); 
         }
         
         if (isset($_REQUEST['items_per_page']) && !empty($_REQUEST['items_per_page'])) {
@@ -224,11 +204,11 @@ class RESTAPI extends Base
         }
         
         if (!is_numeric($itemsPerPage) || empty($itemsPerPage)) {
-            throw new Error("Invalid limits!"); 
+            throw new Exception("Invalid limits!"); 
         }
         
         if ($itemsPerPage > self::MAX_ITEMS_PER_PAGE) {
-            throw new Error("Maximum ".self::MAX_ITEMS_PER_PAGE." items per page!");
+            throw new Exception("Maximum ".self::MAX_ITEMS_PER_PAGE." items per page!");
         }
         
         $Core->Rewrite->setCurrentPage($page);
@@ -248,6 +228,19 @@ class RESTAPI extends Base
                     'total' => intval($this->total),
                     'page'  => intval($Core->Rewrite->currentPage),
                     'limit' => intval($Core->itemsPerPage),
+                )
+            )
+        );
+    }
+    
+    private function returnError(string $message, array $data)
+    {
+        header('Content-Type: application/json');
+        exit(
+            json_encode(
+                array(
+                    'error'  => $message,
+                    'data'   => json_encode($data),
                 )
             )
         );
@@ -275,10 +268,17 @@ class RESTAPI extends Base
             }
             
             $this->returnResponse();
+        } catch (ForbiddenException $ex) {
+            $this->returnError($ex->getMessage(), $ex->getData());
         } catch (BaseException $ex) {
-            $Core->dump($ex);
+            header("Bad Request", true, 400);
+            $this->returnError($ex->getMessage(), $ex->getData());
         } catch (Error $ex) {
-            $Core->dump($ex);
+            header("Bad Request", true, 400);
+            $this->returnError($ex->getMessage(), array());
+        } catch (Exception $ex) {
+            header("Bad Request", true, 400);
+            $this->returnError($ex->getMessage(), array());
         }
     }
 }
