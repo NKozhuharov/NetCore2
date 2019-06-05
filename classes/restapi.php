@@ -152,15 +152,16 @@ class RESTAPI extends Base
     
     /**
      * Parses a GET query to the API.
-     * It has two options: 
+     * It has three options: 
      * - getAll query  (GET /users?q=search&page=1&limit=10&sort=-name,age; reurns user list and pagination)
+     * - getAll query  (GET /users reurns the first page of the user list and pagination)
      * - getById query (GET /users/:id # get user data; returns the user)
      */
     private function parseGet()
     {
         global $Core;
         
-        if ($Core->Rewrite->urlGetPart === '') {
+        if (count($Core->Rewrite->urlBreakdown) > 1) {
             $this->parseGetById();
         } else {
             $this->parseGetAll();
@@ -188,19 +189,111 @@ class RESTAPI extends Base
     /**
      * Parses a getAll query to the API.
      * The result is an array of objects.
-     * @todo - order and search
+     * Consideres search and sort parameters of the query
      */
     private function parseGetAll()
     {
         global $Core;
         
         $this->setDefaultPagination();
-        $this->result = $this->getAll(null);
+        
+        $additional = $this->parseSearchBy();
+        
+        $this->result = $this->getAll(null, $additional, $this->parseOrderBy());
         if (!empty($this->result)) {
-            $this->total = $this->getCount(null);
+            $this->total = $this->getCount($additional);
         } else {
             $this->total = 0;
         }
+    }
+    
+    /**
+     * Looks for a 'sort' GET parameter in the query.
+     * If it's available, prepares an orderBy override for the getAll function.
+     * If it's not available, it will return null.
+     * Checks if all the provided fields in the 'sort' parameter exist in the model's table; if a field does not exist,
+     * throws an Exception.
+     * Fields should be comma separated, the '-' before the field name stands for DESC sort type, without 'i' is ASC.
+     * 
+     * @throws Exception
+     * @return string|null
+     */
+    private function parseOrderBy()
+    {
+        if (isset($_GET['sort']) && !empty($_GET['sort'])) {
+            $this->checkTableFields();
+            $sort = explode(',', $_GET['sort']);
+            foreach ($sort as $key => $field) {
+                try {
+                    $this->tableFields->getFieldType(str_replace('-', '', $field));
+                } catch (Exception $ex) {
+                    throw new Exception("Cannot sort by `{$field}`");
+                }
+                
+                if (strstr($field, '-')) {
+                    $field = "`".str_replace('-', '', $field)."` DESC";
+                } else {
+                    $field = "`{$field}` ASC";
+                }
+                $sort[$key] = $field;
+            }
+            return implode(', ', $sort);
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Looks for additional GET parameters in the query. Additional parameter is considered any parameter, except the
+     * reserved ones - 'page', 'items_per_page', 'limit' and 'sort'.
+     * If such parameter is found, it is considered a parameter to filter by, in the manner of <fieldName>=<value>.
+     * All search parameters are forming the 'additional' parameter for the getAll function.
+     * Checks if all the provided fields exist in the model's table; if a field does not exist, throws an Exception.
+     * Checks if all the provided values match the fields types (for example, it's impossible to search for an 'a' in 
+     * an int); If there is a mismatch - BaseException.
+     * Numeric fields are searched for exact match, while text fields are searched with a double LIKE.
+     * Additional fields are added with AND to the query.
+     * 
+     * @throws BaseException
+     * @throws Exception
+     * @return string|null
+     */
+    private function parseSearchBy()
+    {
+        global $Core;
+        
+        $get = $_GET;
+        unset($get['page'], $get['items_per_page'], $get['limit'], $get['sort']);
+        
+        if (!empty($get)) {
+            $this->checkTableFields();
+            
+            $this->validateInputValues($get);
+            
+            $additional = array();
+            
+            foreach ($get as $fieldName => $value) {
+                try {
+                    $fieldType = $this->tableFields->getFieldType(str_replace('-', '', $fieldName));
+                } catch (Exception $ex) {
+                    throw new Exception("Cannot search by `{$fieldName}`");
+                }
+                
+                $value = $Core->db->real_escape_string($value);
+                
+                if ((strstr($fieldType, 'int') || $fieldType === 'double' || $fieldType === 'float')) {
+                    $additional[] = "`$fieldName` = '{$value}'";
+                } else {
+                    $additional[] = "`$fieldName` LIKE '%{$value}%'";
+                }
+                
+                unset($value, $fieldType);
+            }
+            
+            return implode(" AND ", $additional);
+        }
+        
+        return null;
     }
     
     /**
