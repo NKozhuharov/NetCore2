@@ -5,6 +5,10 @@ define ("SEARCH_TYPE_FULL", 2);
 
 trait SearchTrait
 {
+    /**
+     * The name of the field to search at
+     * @var string
+     */
     protected $searchByField;
     
     /**
