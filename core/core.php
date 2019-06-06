@@ -58,6 +58,13 @@ class Core
     private $timezone = 'Europe/Sofia';
 
     /**
+     * @var string
+     * The logo of the project
+     * Mostly used in the admin panel
+     */
+    private $logo = '/img/logo.svg';
+
+    /**
      * @var int
      * Query cache time; set to -1 for recache
      */
