@@ -10,7 +10,7 @@ header("Cache-Control: no-cache, no-store, must-revalidate"); // HTTP 1.1.
 header("Pragma: no-cache"); // HTTP 1.0.
 header("Expires: 0 ");
 
-define('GLOBAL_PATH','/var/www/');
+define('GLOBAL_PATH', '/var/www/');
 
 define('PROJECT_PATH', 'project-path/');
 define('SITE_PATH', 'site-path');
