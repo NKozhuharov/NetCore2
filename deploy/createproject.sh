@@ -45,6 +45,7 @@ cp "$FPREFIX/platform/deploy/examplesettings.php" "$FPREFIX/${1}/settings/${2}.p
 
 touch "$FPREFIX/${1}/${2}/includes/header.php"
 touch "$FPREFIX/${1}/${2}/includes/footer.php"
+touch "$FPREFIX/${1}/${2}/controllers/index.php"
 
 printf "Created site ${BLUE}${2}${NC}\n"
 printf "${RED}Please have a look at the settings folder to complete the setup of the site!${NC}\n"
