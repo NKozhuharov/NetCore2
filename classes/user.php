@@ -479,7 +479,7 @@ class User extends Base
 
         $this->resetSession();
 
-        if ($redirectUrl !== false && (!isset($_SERVER['REQUEST_URI']) || $_SERVER['REQUEST_URI'] != $redirectUrl)) {
+        if ($redirectUrl !== '' && (!isset($_SERVER['REQUEST_URI']) || $_SERVER['REQUEST_URI'] != $redirectUrl)) {
             $Core->redirect($redirectUrl);
         }
     }
