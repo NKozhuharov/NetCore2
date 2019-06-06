@@ -11,4 +11,4 @@
 
       try_files $uri $uri/ /index.php?$args;
   }
-
+3. After you clone the project, rename folder NetCore2 to platform
