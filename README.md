@@ -11,4 +11,6 @@
 
       try_files $uri $uri/ /index.php?$args;
   }
-3. After you clone the project, rename folder NetCore2 to platform
+3. You should clone the project in /var/www/ 
+4. After you clone the project, rename folder NetCore2 to platform
+5. After you rename the folder go to /var/www/platfomr/deploy and execute createproject.sh <project-name> <site-name>
