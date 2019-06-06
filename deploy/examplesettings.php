@@ -20,31 +20,32 @@ $info = array(
          array('host' => 'localhost','port' => 11211)
     ),
     'classesRequriementTree' => array(
+        
     ),
-    'mailConfig' => array(
+    'mailConfig'             => array(
         'Username'   => '',
         'Password'   => '',
         'Host'       => '',
         'SMTPSecure' => '',
         'Port'       => '',
     ),
-    'debugIps'      => array(
-    
+    'debugIps'             => array(
+        
     ),
-    'siteName'      => 'Admin',
-    'siteDomain'    => 'https://admin.datamind.bg',
-    'itemsPerPage'  => 10,
-    'userModel'     => 'adminuser',
-    'menuModel'     => 'adminmenu',
+    'siteName'             => 'Admin',
+    'siteDomain'           => 'https://admin.datamind.bg',
+    'itemsPerPage'         => 10,
+    'userModel'            => 'adminuser',
+    'menuModel'            => 'adminmenu',
     'exceptionHandlerName' => 'adminexception',
-    'filesDir'      => 'files/',
-    'imagesStorage' => 'images/org/',
-    'imagesModel' => 'adminimages',
-    'defaultLanguage' => 'bg',
-    'defaultLanguageId' => 24,
-    'filesModel' => 'AdminUserFiles',
-    'doNotStrip' => array(
+    'filesModel'           => 'AdminUserFiles',
+    'filesDir'             => 'files/',
+    'imagesStorage'        => 'images/org/',
+    'imagesModel'          => 'adminimages',
+    'defaultLanguage'      => 'bg',
+    'defaultLanguageId'    => 24,
+    'allowFirstPage'       => true,
+    'doNotStrip'           => array(
+        
     ),
-    'allowFirstPage' => true,
-    
 );

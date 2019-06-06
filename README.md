@@ -14,3 +14,4 @@
 3. You should clone the project in /var/www/ 
 4. After you clone the project, rename folder NetCore2 to platform
 5. After you rename the folder go to /var/www/platfomr/deploy and execute createproject.sh <project-name> <site-name>
+6. Structure of the required database tables can be found in database.sql
