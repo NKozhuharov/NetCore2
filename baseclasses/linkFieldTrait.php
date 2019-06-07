@@ -54,6 +54,7 @@ trait LinkField
      * @param int $languageId - get the link in this language
      * @return string
      * @throws Exception
+     * @todo check commented rows
      */
     private function getLinkByIdIfLinkFieldIsPresentInObject(array $object, int $lanugageId)
     {
@@ -67,9 +68,9 @@ trait LinkField
 
             $translatedObject = $this->getTranslation($object, $lanugageId);
 
-            if ($translatedObject[$this->linkField] === $object[$this->linkField]) {
-                return $Core->Links->getLink(strtolower(get_class($this)), false, $lanugageId);
-            }
+            #if ($translatedObject[$this->linkField] === $object[$this->linkField]) {
+            #    return $Core->Links->getLink(strtolower(get_class($this)), false, $lanugageId);
+            #}
 
             $object = $translatedObject;
 
@@ -167,7 +168,7 @@ trait LinkField
             throw new Exception ($ex->getMessage());
         }
     }
-    
+
     /**
      * Creates unique link by given string compared to $this->linkField
      * @param string $string - string by which to create the link
@@ -201,7 +202,7 @@ trait LinkField
 
         return $link;
     }
-    
+
     /**
      * Creates unique link by given string compared to $this->linkField in the translation table
      * Throws Exception if either languageId or objectId is provided and the other is not
@@ -216,43 +217,43 @@ trait LinkField
         if (($languageId === null && $objectId !== null) || ($languageId !== null && $objectId === null)) {
             throw new Exception("Provide both language id and object id");
         }
-        
+
         try {
             $this->tableFields = new BaseTableFields("{$this->tableName}_lang");
         } catch (Exception $ex) {
             throw new Exception ("Table {$this->tableName}_lang does not exist in model `".get_class($this)."`");
         }
-        
+
         foreach ($this->translationFields as $translationField) {
             if (!array_key_exists($this->linkField, $this->tableFields->getFields())) {
                 throw new Exception("The translation field `{$this->linkField}` does not exists in table `{$this->tableName}_lang`");
             }
         }
-        
+
         $additional = '';
-        
+
         if ($objectId !== null) {
             $additional = " `id` != (
-                SELECT 
-                    `id` 
-                FROM 
-                    `{$this->tableName}_lang` 
-                WHERE 
-                    `object_id` = '{$objectId}' 
+                SELECT
+                    `id`
+                FROM
+                    `{$this->tableName}_lang`
+                WHERE
+                    `object_id` = '{$objectId}'
                 AND `lang_id` = $languageId
-            ) 
+            )
             AND ";
         }
-        
+
         $link = $this->getLinkFromString($string);
-        
+
         $selector = new BaseSelect("{$this->tableName}_lang");
         $selector->setWhere($additional."`{$this->linkField}` = '{$link}'");
         $selector->setLimit(1);
         $selector->setGlobalTemplate('fetch_assoc');
-        
+
         $count = 0;
-        
+
         while (count($selector->execute()) > 0) {
             if ($count > 0) {
                 if ($count == 1) {
@@ -265,20 +266,20 @@ trait LinkField
             $selector->setWhere($additional."`{$this->linkField}` = '{$link}'");
             $count++;
         }
-        
+
         return $link;
     }
-    
+
     /**
      * Creates a link from the provided string. Replaces all special characters and spaces with dashes (-)
-     * 
+     *
      * @param string $string - string by which to create the link
      * @return string
      */
-    private function getLinkFromString(string $string) 
+    private function getLinkFromString(string $string)
     {
         global $Core;
-        
+
         $string = trim(preg_replace('~\P{Xan}++~u', ' ', $string));
         $string = preg_replace("~\s+~", '-', strtolower($string));
         $string = substr($string, 0, 200);
