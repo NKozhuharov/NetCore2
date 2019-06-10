@@ -664,12 +664,18 @@ class User extends Base
      * Allows the registration of users with username and password
      * Allows to set a user level id and user type id (if requried by the project)
      * Returns the registered user id
+     * Throws Exception if input is empty
      * @param array $input - the user credentials; it must have the fields 'username', 'password', 'repeat_password'
      * @return int
+     * @throws Exception
      */
     public function register(array $input)
     {
         global $Core;
+        
+        if (empty($input)) {
+            throw new Exception("Provide user data");
+        }
 
         $input['username']        = isset($input['username'])        ? trim($input['username']) : '';
         $input['password']        = isset($input['password'])        ? trim($input['password']) : '';
