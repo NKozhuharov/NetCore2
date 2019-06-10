@@ -19,7 +19,7 @@ class RestApiException extends ExceptionHandler
             $message = $this->translateMessage($Core->generalErrorText);
         }
 
-        $this->returnError($message, array());
+        $Core->RestAPIResult->showError($message, array());
     }
     
     /**
@@ -28,6 +28,8 @@ class RestApiException extends ExceptionHandler
      */
     public function BaseException(BaseException $exception)
     {
+        global $Core;
+        
         header('HTTP/1.1 400 Bad Request', true, 400);
         
         $data = $exception->getData();
@@ -37,7 +39,7 @@ class RestApiException extends ExceptionHandler
             }
         }
         
-        $this->returnError($this->getExceptionMessage($exception), $data);
+        $Core->RestAPIResult->showError($this->getExceptionMessage($exception), $data);
     }
     
     /**
@@ -46,29 +48,9 @@ class RestApiException extends ExceptionHandler
      */
     public function Exception(Exception $exception)
     {
+        global $Core;
+        
         header("Bad Request", true, 400);
-        $this->returnError($this->getExceptionMessage($exception), array());
-    }
-    
-    /**
-     * This function handles output, when an error occurs.
-     * Adds the header 'Content-Type: application/json';
-     * Outputs JSON formatted result, containing:
-     * error => the message of the error
-     * data  => additional data to explain the message
-     * @param string $message - the message of the error
-     * @param array $data - additional data to explain the message
-     */
-    private function returnError(string $message, array $data)
-    {
-        header('Content-Type: application/json');
-        exit(
-            json_encode(
-                array(
-                    'error'  => $message,
-                    'data'   => json_encode($data),
-                )
-            )
-        );
+        $Core->RestAPIResult->showError($this->getExceptionMessage($exception), array());
     }
 }
