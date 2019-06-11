@@ -3,13 +3,15 @@
  * This is a platform module
  * This module should be extended with something like 'SiteNews extends News', which allows configuration
  * Create the tables from the 'news.sql'
- * Drop any unnecessary columns from the news table (like `categories`), if they are not used
+ * Drop any unnecessary columns from the `news` table (like `category_id`), if they are not used
+ * Drop any unnecessary foreign keys fro the `news` table
  * Drop `news_lang` or `news_tags` tables if they are not used
+ * Change the name of the created tables (if necessary), along with the tableName variable in the child class
  */
 class News extends Base
 {
     /**
-     * Shows if tags are allowed for the news
+     * Shows if tags are allowed
      * Requires the `tags` table from the Tags module
      * @var bool
      */
@@ -22,13 +24,13 @@ class News extends Base
     protected $tagsTableName = 'news_tags';
     
     /**
-     * Shows if categories are allowed for the news
+     * Shows if categories are allowed
      * @var bool
      */
     protected $allowCategories = true;
     
     /**
-     * Shows if translations are allowed for the news
+     * Shows if translations are allowed
      * Requires the `news_lang` table
      * @var bool
      */
@@ -39,9 +41,9 @@ class News extends Base
      */
     public function __construct()
     {
-        $this->tableName = 'news';
+        $this->tableName    = 'news';
         $this->orderByField = 'added';
-        $this->orderType = self::ORDER_DESC;
+        $this->orderType    = self::ORDER_DESC;
         
         if ($this->allowMultilanguage) {
             $this->translationFields = array('title', 'description', 'short_description', 'link');
