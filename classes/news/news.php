@@ -1,6 +1,5 @@
 <?php
 /**
- * Creates a new instance of the News class
  * This is a platform module
  * This module should be extended with something like 'SiteNews extends News', which allows configuration
  * Create the tables from the 'news.sql'
@@ -154,7 +153,7 @@ class News extends Base
     //SEARCH
     
     /**
-     * Gets the language part of a search query where clase
+     * Gets the language part of a search query where clause
      * Throws Exception if languages are not allowed, or the provided language id is empty
      * 
      * @param int $languageId - the id of a language to search by
@@ -181,7 +180,7 @@ class News extends Base
     }
     
     /**
-     * Gets the category part of a search query where clase
+     * Gets the category part of a search query where clause
      * Throws Exception if categories are not allowed, or the provided category id is empty
      * 
      * @param int $categoryId - the id of a category to search by
@@ -208,7 +207,7 @@ class News extends Base
     }
     
     /**
-     * Gets the tag part of a search query where clase
+     * Gets the tag part of a search query where clause
      * Throws Exception if tags are not allowed, or the provided tag id is empty
      * 
      * @param int $tagId - the id of a tag to search by
@@ -241,7 +240,7 @@ class News extends Base
     }
     
     /**
-     * Gets the phrase part of a search query where clase
+     * Gets the phrase part of a search query where clause
      * 
      * @param string $phrase - a phrase to search by
      * @return string
@@ -267,7 +266,7 @@ class News extends Base
     }
     
     /**
-     * Gets the search query where clase, when searching in the news, 
+     * Gets the search query where clause, when searching in the news, 
      * using phrase, language id, category id and tag id
      * 
      * @param string $phrase - a phrase to search by
