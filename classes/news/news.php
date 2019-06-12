@@ -319,8 +319,6 @@ class News extends Base
         
         $selector->setWhere($this->getSearchQueryWhere($phrase, $languageId, $categoryId, $tagId));
         
-        $selector->dumpString(false);
-        
         return $selector->execute();
     }
     
@@ -340,7 +338,7 @@ class News extends Base
         
         if (!empty($newsIds)) {
             $newsIds = implode(',', array_column($newsIds, 'id'));
-            return $this->getAll(false, " `id` IN ($newsIds)");
+            return $this->getAll(null, " `id` IN ($newsIds)");
         }
         
         return array();
