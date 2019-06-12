@@ -27,7 +27,13 @@ class User extends Base
      * User session time in seconds; after that the user will be logged out
      */
     protected $sessionTime = 3600;
-
+    
+    /**
+     * @var string
+     * The domain for the session cookie; by default it's the current domain
+     */
+    protected $sessionCookieDomain = '';
+    
     //database structure properties
 
     /**
@@ -184,7 +190,7 @@ class User extends Base
             $uniqid = uniqid();
         }
 
-        setcookie($this->cookieName, $uniqid, time() + $this->sessionTime, "/");
+        setcookie($this->cookieName, $uniqid, time() + $this->sessionTime, "/", $this->sessionCookieDomain);
 
         $this->sessionKey = $this->tableName.$_SERVER['REMOTE_ADDR'].$_SERVER['HTTP_USER_AGENT'].$uniqid;
     }
