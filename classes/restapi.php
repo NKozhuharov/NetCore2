@@ -19,6 +19,14 @@ class RESTAPI extends Base
      */
     private $total;
     
+    protected $allowedRequestMethods = array(
+        'GET',
+        'POST',
+        'DELETE',
+        'PUT',
+        'PATCH'
+    );
+    
     /**
      * Shows a 404 header
      */
@@ -351,35 +359,6 @@ class RESTAPI extends Base
         $Core->setItemsPerPage($itemsPerPage);
     }
     
-    private function decodeContentTypeJsonRequest()
-    {
-        if ($_SERVER['CONTENT_TYPE'] === 'application/json') {
-            if (!empty($_REQUEST)) {
-                $_REQUEST = json_decode($_REQUEST, true);
-            }
-            
-            if (!empty($_POST)) {
-                $_POST = json_decode($_POST, true);
-            }
-            
-            if (!empty($_GET)) {
-                $_GET = json_decode($_GET, true);
-            }
-            
-            if (isset($_DELETE) && !empty($_DELETE)) {
-                $_DELETE = json_decode($_DELETE, true);
-            }
-            
-            if (isset($_PUT) && !empty($_PUT)) {
-                $_PUT = json_decode($_PUT, true);
-            }
-            
-            if (isset($_PATCH) && !empty($_PATCH)) {
-                $_PATCH = json_decode($_PATCH, true);
-            }
-        }
-    }
-    
     /**
      * Creates an instance of the RESTAPI class.
      * It will parse the request, considering which type it is (GET, POST, DELETE, PUT or PATCH).
@@ -390,10 +369,14 @@ class RESTAPI extends Base
     {   
         global $Core;
         
-        #$this->decodeContentTypeJsonRequest();
-        
         try {
-            switch ($this->getRequestMethod()) {
+            $method = $this->getRequestMethod();
+            
+            if (!empty($this->allowedRequestMethods) && !in_array($method, $this->allowedRequestMethods)) {
+                throw new ForbiddenException("Forbidden");
+            }
+            
+            switch ($method) {
                 case 'POST': 
                     $this->parsePost();
                     break;
