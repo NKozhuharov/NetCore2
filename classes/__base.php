@@ -449,6 +449,7 @@ class Base
 
         if ($this->dumpQueries === true) {
             echo "getAll: ".$selector->get().PHP_EOL;
+            echo '<br />';
         }
 
         return $this->parseSelectQueryResult($selector->execute());
@@ -521,6 +522,7 @@ class Base
 
         if ($this->dumpQueries === true) {
             echo "getByParentId: ".$selector->get().PHP_EOL;
+            echo '<br />';
         }
 
         return $this->parseSelectQueryResult($selector->execute());
@@ -587,6 +589,7 @@ class Base
 
         if ($this->dumpQueries === true) {
             echo "getById: ".$selector->get().PHP_EOL;
+            echo '<br />';
         }
 
         $Core->db->query($selector->build(), $this->queryCacheTime, 'simpleArray', $result);
@@ -651,6 +654,7 @@ class Base
 
         if ($this->dumpQueries === true) {
             echo "getCount: ".$selector->get().PHP_EOL;
+            echo '<br />';
         }
 
         return $selector->execute()['ct'];
@@ -685,6 +689,7 @@ class Base
 
         if ($this->dumpQueries === true) {
             echo "getCountByParentId: ".$selector->get().PHP_EOL;
+            echo '<br />';
         }
 
         return $this->getCount("`{$this->parentField}` = {$parentId}{$additional}");
@@ -744,6 +749,7 @@ class Base
 
         if ($this->dumpQueries === true) {
             echo "getTranslation: ".$selector->get().PHP_EOL;
+            echo '<br />';
         }
 
         $Core->db->query($selector->build(), $this->queryCacheTime, 'fillArray', $translations, 'object_id');
@@ -819,6 +825,7 @@ class Base
 
         if ($this->dumpQueries === true) {
             echo "delete: ".$deleter->get().PHP_EOL;
+            echo '<br />';
         }
 
         return $this->executeDeleteQuery($deleter);
@@ -835,6 +842,7 @@ class Base
 
         if ($this->dumpQueries === true) {
             echo "deleteAll: ".$deleter->get().PHP_EOL;
+            echo '<br />';
         }
 
         return $this->executeDeleteQuery($deleter);
@@ -855,6 +863,7 @@ class Base
 
         if ($this->dumpQueries === true) {
             echo "deleteById: ".$deleter->get().PHP_EOL;
+            echo '<br />';
         }
 
         return $this->executeDeleteQuery($deleter);
@@ -877,6 +886,7 @@ class Base
 
         if ($this->dumpQueries === true) {
             echo "deleteByParentId: ".$deleter->get().PHP_EOL;
+            echo '<br />';
         }
 
         return $this->executeDeleteQuery($deleter);
@@ -907,6 +917,7 @@ class Base
 
         if ($this->dumpQueries === true) {
             echo "insert: ".$inserter->get().PHP_EOL;
+            echo '<br />';
         }
 
         return $this->executeInsertQuery($inserter);
@@ -935,6 +946,7 @@ class Base
 
         if ($this->dumpQueries === true) {
             echo "update: ".$updater->get().PHP_EOL;
+            echo '<br />';
         }
 
         return $this->executeUpdateQuery($updater);
@@ -961,6 +973,7 @@ class Base
 
         if ($this->dumpQueries === true) {
             echo "updateById: ".$updater->get().PHP_EOL;
+            echo '<br />';
         }
 
         return $this->executeUpdateQuery($updater);
@@ -987,6 +1000,7 @@ class Base
 
         if ($this->dumpQueries === true) {
             echo "updateByParentId: ".$updater->get().PHP_EOL;
+            echo '<br />';
         }
 
         return $this->executeUpdateQuery($updater);
@@ -1006,6 +1020,7 @@ class Base
 
         if ($this->dumpQueries === true) {
             echo "updateAll: ".$updater->get().PHP_EOL;
+            echo '<br />';
         }
 
         return $this->executeUpdateQuery($updater);
@@ -1085,6 +1100,7 @@ class Base
 
         if ($this->dumpQueries === true) {
             echo "translate: ".$translator->get().PHP_EOL;
+            echo '<br />';
         }
 
         return $translator->execute();

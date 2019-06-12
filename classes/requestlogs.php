@@ -8,9 +8,9 @@ class RequestLogs extends Base
     {
         global $Core;
 
-        $this->tableName = 'request_logs';
+        $this->tableName   = 'request_logs';
         $this->parentField = 'user_id';
-        $this->orderType = self::ORDER_DESC;
+        $this->orderByType = self::ORDER_DESC;
 
         if ($Core->logRequests === true) {
             $this->logRequest();

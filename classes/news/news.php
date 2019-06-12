@@ -43,7 +43,7 @@ class News extends Base
     {
         $this->tableName    = 'news';
         $this->orderByField = 'added';
-        $this->orderType    = self::ORDER_DESC;
+        $this->orderByType  = self::ORDER_DESC;
         
         if ($this->allowMultilanguage) {
             $this->translationFields = array('title', 'description', 'short_description', 'link');
