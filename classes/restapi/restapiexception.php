@@ -50,7 +50,7 @@ class RestApiException extends ExceptionHandler
     {
         global $Core;
         
-        header("Bad Request", true, 400);
+        header("HTTP/1.1 400 Bad Request", true, 400);
         $Core->RestAPIResult->showError($this->getExceptionMessage($exception), array());
     }
 }
