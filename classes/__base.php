@@ -728,7 +728,7 @@ class Base
         if ($languageId === null || !$this->isTranslationAvailable() || empty($result)) {
             return $result;
         }
-        
+
         $this->checkTableFields();
 
         foreach ($this->translationFields as $translationField) {
