@@ -29,34 +29,50 @@ $_PUT = array();
 $_PATCH = array();
 
 if (isset($_SERVER['REQUEST_METHOD'])) {
-    if ($_SERVER['REQUEST_METHOD'] == 'DELETE') {
-        if ($_SERVER['CONTENT_TYPE'] === 'application/json') {
-            $_DELETE = json_decode(file_get_contents('php://input'), true);
-        } else {
-            parse_str(file_get_contents('php://input'), $_DELETE);
+    $contents = file_get_contents('php://input');
+    
+    if (!empty($contents)) {
+        if ($_SERVER['REQUEST_METHOD'] == 'DELETE') {
+            if ($_SERVER['CONTENT_TYPE'] === 'application/json') {
+                $_DELETE = json_decode($contents, true);
+                if (empty($_DELETE)) {
+                    exit("Invalid JSON: ".$contents);
+                }
+            } else {
+                parse_str($contents, $_DELETE);
+            }
+            $_REQUEST = array_merge($_REQUEST, $_DELETE);
+        } elseif ($_SERVER['REQUEST_METHOD'] == 'PUT') {
+            if ($_SERVER['CONTENT_TYPE'] === 'application/json') {
+                $_PUT = json_decode($contents, true);
+                if (empty($_PUT)) {
+                    exit("Invalid JSON: ".$contents);
+                }
+            } else {
+                parse_str($contents, $_PUT);
+            }
+            $_REQUEST = array_merge($_REQUEST, $_PUT);
+        } elseif ($_SERVER['REQUEST_METHOD'] == 'PATCH') {
+            if ($_SERVER['CONTENT_TYPE'] === 'application/json') {
+                $_PATCH = json_decode($contents, true);
+                if (empty($_PATCH)) {
+                    exit("Invalid JSON: ".$contents);
+                }
+            } else {
+                parse_str($contents, $_PATCH);
+            }
+            $_REQUEST = array_merge($_REQUEST, $_PATCH);
+        } elseif ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            if ($_SERVER['CONTENT_TYPE'] === 'application/json') {
+                $_POST = json_decode($contents, true);
+                if (empty($_POST)) {
+                    exit("Invalid JSON: ".$contents);
+                }
+            } else {
+                parse_str($contents, $_POST);    
+            }
+            $_REQUEST = array_merge($_REQUEST, $_POST);
         }
-        $_REQUEST = array_merge($_REQUEST, $_DELETE);
-    } elseif ($_SERVER['REQUEST_METHOD'] == 'PUT') {
-        if ($_SERVER['CONTENT_TYPE'] === 'application/json') {
-            $_PUT = json_decode(file_get_contents('php://input'), true);
-        } else {
-            parse_str(file_get_contents('php://input'), $_PUT);
-        }
-        $_REQUEST = array_merge($_REQUEST, $_PUT);
-    } elseif ($_SERVER['REQUEST_METHOD'] == 'PATCH') {
-        if ($_SERVER['CONTENT_TYPE'] === 'application/json') {
-            $_PATCH = json_decode(file_get_contents('php://input'), true);
-        } else {
-            parse_str(file_get_contents('php://input'), $_PATCH);
-        }
-        $_REQUEST = array_merge($_REQUEST, $_PATCH);
-    } elseif ($_SERVER['REQUEST_METHOD'] == 'POST') {
-        if ($_SERVER['CONTENT_TYPE'] === 'application/json') {
-            $_POST = json_decode(file_get_contents('php://input'), true);
-        } else {
-            parse_str(file_get_contents('php://input'), $_POST);    
-        }
-        $_REQUEST = array_merge($_REQUEST, $_POST);
     }
 }
 
