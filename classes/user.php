@@ -347,7 +347,18 @@ class User extends Base
             }
         }
 
-        $Core->doOrDie();
+        $this->userAccessDenied();
+    }
+    
+    /**
+     * Allows to customize what happens when a user does not have an access to some page
+     * By default it shows the page not found
+     */
+    protected function userAccessDenied()
+    {
+        global $Core;
+        
+        $Core->doOrDie();        
     }
 
     /**
