@@ -23,14 +23,12 @@ class RestApiException extends ExceptionHandler
     }
     
     /**
-     * Handle a BaseException throwable
+     * Transforms a BaseException into human readable error
      * @param BaseException $exception
      */
-    public function BaseException(BaseException $exception)
+    protected function outputBaseException(BaseException $exception)
     {
         global $Core;
-        
-        header('HTTP/1.1 400 Bad Request', true, 400);
         
         $data = $exception->getData();
         if (!empty($data)) {
@@ -40,7 +38,7 @@ class RestApiException extends ExceptionHandler
         }
         
         $Core->RestAPIResult->showError($this->getExceptionMessage($exception), $data);
-    }
+    }       
     
     /**
      * Handle a Exception throwable

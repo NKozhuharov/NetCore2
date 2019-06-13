@@ -130,6 +130,41 @@ class ExceptionHandler
             echo '</pre>';
         }
     }
+    
+    /**
+     * Transforms a BaseException into human readable error
+     * @param BaseException $exception
+     */
+    protected function outputBaseException(BaseException $exception)
+    {
+        global $Core;
+        
+        $data = $exception->getData();
+        
+        if ($Core->ajax) {
+            echo $this->handleAjaxMessage($this->getExceptionMessage($exception), false, $data);
+        } else {
+            echo $this->getExceptionMessage($exception);
+            if (!empty($data)) {
+                echo ':';
+                foreach ($data as $fieldName => $message) {
+                    echo '<br>'.$this->translateMessage($fieldName).' - '.$this->translateMessage($message);
+                }
+            }
+        }
+        unset ($data);
+    }
+    
+    /**
+     * Handle a ForbiddenException throwable
+     * @param ForbiddenException $exception
+     */
+    public function ForbiddenException(ForbiddenException $exception)
+    {
+        header('HTTP/1.1 401 Unauthorized', true, 401);
+
+        $this->outputBaseException($exception);
+    }
 
     /**
      * Handle a BaseException throwable
@@ -137,22 +172,9 @@ class ExceptionHandler
      */
     public function BaseException(BaseException $exception)
     {
-        global $Core;
-
         header('HTTP/1.1 400 Bad Request', true, 400);
 
-        if ($Core->ajax) {
-            echo $this->handleAjaxMessage($this->getExceptionMessage($exception), false, $exception->getData());
-        } else {
-            echo $this->getExceptionMessage($exception);
-
-            if (!empty($exception->getData())) {
-                echo ':';
-                foreach ($exception->getData() as $fieldName => $message) {
-                    echo '<br>'.$this->translateMessage($fieldName).' - '.$this->translateMessage($message);
-                }
-            }
-        }
+        $this->outputBaseException($exception);
     }
 
     /**

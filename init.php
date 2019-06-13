@@ -111,6 +111,9 @@ try {
     ob_end_clean();
     $Core->exceptionhandler->Error($e);
     die;
+} catch (ForbiddenException $e) {
+    ob_end_clean();
+    $Core->exceptionhandler->ForbiddenException($e);
 } catch (BaseException $e) {
     ob_end_clean();
     $Core->exceptionhandler->BaseException($e);
