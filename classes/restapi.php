@@ -185,7 +185,10 @@ class RESTAPI extends Base
     {
         global $Core;
         
-        if (count($Core->Rewrite->urlBreakdown) > 1) {
+        if (
+            count($Core->Rewrite->urlBreakdown) > 1 && 
+            is_numeric(array_values(array_slice($Core->Rewrite->urlBreakdown, -1))[0])
+        ) {
             $this->parseGetById();
         } else {
             $this->parseGetAll();
