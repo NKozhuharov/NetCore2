@@ -68,7 +68,7 @@ class Rewrite
         }
 
         if (isset($matches[count($matches) - 1]) && is_numeric($matches[count($matches) - 1])) {
-            if ($Core->allowfirstPage === false && intval($matches[count($matches) - 1]) === 1) {
+            if ($Core->allowFirstPage === false && intval($matches[count($matches) - 1]) === 1) {
                 $this->showPageNotFound();
             }
 
@@ -76,7 +76,7 @@ class Rewrite
 
             unset($matches[count($matches) - 1]);
         } elseif (isset($_REQUEST['page']) && is_numeric($_REQUEST['page'])) {
-            if ($Core->allowfirstPage === false && intval($_REQUEST['page']) === 1) {
+            if ($Core->allowFirstPage === false && intval($_REQUEST['page']) === 1) {
                 $this->showPageNotFound();
             }
 
