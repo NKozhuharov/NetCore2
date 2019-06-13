@@ -6,7 +6,7 @@ trait QueryExecuters
      * @param BaseDelete $deleter - the deleter instance of the BaseDelete class
      * @return int
      */
-    private function executeDeleteQuery(BaseDelete $deleter)
+    protected function executeDeleteQuery(BaseDelete $deleter)
     {
         try {
             return $deleter->execute();
@@ -20,7 +20,7 @@ trait QueryExecuters
      * @param BaseInsert $inserter - the deleter instance of the BaseInsert class
      * @return int
     */
-    private function executeInsertQuery(BaseInsert $inserter)
+    protected function executeInsertQuery(BaseInsert $inserter)
     {
         try {
             return $inserter->execute();
@@ -34,7 +34,7 @@ trait QueryExecuters
      * @param BaseUpdate $updater - the updater instance of the BaseUpdate class
      * @return int
     */
-    private function executeUpdateQuery(BaseUpdate $updater)
+    protected function executeUpdateQuery(BaseUpdate $updater)
     {
         try {
             return $updater->execute();
@@ -51,7 +51,7 @@ trait QueryExecuters
      * @throws BaseException
      * @throws Exception
      */
-    private function parseDeleteMySQLError(Exception $ex)
+    protected function parseDeleteMySQLError(Exception $ex)
     {
         global $Core;
 
@@ -80,7 +80,7 @@ trait QueryExecuters
      * @param Exception $ex - an Exception thrown when executing a insert query
      * @throws Exception
      */
-    private function parseInsertMysqlError(Exception $ex)
+    protected function parseInsertMysqlError(Exception $ex)
     {
         $message = $ex->getMessage();
         
@@ -96,7 +96,7 @@ trait QueryExecuters
      * @param Exception $ex - an Exception thrown when executing a update query
      * @throws Exception
      */
-    private function parseUpdateMysqlError(Exception $ex)
+    protected function parseUpdateMysqlError(Exception $ex)
     {
         $message = $ex->getMessage();
         
@@ -113,7 +113,7 @@ trait QueryExecuters
      * @param string $message - the message text of the error
      * @throws BaseException
      */
-    private function parseDuplicateKeyMysqlError(string $message)
+    protected function parseDuplicateKeyMysqlError(string $message)
     {
         if (strstr($message, 'Mysql Error: Duplicate entry')) {
             $message = str_replace("Mysql Error: Duplicate entry '", '', $message);
@@ -142,7 +142,7 @@ trait QueryExecuters
      * @param string $message - the message text of the error
      * @throws BaseException
      */
-    private function parseForeignKeyMysqlError(string $message)
+    protected function parseForeignKeyMysqlError(string $message)
     {
         if (strstr($message, 'Mysql Error: Cannot add or update a child row: a foreign key constraint fails')) {
             $message = substr($message, strpos($message, 'FOREIGN KEY') + 12);
