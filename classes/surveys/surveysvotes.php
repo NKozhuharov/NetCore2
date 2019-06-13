@@ -1,6 +1,7 @@
 <?php
 /**
- * 
+ * Refer to surveys
+ * DO NOT USE THIS MODEL WITHOUT SURVEYS
  */
 class SurveysVotes extends Base
 {
@@ -11,12 +12,12 @@ class SurveysVotes extends Base
     protected $voteInteraval = 3600;
     
     /**
-     * Creates a new instance of Categories class
+     * Creates a new instance of SurveysVotes class
      */
     public function __construct()
     {
         $this->tableName = 'surveys_votes';
-        $this->parentField = 'object_id';
+        $this->parentField = 'survey_id';
     }
     
     private function getUserIp()
