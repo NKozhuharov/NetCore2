@@ -728,6 +728,14 @@ class Base
         if ($languageId === null || !$this->isTranslationAvailable() || empty($result)) {
             return $result;
         }
+        
+        $this->checkTableFields();
+
+        foreach ($this->translationFields as $translationField) {
+            if (!isset($this->tableFields->getFields()[$translationField])) {
+                throw new Exception("Translation field `{$translationField}` does not exist in table `{$this->tableName}`");
+            }
+        }
 
         $returnSingleObject = false;
 
@@ -762,8 +770,6 @@ class Base
                     foreach ($this->translationFields as $field) {
                         if (!empty($row[$field])) {
                             $result[$resultKey][$field] = $row[$field];
-                        } else {
-                            $result[$resultKey][$field] = $result[$resultKey][$field];
                         }
                     }
                 }
