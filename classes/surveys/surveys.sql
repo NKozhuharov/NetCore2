@@ -1,4 +1,23 @@
+SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
+
+-- ----------------------------
+-- Table structure for surveys
+-- ----------------------------
+DROP TABLE IF EXISTS `surveys`;
+CREATE TABLE `surveys`  (
+  `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `title` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `link` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `user_id` int(10) UNSIGNED NOT NULL,
+  `published_on` timestamp(0) NULL DEFAULT NULL,
+  `expires_on` timestamp(0) NULL DEFAULT NULL,
+  `expired` tinyint(1) UNSIGNED NULL DEFAULT 0,
+  `added` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `user_id`(`user_id`) USING BTREE,
+  CONSTRAINT `surveys_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `admin_users` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for surveys_answers
@@ -9,6 +28,7 @@ CREATE TABLE `surveys_answers`  (
   `object_id` int(10) UNSIGNED NOT NULL,
   `answer` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   `order` tinyint(255) UNSIGNED NULL DEFAULT 0,
+  `votes` int(10) UNSIGNED NULL DEFAULT 0,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `object_id`(`object_id`, `answer`) USING BTREE,
   CONSTRAINT `surveys_answers_ibfk_1` FOREIGN KEY (`object_id`) REFERENCES `surveys_questions` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
@@ -84,12 +104,13 @@ DROP TABLE IF EXISTS `surveys_votes`;
 CREATE TABLE `surveys_votes`  (
   `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
   `ip` varchar(30) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `user_agent` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   `survery_id` int(10) UNSIGNED NOT NULL,
   `answer_id` int(10) UNSIGNED NOT NULL,
   `added` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `survery_id`(`survery_id`) USING BTREE,
   INDEX `surveys_votes_ibfk_1`(`answer_id`) USING BTREE,
+  INDEX `survery_id`(`survery_id`) USING BTREE,
   CONSTRAINT `surveys_votes_ibfk_1` FOREIGN KEY (`answer_id`) REFERENCES `surveys_answers` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `surveys_votes_ibfk_2` FOREIGN KEY (`survery_id`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;

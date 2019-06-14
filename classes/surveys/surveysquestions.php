@@ -3,7 +3,7 @@
  * Refer to surveys
  * DO NOT USE THIS MODEL WITHOUT SURVEYS
  */
-class SurveysQuestions extends Base
+final class SurveysQuestions extends Base
 {
     /**
      * Creates a new instance of SurveysQuestions class
@@ -32,7 +32,7 @@ class SurveysQuestions extends Base
         global $Core;
         
         if (!empty($question)) {
-            $question['answers'] = $Core->SurveysAnswers->getByParentId($question['id']);
+            $question['answers'] = $Core->SurveysAnswers->getByParentId($question['id'], false);
         }
         
         return $question;

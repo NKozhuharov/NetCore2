@@ -15,6 +15,12 @@ class Surveys extends Base
     protected $allowMultilanguage = true;
     
     /**
+     * How many seconds between votes for a single user
+     * @var int
+     */
+    protected $voteInteraval = 3600;
+    
+    /**
      * Creates a new instance of Surveys class
      */
     public function __construct()
@@ -34,6 +40,15 @@ class Surveys extends Base
     public function isMultilanguageAllowed()
     {
         return $this->allowMultilanguage;
+    }
+    
+    /**
+     * Gets how much time has to pass in order for a user to vote on a survey again
+     * @return int
+     */
+    public function getVoteInterval()
+    {
+        return $this->voteInteraval;
     }
     
     /**
@@ -328,5 +343,70 @@ class Surveys extends Base
                 }
             }
         }
+    }
+    
+    /**
+     * Records votes for a survey, with the provided answer ids
+     * Every answer should have his unique question, and all the questions have to belong to a single survey
+     * Throws Exception if the provided answer ids are invalid
+     * Returns the survey, which was voted for
+     * 
+     * @param array $answerIds - the id's of the answers to vote for
+     * @return array
+     * @throws Exception
+     */
+    public function vote(array $answerIds)
+    {
+        global $Core;
+        
+        if (empty($answerIds)) {
+            throw new Exception("Provide at least one answer");
+        }
+        
+        if ($this->allowMultilanguage === true) {
+            $Core->SurveysAnswers->turnOffTranslation();
+            $Core->SurveysQuestions->turnOffTranslation();
+        }
+        
+        $answers = $Core->SurveysAnswers->getAll(false, "`id` IN (".implode(',', $answerIds).")");
+        
+        if (empty($answers)) {
+            throw new Exception("One or more answers does not exist");
+        }
+        
+        $questionIds = array();
+        foreach ($answers as $answer) {
+            if (in_array($answer['object_id'], $questionIds)) {
+                throw new Exception("One question can have only one answer");
+            }
+            $questionIds[] = $answer['object_id'];
+        }
+        
+        $questions = $Core->SurveysQuestions->getAll(false, "`id` IN (".implode(',', $questionIds).")");
+        
+        $surveyId = 0;
+        
+        foreach ($questions as $question) {
+            if ($surveyId === 0) {
+                $surveyId = $question['object_id'];
+            } elseif ($surveyId !== $question['object_id']) {
+                throw new Exception("All questions must belong to a single survey");
+            }
+        }
+        
+        $Core->SurveysVotes->checkVotingRights($surveyId);
+        
+        foreach($answerIds as $answerId) {
+            $Core->SurveysVotes->insert(
+                array(
+                    'survery_id' => $surveyId,
+                    'answer_id'  => $answerId,
+                )
+            );
+        }
+        
+        $Core->SurveysAnswers->recordVotes($answerIds);
+        
+        return $this->getById($surveyId);
     }
 }

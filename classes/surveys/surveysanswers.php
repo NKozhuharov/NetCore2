@@ -3,7 +3,7 @@
  * Refer to surveys
  * DO NOT USE THIS MODEL WITHOUT SURVEYS
  */
-class SurveysAnswers extends Base
+final class SurveysAnswers extends Base
 {
     /**
      * Creates a new instance of SurveysAnswers class
@@ -11,7 +11,7 @@ class SurveysAnswers extends Base
     public function __construct()
     {
         global $Core;        
-
+        
         $this->tableName    = 'surveys_answers';
         $this->parentField  = 'object_id';
         $this->orderByField = '`order`';
@@ -19,6 +19,19 @@ class SurveysAnswers extends Base
         
         if ($Core->Surveys->isMultilanguageAllowed()) {
             $this->translationFields = array('answer');
+        }
+    }
+    
+    /**
+     * Increments the votes of the answers with the provided answer ids
+     * @param array $answerIds - the ids of the answers to increment
+     */
+    public function recordVotes(array $answerIds)
+    {
+        global $Core;
+        
+        if (!empty($answerIds)) {
+            $Core->db->query("UPDATE `{$this->tableName}` SET `votes` = `votes` + 1 WHERE `id` IN (".implode(',', $answerIds).")");
         }
     }
 }
