@@ -30,6 +30,8 @@ class Surveys extends Base
         
         if ($this->allowMultilanguage) {
             $this->translationFields = array('title', 'link');
+        } else {
+            $this->translateResult = false;
         }
     }
     
@@ -97,6 +99,69 @@ class Surveys extends Base
     }
     
     /**
+     * Ensures the structure of the array for inserting or updating a survey is correct
+     * @param array $input - a survey to insert/update
+     * @throws Exception
+     */
+    private function ensureInputHasQuestionsAndAnswers(array $input)
+    {
+        if (!isset($input['questions']) || empty($input['questions']) || !is_array($input['questions'])) {
+            throw new Exception("Provide questions for the survey!");
+        }
+        
+        foreach ($input['questions'] as $question) {
+            if (!is_array($question)) {
+                throw new Exception("Each question should be an array!");
+            }
+            
+            if (!isset($question['answers']) || empty($question['answers']) || !is_array($question['answers'])) {
+                throw new Exception("Provide answers for the questions!");
+            }
+            
+            foreach ($question['answers'] as $answer) {
+                if (!is_array($answer)) {
+                    throw new Exception("Each answer should be an array!");
+                }
+            }
+        }
+    }
+    
+    /**
+     * Checks for duplicated questions and duplicated answers of the same question.
+     * Used for insert and update
+     * @param array $questions - an array of questions (and their answers)
+     * @throws BaseException
+     */
+    private function ensureSurveyQuestionsAndAnswersAreUnique(array $questions)
+    {
+        $questionTitles = array();
+        foreach ($questions as $question) {
+            if (!in_array($question['question'], $questionTitles)) {
+                $questionTitles[] = $question['question'];
+            } else {
+                throw new BaseException(
+                    "The following %%surveysquestion%% already exists %%{$question['question']}%%", 
+                    array(),
+                    get_class($this)
+                );
+            }
+            
+            $answers = array();
+            foreach ($question['answers'] as $answer) {
+                if (!in_array($answer['answer'], $answers)) {
+                    $answers[] = $answer['answer'];
+                } else {
+                    throw new BaseException(
+                        "The following %%surveysanswer%% already exists %%{$answer['answer']}%%",
+                        array(),
+                        get_class($this)
+                    );
+                }
+            }
+        }
+    }
+    
+    /**
      * Override the base function to add automatic generation of links;
      * It will exptect the input to contain key questions, which contains key answers, corresponding to the questions
      * and the answers of the survey.
@@ -113,28 +178,12 @@ class Surveys extends Base
     {
         global $Core;
         
-        if (!isset($input['questions']) || empty($input['questions']) || !is_array($input['questions'])) {
-            throw new Exception("Provide questions for the survey!");
-        }
+        $this->ensureInputHasQuestionsAndAnswers($input);
+        
+        $this->ensureSurveyQuestionsAndAnswersAreUnique($input['questions']);
         
         $questions = $input['questions'];
         unset($input['questions']);
-        
-        foreach ($questions as $question) {
-            if (!is_array($question)) {
-                throw new Exception("Each question should be an array!");
-            }
-            
-            if (!isset($question['answers']) || empty($question['answers']) || !is_array($question['answers'])) {
-                throw new Exception("Provide answers for the questions!");
-            }
-            
-            foreach ($question['answers'] as $answer) {
-                if (!is_array($answer)) {
-                    throw new Exception("Each answer should be an array!");
-                }
-            }
-        }
         
         if (!isset($input['link']) || empty($input['link'])) {
             $input['link'] = $Core->GlobalFunctions->getHref($input['title'], $this->tableName, $this->linkField);
@@ -184,6 +233,11 @@ class Surveys extends Base
     {
         global $Core;
         
+        $this->ensureInputHasQuestionsAndAnswers($input);
+        
+        $questions = $input['questions'];
+        unset($input['questions']);
+        
         if (!isset($input['link']) || empty($input['link'])) {
             $input['link'] = $Core->GlobalFunctions->getHref($input['title'], "{$this->tableName}_lang", $this->linkField);
         }
@@ -215,6 +269,127 @@ class Surveys extends Base
     }
     
     /**
+     * Removes all qeustions, which are removed from the user, when updating a survey
+     * @param array $existingSurvey - the body of the survey, which is being updated
+     * @param array $questions - all the questions from the update request
+     */
+    private function onUpdateDeleteRemovedQuestions(array $existingSurvey, array $questions)
+    {
+        global $Core;
+        
+        foreach ($existingSurvey['questions'] as $existingQuestion) {
+            $found = false;
+            foreach ($questions as $question) {
+                if (isset($question['id']) && !empty($question['id']) && $existingQuestion['id'] == $question['id']) {
+                    $found = true;
+                    break;
+                }
+            }
+            
+            if ($found === false) {
+                $Core->SurveysQuestions->deleteById($existingQuestion['id']);
+            }
+        }
+    }
+    
+    /**
+     * Removes all answers from a question, which are removed from the user, when updating a survey
+     * @param array $existingSurvey - the body of the survey, which is being updated
+     * @param array $question - the body of the question
+     */
+    private function onUpdateDeleteRemovedQuestionAnswers(array $existingSurvey, array $question)
+    {
+        global $Core;
+        
+        foreach ($existingSurvey['questions'] as $existingQuestion) {
+            if ($existingQuestion['id'] == $question['id']) {
+                $existingAnswers = $existingQuestion['answers'];
+            }   
+        }
+        
+        foreach ($existingAnswers as $existingAnswer) {
+            $found = false;
+            
+            foreach ($question['answers'] as $answer) {
+                if (isset($answer['id']) && !empty($answer['id']) && $existingAnswer['id'] == $answer['id']) {
+                    $found = true;
+                    break;
+                }
+            }
+            
+            if ($found === false) {
+                $Core->SurveysAnswers->deleteById($existingAnswer['id']);
+            }
+        }
+    }
+    
+    /**
+     * Updates or inserts the answers of an existing qeustion
+     * @param array $question - the body of the question
+     */
+    private function onUpdateInsertOrUpdateQuestionAnswers(array $question)
+    {
+        global $Core;
+        
+        foreach ($question['answers'] as $answer) {
+            if (isset($answer['id']) && !empty($answer['id'])) {
+                $Core->SurveysAnswers->updateById(
+                    $answer['id'], 
+                    array(
+                        'answer' => $answer['answer'],
+                        'order'  => $answer['order'],
+                    )
+                );
+            } else {
+                $answer['object_id'] = $question['id'];
+                $Core->SurveysAnswers->insert($answer);
+            }
+        }   
+    }
+    
+    /**
+     * Updates existing qeustion and it's answers
+     * @param array $existingSurvey - the body of the survey, which is being updated
+     * @param array $question - the body of the question
+     */
+    private function onUpdateUpdateExistingQuestion(array $existingSurvey, array $question)
+    {
+        global $Core;
+        
+        $this->onUpdateDeleteRemovedQuestionAnswers($existingSurvey, $question);
+        
+        $this->onUpdateInsertOrUpdateQuestionAnswers($question);
+        
+        $Core->SurveysQuestions->updateById(
+            $question['id'],
+            array(
+                'question' => $question['question'],
+                'order'    => $question['order'],
+            )
+        );
+    }
+    
+    /**
+     * Inserts a new qeustion and it's answers
+     * @param array $question - the body of the question
+     * @param int $surveyId - the parent survey id for the question
+     */
+    private function onUpdateInsertNewQuestion(array $question, int $surveyId)
+    {
+        global $Core;
+        
+        $answers = $question['answers'];
+        unset($question['answers']);
+        
+        $question['object_id'] = $surveyId;
+        $questionId = $Core->SurveysQuestions->insert($question);
+        foreach ($answers as $answer) {
+            $answer['object_id'] = $questionId;
+            $Core->SurveysAnswers->insert($answer);
+        }
+    }
+    
+    /**
      * Override the base function to add automatic generation of links;
      * It will insert a new object, then delete the existing one, then update the id of the new object, to id of the old
      * Ignores the additional parameter.
@@ -230,10 +405,19 @@ class Surveys extends Base
     {
         global $Core;
         
+        $this->translateResult = false;
         $existingSurvey = $this->getById($objectId);
+        
         if (!empty($existingSurvey['published_on'])) {
             throw new Exception("Cannot update published surveys!");
         }
+        
+        $this->ensureInputHasQuestionsAndAnswers($input);
+        
+        $this->ensureSurveyQuestionsAndAnswersAreUnique($input['questions']);
+        
+        $questions = $input['questions'];
+        unset($input['questions']);
         
         if (!isset($input['link']) || empty($input['link'])) {
             if ($input['title'] === $existingSurvey['title']) {
@@ -243,15 +427,17 @@ class Surveys extends Base
             }
         }
         
-        $newSurveyId = $this->insert($input);
-        $this->deleteById($existingSurvey['id']);
+        $this->onUpdateDeleteRemovedQuestions($existingSurvey, $questions);
         
-        $updater = new BaseUpdate($this->tableName);
-        $updater->setFieldsAndValues(array('id' => $existingSurvey['id']));
-        $updater->setWhere("`id` = {$newSurveyId}");
+        foreach ($questions as $question) {
+            if (isset($question['id']) && !empty($question['id'])) {
+                $this->onUpdateUpdateExistingQuestion($existingSurvey, $question);
+            } else {
+                $this->onUpdateInsertNewQuestion($question, $objectId);
+            }
+        }
         
-        return $this->executeUpdateQuery($updater);
-        
+        return parent::updateById($objectId, $input, $additional);
     }
     
     /**
