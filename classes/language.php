@@ -485,6 +485,6 @@ class Language extends Base
 
         $info = current($info);
 
-        return $info['id'];
+        return intval($info['id']);
     }
 }
