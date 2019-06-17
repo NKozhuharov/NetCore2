@@ -390,8 +390,13 @@ class Surveys extends Base
     }
     
     /**
-     * Override the base function to add automatic generation of links;
-     * It will insert a new object, then delete the existing one, then update the id of the new object, to id of the old
+     * Override the base function to add automatic generation of links.
+     * Expects the input to contain an 'questions' key, which has to be array, containing an 'answers' key.
+     * Validates the structure of the $input array, then checks for duplicated names of questions and 
+     * answers of the same question.
+     * Questions and answers, provided without the 'id' key will be considered new and will be inserted.
+     * Existing questions and answers which are not provided with their corresponding 'id's will be deleted.
+     * It will update the existing survey.
      * Ignores the additional parameter.
      * Returns 1 if the survey is updated
      * 
@@ -437,7 +442,7 @@ class Surveys extends Base
             }
         }
         
-        return parent::updateById($objectId, $input, $additional);
+        return parent::updateById($objectId, $input);
     }
     
     /**
