@@ -64,7 +64,7 @@ final class SurveysQuestions extends Base
      */
     public function getById(int $rowId)
     {
-        return $this->addQuestionsToSurvey(parent::getById($rowId));
+        return $this->addAnswersToQuetion(parent::getById($rowId));
     }
     
     /**
