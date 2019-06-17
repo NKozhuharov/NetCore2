@@ -61,7 +61,7 @@ class Surveys extends Base
         global $Core;
         
         if (!empty($survey)){
-            $survey['questions'] = $Core->SurveysQuestions->getByParentId($survey['id']);
+            $survey['questions'] = $Core->SurveysQuestions->getByParentId($survey['id'], false);
         }
         
         return $survey;
