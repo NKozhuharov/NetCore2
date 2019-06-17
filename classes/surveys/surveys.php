@@ -168,7 +168,6 @@ class Surveys extends Base
      * Inserts the survey, next the questions, next the answers.
      * Should some validation fails, it will delete the already inserted data
      * Returns the id of the inserted survey
-     * 
      * @param array $input - it must contain the field names => values
      * @param int $flag - used for insert ignore and insert on duplicate key update queries
      * @return int
@@ -223,6 +222,11 @@ class Surveys extends Base
     
     /**
      * Override the base function to add automatic generation of links
+     * Expects the input to contain an 'questions' key, which has to be array, containing an 'answers' key.
+     * Validates the structure of the $input array.
+     * Translates the entire survey, along with the questions and their answers.
+     * All questions and answers MUST contain an 'id' key
+     * Throws Exception if tranlations are not allowed.
      * @param int $objectId - the id of the row where the translated object is
      * @param int $languageId - the language id to translate to
      * @param array $input - the translated object data
@@ -233,13 +237,35 @@ class Surveys extends Base
     {
         global $Core;
         
+        if ($this->allowMultilanguage === false) {
+            throw new Exception("Translation is not allowed");
+        }
+        
         $this->ensureInputHasQuestionsAndAnswers($input);
         
         $questions = $input['questions'];
-        unset($input['questions']);
+        unset($input['questions'], $input['id'], $input['user_id'], $input['published_on'], $input['expires_on']);
+        unset($input['expired'], $input['added']);
         
         if (!isset($input['link']) || empty($input['link'])) {
             $input['link'] = $Core->GlobalFunctions->getHref($input['title'], "{$this->tableName}_lang", $this->linkField);
+        }
+        
+        foreach ($questions as $question) {
+            $answers = $question['answers'];
+            unset($question['answers']);
+            
+            foreach ($answers as $answer) {
+                $answerId = $answer['id'];
+                unset($answer['id'],$answer['order'],$answer['votes']);
+                $Core->SurveysAnswers->translate($answerId, $languageId, $answer);
+                unset($answerId);
+            }
+            
+            $questionId = $question['id'];
+            unset($question['id'],$question['order']);
+            $Core->SurveysQuestions->translate($questionId, $languageId, $question);
+            unset($questionId);
         }
         
         return parent::translate($objectId, $languageId, $input);
