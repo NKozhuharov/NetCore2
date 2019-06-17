@@ -128,7 +128,7 @@ trait QueryExecuters
             }
             
             throw new BaseException(
-                "The following %%{$modelName}%% alredy exists %%`{$duplicatedValue}`%%",
+                "The following %%{$modelName}%% already exists %%`{$duplicatedValue}`%%",
                 null,
                 get_class($this)
             );
