@@ -115,7 +115,7 @@ class RESTAPI extends Base
         }
         
         if (isset($_GET['lang']) && !empty($_GET['lang'])) {
-            $this->parseTranslateById();
+            $this->parseTranslateById($objectId);
         } else {
             $this->updateById($objectId, $Core->db->escape($_POST));
             $this->result = $this->getById($objectId);
@@ -130,12 +130,19 @@ class RESTAPI extends Base
      * Parses an update by id query.
      * This could happen when making a POST (with id), PUT or PATCH queries to the API, when the 'lang' parameter is set
      * to valid and active language.
-     * Throws Exception if the language does not exist, or it is not active.
+     * Throws Exception if the language does not exist, it is not active, or it's the default language.
+     * @param int $objectId - the id of the object ot translate
      * @throws Excception
      */
-    private function parseTranslateById()
+    private function parseTranslateById($objectId)
     {
+        global $Core;
+        
         $languageId = $Core->Language->getIdByName($_GET['lang']);
+       
+        if ($Core->Language->getDefaultLanguageId() === $languageId) {
+            throw new Exception("Cannot translate to the default language");
+        }
             
         if ($Core->Language->isActiveLanguage($languageId) === false) {
             throw new Exception("Language `{$_GET['lang']}` is not allowed!");
