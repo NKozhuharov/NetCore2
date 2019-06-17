@@ -130,7 +130,7 @@ class User extends Base
      * @var int
      * The time for which a user can use a token to recover his password
      */
-    protected $tokenExpireTime = 3600;
+    protected $usersRecoveryTokenExpireTime = 3600;
 
     /**
      * @var string
@@ -927,12 +927,12 @@ class User extends Base
             $inserter->addField('user_id', $user['id']);
             $inserter->addField('token', $token);
             $inserter->execute();
-        } elseif ($this->tokenExpireTime > 0 && strtotime(strtotime($token['added']) < time() - $this->tokenExpireTime)) {
+        } elseif ($this->usersRecoveryTokenExpireTime > 0 && strtotime(strtotime($token['added']) < time() - $this->usersRecoveryTokenExpireTime)) {
             $updater = new BaseUpdate($this->usersRecoveryTableName);
             $updater->addField('added', $Core->globalFunctions->formatMysqlTime(time(), true));
             $updater->setWhere("`user_id` = '{$user['id']}'");
             $updater->execute();
-        } elseif ($this->tokenExpireTime > 0) { //token is expired
+        } elseif ($this->usersRecoveryTokenExpireTime > 0) { //token is expired
             $deleter = new BaseDelete($this->usersRecoveryTableName);
             $deleter->setWhere("`token` = '$token'");
             $deleter->execute();
@@ -952,9 +952,9 @@ class User extends Base
             '<a href="'.$Core->siteDomain.'/'.$this->usersRecoveryControllerName.'?token='.$token.'">'.
             $Core->siteDomain.'/'.$this->usersRecoveryControllerName.'?token='.$token.'</a><br>';
 
-            if ($this->tokenExpireTime > 0){
+            if ($this->usersRecoveryTokenExpireTime > 0){
                 $body .= $Core->Language->the_link_will_be_active_for.' ';
-                $body .= $Core->globalFunctions->timeDifference(time() + $this->tokenExpireTime).'.<br>';
+                $body .= $Core->globalFunctions->timeDifference(time() + $this->usersRecoveryTokenExpireTime).'.<br>';
             }
 
             $body .= '<br>'.$Core->Language->did_not_forget_password;
@@ -1003,8 +1003,8 @@ class User extends Base
         }
 
         $queryWhere = "`token` = '$token'";
-        if ($this->tokenExpireTime > 0) {
-            $queryWhere .= " AND `added` < NOW - {$this->tokenExpireTime}";
+        if ($this->usersRecoveryTokenExpireTime > 0) {
+            $queryWhere .= " AND `added` < NOW - {$this->usersRecoveryTokenExpireTime}";
         }
 
         $selector = new BaseSelect($this->usersRecoveryTableName);
