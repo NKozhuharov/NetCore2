@@ -334,11 +334,11 @@ class Core
     }
 
     /**
-     * Requires a model from the site models
+     * Init a model from the site models
      * @param string $className - the name of the class (in lowercase)
      * @return object|false
      */
-    private function requireSiteSpecificModel(string $className)
+    private function initSiteSpecificModel(string $className)
     {
         return $this->initCoreModel(
             $className,
@@ -347,11 +347,11 @@ class Core
     }
 
     /**
-     * Requires a model from the project global models
+     * Init a model from the project global models
      * @param string $className - the name of the class (in lowercase)
      * @return object|false
      */
-    private function requireProjectGlobalModel(string $className)
+    private function initProjectGlobalModel(string $className)
     {
         return $this->initCoreModel(
             $className,
@@ -360,11 +360,11 @@ class Core
     }
 
     /**
-     * Requires a model from the platform main models
+     * Init a model from the platform main models
      * @param string $className - the name of the class (in lowercase)
      * @return object|false
      */
-    private function requirePlatformModel(string $className)
+    private function initPlatformModel(string $className)
     {
         return $this->initCoreModel(
             $className,
@@ -373,11 +373,11 @@ class Core
     }
 
     /**
-     * Requires a model from the platform modules
+     * Init a model from the platform modules
      * @param string $className - the name of the class (in lowercase)
      * @return object|false
      */
-    private function requireModuleModel(string $className)
+    private function initModuleModel(string $className)
     {
         foreach ($this->moduleDirectories as $coreDirectory) {
             $model = $this->initCoreModel(
@@ -395,27 +395,27 @@ class Core
      * @param string $className - the name of the class (in lowercase)
      * @return object|false
      */
-    private function requireModel(string $className)
+    private function initModel(string $className)
     {
-        $model = $this->requireSiteSpecificModel($className);
+        $model = $this->initSiteSpecificModel($className);
         if ($model !== false) {
             return $model;
         }
         unset($model);
 
-        $model = $this->requireProjectGlobalModel($className);
+        $model = $this->initProjectGlobalModel($className);
         if ($model !== false) {
             return $model;
         }
         unset($model);
 
-        $model = $this->requirePlatformModel($className);
+        $model = $this->initPlatformModel($className);
         if ($model !== false) {
             return $model;
         }
         unset($model);
 
-        $model = $this->requireModuleModel($className);
+        $model = $this->initModuleModel($className);
         if ($model !== false) {
             return $model;
         }
@@ -441,7 +441,7 @@ class Core
 
         if ($varName === 'exceptionhandler') {
             if (empty($this->exceptionhandler)) {
-                return $this->requireModel(mb_strtolower($this->exceptionHandlerName));
+                return $this->initModel(mb_strtolower($this->exceptionHandlerName));
             } else {
                 return $this->exceptionhandler;
             }
@@ -452,15 +452,15 @@ class Core
                 $parentName = $this->classesRequriementTree[$varName];
 
                 if (!isset($this->$parentName)) {
-                    $this->requireModel($parentName);
+                    $this->initModel($parentName);
                 }
 
                 unset($parentName);
 
-                return $this->requireModel($varName);
+                return $this->initModel($varName);
             }
 
-            return $this->requireModel($varName);
+            return $this->initModel($varName);
         } else {
             return $this->$varName;
         }
