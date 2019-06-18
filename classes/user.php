@@ -4,7 +4,9 @@ class User extends Base
     const DEFAULT_USER_ROLE     = "Nobody";
     const DEFAULT_USER_LEVEL    = 0;
     const DEFAULT_USER_LEVEL_ID = 0;
-
+    
+    use UsersConfirmRegistrationWithEmail;
+    
     /**
      * @var string
      * The key, which is used to store the session in the memcache
@@ -118,11 +120,11 @@ class User extends Base
      * Set to true if the password must contain at least one symbol
      */
     protected $passSymbolsRequired = false;
-
+    
     //recovery
     /**
      * @var string
-     * Set this to enable password recovery functions, must contain user_id(int) and token(varchar 50)
+     * Set this to enable password recovery functions, must contain user_id(int), token(varchar 50) and added (timestamp)
      */
     protected $usersRecoveryTableName = null;
 
@@ -134,7 +136,7 @@ class User extends Base
 
     /**
      * @var string
-     * The controller which handles the tokens
+     * The name of the controller which handles the tokens for user password recovery
      */
     protected $usersRecoveryControllerName = 'recovery';
 
@@ -424,11 +426,18 @@ class User extends Base
         $queryWhere[] = "`username` = '$username'";
 
         $queryWhere[] = "`password` = '$password'";
+        
+        
 
         $this->data = $this->getAll(1, " ".implode(' AND ', $queryWhere));
 
         if (!empty($this->data)) {
             $this->data = current($this->data);
+            
+            if ($this->confirmRegistrationWithEmail && empty($this->data[$this->usersRegistrationConfrimationControlField])) {
+                throw new BaseException("In order to login, you have to validate your email address");
+            }
+            
             $this->data['logged_in'] = true;
             $this->data = array_merge($this->data, $this->getUserLevelData());
             $this->data['pages'] = $this->getUserPages();
@@ -610,13 +619,17 @@ class User extends Base
 
     /**
      * Ensures the provided email is in the correct format
-     * Throws Exception if it's not
+     * Throws Exception if it's not or if it's empty
      * @param string $email - the email to validate
      * @throws Exception
      */
     private function validateEmail(string $email)
     {
-        if ($this->registerWithEmail && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        if (empty($email)) {
+            throw new Exception("Provide email");
+        }
+        
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             throw new Exception("Email is not valid");
         }
     }
@@ -643,7 +656,13 @@ class User extends Base
      * @param int $typeId - the type of the user (optional)
      * @throws BaseException
      */
-    public function validateRegisterationValues(string $username, string $password, string $repeatPassword, int $levelId = null, int $typeId = null)
+    public function validateRegisterationValues(
+        string $username, 
+        string $password, 
+        string $repeatPassword, 
+        int $levelId = null, 
+        int $typeId = null
+    )
     {
         $this->validateUserLevel($levelId);
 
@@ -676,7 +695,7 @@ class User extends Base
             throw new BaseException("The following fields are not valid", $errorsInFields, get_class($this));
         }
     }
-
+    
     /**
      * Allows the registration of users with username and password
      * Allows to set a user level id and user type id (if requried by the project)
@@ -690,6 +709,10 @@ class User extends Base
     {
         global $Core;
         
+        if ($this->confirmRegistrationWithEmail === true) {
+            $this->validateConfirmRegistrationWithEmailConfiguration();
+        }
+        
         if (empty($input)) {
             throw new Exception("Provide user data");
         }
@@ -700,7 +723,17 @@ class User extends Base
         $input['level_id']        = isset($input['level_id'])        ? intval($input['level_id']) : null;
         $input['type_id']         = isset($input['type_id'])         ? intval($input['type_id']) : null;
 
-        $this->validateRegisterationValues($input['username'], $input['password'], $input['repeat_password'], $input['level_id'], $input['type_id']);
+        $this->validateRegisterationValues(
+            $input['username'], 
+            $input['password'], 
+            $input['repeat_password'], 
+            $input['level_id'], 
+            $input['type_id']
+        );
+        
+        if ($this->confirmRegistrationWithEmail === true && $this->registerWithEmail === false) {
+            $input = $this->getAndValidateEmailForConfirmRegistrationWithEmail($input);
+        }
 
         $input['password'] = $this->hashPassword($input['password']);
 
@@ -714,7 +747,15 @@ class User extends Base
 
         unset($input['repeat_password']);
 
-        return $this->insert($input);
+        $userId = $this->insert($input);
+        
+        $input['id'] = $userId;
+        
+        if ($this->confirmRegistrationWithEmail === true) {
+            $this->getRegistrationConformationToken($input);
+        }
+        
+        return $userId;
     }
 
     /**
@@ -794,8 +835,17 @@ class User extends Base
         return strtoupper(substr(md5(time()), rand(0, (32 - $length)), $length));
     }
 
-    //RECOVERY FUNCTIONS
+    /**
+     * Generates an unique token
+     * @return string
+     */
+    private function generateToken()
+    {
+        return md5(uniqid());
+    }
 
+    //RECOVERY FUNCTIONS
+        
     /**
      * Allows a user to recover his username with his email
      * Sends an email to the user with his username
@@ -822,7 +872,7 @@ class User extends Base
             throw new BaseException("Enter email");
         }
 
-        $this->validateEmail($username);
+        $this->validateEmail($email);
 
         $this->validateUserType($typeId);
 
@@ -885,7 +935,7 @@ class User extends Base
             throw new BaseException("Enter email");
         }
 
-        $this->validateEmail($username);
+        $this->validateEmail($email);
 
         $this->validateUserType($typeId);
 
@@ -898,9 +948,7 @@ class User extends Base
         if ($typeId !== null) {
             $queryWhere .= " AND `type_id` = $typeId ";
         }
-
-        $email = $Core->db->escape($email);
-
+        
         $selector = new BaseSelect($this->tableName);
         $selector->setWhere($queryWhere);
         $selector->setGlobalTemplate('fetch_assoc');
@@ -921,7 +969,7 @@ class User extends Base
         $token = $selector->execute();
 
         if (empty($token)) {
-            $token = md5(uniqid());
+            $token = $this->generateToken();
 
             $inserter = new BaseInsert($this->usersRecoveryTableName);
             $inserter->addField('user_id', $user['id']);
@@ -929,7 +977,7 @@ class User extends Base
             $inserter->execute();
         } elseif ($this->usersRecoveryTokenExpireTime > 0 && strtotime(strtotime($token['added']) < time() - $this->usersRecoveryTokenExpireTime)) {
             $updater = new BaseUpdate($this->usersRecoveryTableName);
-            $updater->addField('added', $Core->globalFunctions->formatMysqlTime(time(), true));
+            $updater->addField('added', $Core->GlobalFunctions->formatMysqlTime(time(), true));
             $updater->setWhere("`user_id` = '{$user['id']}'");
             $updater->execute();
         } elseif ($this->usersRecoveryTokenExpireTime > 0) { //token is expired
@@ -937,7 +985,7 @@ class User extends Base
             $deleter->setWhere("`token` = '$token'");
             $deleter->execute();
 
-            $token = md5(uniqid());
+            $token = $this->generateToken();
 
             $inserter = new BaseInsert($this->usersRecoveryTableName);
             $inserter->addField('user_id', $user['id']);
@@ -954,7 +1002,7 @@ class User extends Base
 
             if ($this->usersRecoveryTokenExpireTime > 0){
                 $body .= $Core->Language->the_link_will_be_active_for.' ';
-                $body .= $Core->globalFunctions->timeDifference(time() + $this->usersRecoveryTokenExpireTime).'.<br>';
+                $body .= $Core->GlobalFunctions->timeDifference(time() + $this->usersRecoveryTokenExpireTime).'.<br>';
             }
 
             $body .= '<br>'.$Core->Language->did_not_forget_password;
