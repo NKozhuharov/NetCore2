@@ -321,14 +321,19 @@ class Core
      * Requires a model with the specified class name and location and inits it as Core Model
      * @param string $className - the name of the class (in lowercase); also the name of the file
      * @param string $fileLocation - the path of the file to require
+     * @param bool $init - to init the model as core variable or not
      * @return object|false
      */
-    private function initCoreModel(string $className, string $fileLocation)
+    private function initCoreModel(string $className, string $fileLocation, bool $init)
     {
         if (is_file($fileLocation)) {
             require_once($fileLocation);
-            $this->$className = new $className();
-            return $this->$className;
+            if ($init === true) {
+                $this->$className = new $className();
+                return $this->$className;
+            } else {
+                return true;
+            }
         }
         return false;
     }
@@ -336,52 +341,61 @@ class Core
     /**
      * Init a model from the site models
      * @param string $className - the name of the class (in lowercase)
+     * @param bool $init - to init the model as core variable or not
      * @return object|false
      */
-    private function initSiteSpecificModel(string $className)
+    private function initSiteSpecificModel(string $className, bool $init)
     {
         return $this->initCoreModel(
             $className,
-            $this->siteDir.'models/'.$className.'.php'
+            $this->siteDir.'models/'.$className.'.php',
+            $init
         );
     }
 
     /**
      * Init a model from the project global models
      * @param string $className - the name of the class (in lowercase)
+     * @param bool $init - to init the model as core variable or not
      * @return object|false
      */
-    private function initProjectGlobalModel(string $className)
+    private function initProjectGlobalModel(string $className, bool $init)
     {
         return $this->initCoreModel(
             $className,
-            GLOBAL_PATH.PROJECT_PATH.'classes/'.$className.'.php'
+            GLOBAL_PATH.PROJECT_PATH.'classes/'.$className.'.php',
+            $init
         );
     }
 
     /**
      * Init a model from the platform main models
      * @param string $className - the name of the class (in lowercase)
+     * @param bool $init - to init the model as core variable or not
      * @return object|false
      */
-    private function initPlatformModel(string $className)
+    private function initPlatformModel(string $className, bool $init)
     {
         return $this->initCoreModel(
             $className,
-            GLOBAL_PATH.'platform/classes/'.$className.'.php'
+            GLOBAL_PATH.'platform/classes/'.$className.'.php',
+            $init
         );
     }
 
     /**
      * Init a model from the platform modules
      * @param string $className - the name of the class (in lowercase)
+     * @param bool $init - to init the model as core variable or not
      * @return object|false
      */
-    private function initModuleModel(string $className)
+    private function initModuleModel(string $className, bool $init)
     {
         foreach ($this->moduleDirectories as $coreDirectory) {
             $model = $this->initCoreModel(
-                $className, $coreDirectory.'/'.$className.'.php'
+                $className, 
+                $coreDirectory.'/'.$className.'.php', 
+                $init
             );
             if ($model !== false) {
                 return $model;
@@ -393,29 +407,30 @@ class Core
     /**
      * Requires a model and inits is a Core variable
      * @param string $className - the name of the class (in lowercase)
+     * @param bool $init - to init the model as core variable or not
      * @return object|false
      */
-    private function initModel(string $className)
+    private function initModel(string $className, bool $init)
     {
-        $model = $this->initSiteSpecificModel($className);
+        $model = $this->initSiteSpecificModel($className, $init);
         if ($model !== false) {
             return $model;
         }
         unset($model);
 
-        $model = $this->initProjectGlobalModel($className);
+        $model = $this->initProjectGlobalModel($className, $init);
         if ($model !== false) {
             return $model;
         }
         unset($model);
 
-        $model = $this->initPlatformModel($className);
+        $model = $this->initPlatformModel($className, $init);
         if ($model !== false) {
             return $model;
         }
         unset($model);
 
-        $model = $this->initModuleModel($className);
+        $model = $this->initModuleModel($className, $init);
         if ($model !== false) {
             return $model;
         }
@@ -441,7 +456,7 @@ class Core
 
         if ($varName === 'exceptionhandler') {
             if (empty($this->exceptionhandler)) {
-                return $this->initModel(mb_strtolower($this->exceptionHandlerName));
+                return $this->initModel(mb_strtolower($this->exceptionHandlerName), true);
             } else {
                 return $this->exceptionhandler;
             }
@@ -452,15 +467,15 @@ class Core
                 $parentName = $this->classesRequriementTree[$varName];
 
                 if (!isset($this->$parentName)) {
-                    $this->initModel($parentName);
+                    $this->initModel($parentName, false);
                 }
 
                 unset($parentName);
 
-                return $this->initModel($varName);
+                return $this->initModel($varName, true);
             }
 
-            return $this->initModel($varName);
+            return $this->initModel($varName, true);
         } else {
             return $this->$varName;
         }
