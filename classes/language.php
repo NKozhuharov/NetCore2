@@ -94,12 +94,36 @@ class Language extends Base
 
         if (isset($this->phrases[$phrase])) {
             return $this->phrases[$phrase];
-        } else if (isset($this->phrasesPlatform[$phrase])) {
+        } elseif (isset($this->phrasesPlatform[$phrase])) {
             return $this->phrasesPlatform[$phrase];
-        } else if (isset($this->phrasesText[$phrase])) {
+        } elseif (isset($this->phrasesText[$phrase])) {
             return $this->phrasesText[$phrase];
         }
         return $phrase;
+    }
+    
+    /**
+     * Gets an array, containing all phrases from the database.
+     * Priority of tables: phrases => phrases_platform => phrases_text
+     * @return array
+     */
+    public function getPhrasesArray()
+    {
+        if ($this->phrases === null) {
+            $this->getPhrases();
+        }
+        
+        $phrases = $this->phrasesText;
+        
+        foreach ($this->phrasesPlatform as $phrase => $translation) {
+            $phrases[$phrase] = $translation;
+        }
+        
+        foreach ($this->phrases as $phrase => $translation) {
+            $phrases[$phrase] = $translation;
+        }
+        
+        return $phrases;
     }
 
     /**
@@ -128,7 +152,7 @@ class Language extends Base
             $location = str_replace('?language='.$_REQUEST['language'], '', $location);
 
             $Core->redirect($location);
-        } else if (isset($_COOKIE['language']) && in_array($_COOKIE['language'], $this->allowedLanguages)) {
+        } elseif (isset($_COOKIE['language']) && in_array($_COOKIE['language'], $this->allowedLanguages)) {
             $this->currentLanguage = $_COOKIE['language'];
             $this->currentLanguageId = array_search($this->currentLanguage, $this->allowedLanguages);
         } else {
@@ -138,7 +162,7 @@ class Language extends Base
     }
 
     /**
-     * Gets the collection of phrases from the `phrases` and `phrases_text` tables in the databse
+     * Gets the collection of phrases from the `phrases`, `phrases_text` and `phrases_platform` tables in the databse
      */
     private function getPhrases()
     {
@@ -147,7 +171,11 @@ class Language extends Base
         $Core->db->query(
             "SELECT
                 `phrase`,
-                IF(`".$this->currentLanguage."` IS NULL OR `".$this->currentLanguage."` = '', `".$Core->defaultLanguage."`, `".$this->currentLanguage."`) AS `translation`
+                IF(
+                    `{$this->currentLanguage}` IS NULL OR `{$this->currentLanguage}` = '', 
+                    `{$Core->defaultLanguage}`, 
+                    `{$this->currentLanguage}`
+                ) AS `translation`
             FROM
                 `{$Core->dbName}`.`phrases`",
             $this->queryCacheTime,
@@ -160,7 +188,11 @@ class Language extends Base
         $Core->db->query(
             "SELECT
                 `phrase`,
-                IF(`".$this->currentLanguage."` IS NULL OR `".$this->currentLanguage."` = '', `".$Core->defaultLanguage."`, `".$this->currentLanguage."`) AS `translation`
+                IF(
+                    `{$this->currentLanguage}` IS NULL OR `{$this->currentLanguage}` = '', 
+                    `{$Core->defaultLanguage}`, 
+                    `{$this->currentLanguage}`
+                ) AS `translation`
             FROM
                 `{$Core->dbName}`.`phrases_text`",
             $this->queryCacheTime,
@@ -173,7 +205,11 @@ class Language extends Base
         $Core->db->query(
             "SELECT
                 `phrase`,
-                IF(`".$this->currentLanguage."` IS NULL OR `".$this->currentLanguage."` = '', `".$Core->defaultLanguage."`, `".$this->currentLanguage."`) AS `translation`
+                IF(
+                    `{$this->currentLanguage}` IS NULL OR `{$this->currentLanguage}` = '', 
+                    `{$Core->defaultLanguage}`, 
+                    `{$this->currentLanguage}`
+                ) AS `translation`
             FROM
                 `{$Core->dbName}`.`phrases_platform`",
             $this->queryCacheTime,
@@ -182,6 +218,18 @@ class Language extends Base
             'phrase',
             'translation'
         );
+        
+        if (empty($this->phrases)) {
+            $this->phrases = array();
+        }
+        
+        if (empty($this->phrasesText)) {
+            $this->phrasesText = array();
+        }
+        
+        if (empty($this->phrasesPlatform)) {
+            $this->phrasesPlatform = array();
+        }
     }
 
     /**
