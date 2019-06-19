@@ -3,15 +3,36 @@
  * This is a platform module
  * This module can be extended with something like 'SiteContactUs extends ContactUs', which allows configuration.
  * It can also be used directly, without extending it, using the default configuration.
- * Create the tables from the 'contactus.sql'
- * Use subjectIsString to choose wether to use string subjects or to use those from the `contact_us_subjects` table
+ * Create the tables from the 'contactus.sql';
+ * The module will dynamically validate the fields, which are present as columns in the table `contact_us`.
  * If the `contact_us_subjects` is used, create it from 'contact_us_subjects.sql' and drop the column `subject` from the
  * `contactus` table;
  * If not, drop the column `subject_id` and it's corresponding foreign key; after that, drop the `contact_us_subjects` and
  * `contact_us_subjects_lang` tables.
+ * Drop any of the other columns which are not required!
+ * Allowed fields are 'name', 'email', 'phone', 'subject'/'subject_id', 'message' and 'accept_terms'
  */
 class ContactUs extends Base
 {
+    //TODO - dynamicly define the required fields and their validations
+    //todo - use Validations!
+    //accept terms
+    
+    const NAME_FIELD_NAME       = 'name';
+    const EMAIL_FIELD_NAME      = 'email';
+    const PHONE_FIELD_NAME      = 'phone';
+    const MESSAGE_FIELD_NAME    = 'message';
+    const SUBJECT_FIELD_NAME    = 'subject';
+    const SUBJECT_ID_FIELD_NAME = 'subject_id';
+    const TERMS_FIELD_NAME      = 'accept_terms';
+    
+    /**
+     * @var bool
+     * Shows if the subject fields eixsts in the model's table.
+     * If it exists, the subject is considered string
+     */
+    private $subjectIsString;
+    
     /**
      * @var int 
      * The minimum length of the name of the user
@@ -31,11 +52,22 @@ class ContactUs extends Base
     protected $minimumMessageLength = 20;
     
     /**
-     * @var bool
-     * Set to false to use the ContactUsSubjects model insetead of strings.
-     * Requires the contact_us_subjects / contact_us_subjects_lang tables.
+     * @var int
+     * The minimum length of the name allowed for subjects
      */
-    protected $subjectIsString = false;
+    protected $minimumSubjectLength = 5;
+    
+    /**
+     * @var int
+     * The maximum length of the name allowed for subjects
+     */
+    protected $maximumSubjectLength = 50;
+    
+    /**
+     * @var bool
+     * Is the accept_terms field required
+     */
+    protected $requireAcceptTerms = false;
     
     /**
      * @var array
@@ -55,6 +87,31 @@ class ContactUs extends Base
         $this->tableName    = 'contact_us';
         $this->orderByField = 'added';
         $this->orderByType  = self::ORDER_DESC;
+        
+        $this->checkTableFields();
+        
+        $this->subjectIsString();
+    }
+    
+    /**
+     * Checks if subject field exists in the model's table; if it exists the the subject will be considered string
+     * Throws Exception if subject_id and subject are both set
+     * @throws Exception
+     */
+    private function subjectIsString()
+    {
+        $fields = $this->tableFields->getFields();
+        
+        if (isset($fields[self::SUBJECT_FIELD_NAME]) && isset($fields[self::SUBJECT_ID_FIELD_NAME])) {
+            throw new Exception("Only one of the following fields is allowed ".
+            self::SUBJECT_FIELD_NAME." or ".self::SUBJECT_ID_FIELD_NAME);
+        }
+        
+        if (isset($fields[self::SUBJECT_FIELD_NAME])) {
+            $this->subjectIsString = true;
+        }
+        
+        $this->subjectIsString = false;
     }
     
     /**
@@ -67,46 +124,71 @@ class ContactUs extends Base
      */
     protected function validateAndPrepareInputArray(array $input, bool $isUpdate = null)
     {
+        global $Core;
+        
         $input = parent::validateAndPrepareInputArray($input, $isUpdate);
+        
+        $fields = $this->tableFields->getFields();
         
         $errorsInFields = array();
         
-        if (
-            mb_strlen($input['name']) < $this->minimumNameLength || 
-            mb_strlen($input['name']) > $this->maximumNameLength
-        ) {
-            $errorsInFields['name'] = "Must be between %{$this->minimumNameLength}%".
-            " and %$this->maximumNameLength% symbols";
+        if (isset($fields[self::NAME_FIELD_NAME])) {
+            if (
+                mb_strlen($input[self::NAME_FIELD_NAME]) < $this->minimumNameLength || 
+                mb_strlen($input[self::NAME_FIELD_NAME]) > $this->maximumNameLength
+            ) {
+                $errorsInFields[self::NAME_FIELD_NAME] = "Must be between %{$this->minimumNameLength}%".
+                " and %$this->maximumNameLength% symbols";
+            } elseif ($Core->Validations->validateName($input[self::NAME_FIELD_NAME]) === false) {
+                $errorsInFields[self::NAME_FIELD_NAME] = "Is not a valid name";
+            }
+            
+            $input[self::NAME_FIELD_NAME] = trim($input[self::NAME_FIELD_NAME]);
         }
         
-        if (!filter_var($input['email'], FILTER_VALIDATE_EMAIL)) {
-            $errorsInFields['email'] = "Email is not valid";
+        if (isset($fields[self::EMAIL_FIELD_NAME])) {
+            if ($Core->Validations->validateEmail($input[self::EMAIL_FIELD_NAME]) === false) {
+                $errorsInFields[self::EMAIL_FIELD_NAME] = "Email is not valid";
+            }
+            $input[self::EMAIL_FIELD_NAME] = trim($input[self::EMAIL_FIELD_NAME]);
         }
         
-        if (mb_strlen($input['message']) < $this->minimumMessageLength) {
-            $errorsInFields['message'] = "Must be more than %{$this->minimumMessageLength}% symbols";
+        if (isset($fields[self::PHONE_FIELD_NAME])) {
+            if ($Core->Validations->validatePhone($input[self::PHONE_FIELD_NAME]) === false) {
+                $errorsInFields[self::PHONE_FIELD_NAME] = "Phone is not valid";
+            }
+            $input[self::PHONE_FIELD_NAME] = trim($input[self::PHONE_FIELD_NAME]);
+        }
+        
+        if (isset($fields[self::MESSAGE_FIELD_NAME])) {
+            if (mb_strlen($input[self::MESSAGE_FIELD_NAME]) < $this->minimumMessageLength) {
+                $errorsInFields[self::MESSAGE_FIELD_NAME] = "Must be more than %{$this->minimumMessageLength}% symbols";
+            }
+            $input[self::MESSAGE_FIELD_NAME] = trim($input[self::MESSAGE_FIELD_NAME]);
         }
         
         if ($this->subjectIsString === true) {
             if (
-                mb_strlen($input['subject']) < $this->minimumSubjectLength || 
-                mb_strlen($input['subject']) > $this->maximumSubjectLength
+                mb_strlen($input[self::SUBJECT_FIELD_NAME]) < $this->minimumSubjectLength || 
+                mb_strlen($input[self::SUBJECT_FIELD_NAME]) > $this->maximumSubjectLength
             ) {
-                $errorsInFields['subject'] = "Must be between %{$this->minimumSubjectLength}%". 
+                $errorsInFields[self::SUBJECT_FIELD_NAME] = "Must be between %{$this->minimumSubjectLength}%". 
                 " and %$this->maximumSubjectLength% symbols";
+            }
+            
+            $input[self::SUBJECT_FIELD_NAME] = trim($input[self::SUBJECT_FIELD_NAME]);
+        }
+        
+        if ($this->requireAcceptTerms === true) {
+            if (!isset($input[self::TERMS_FIELD_NAME]) || empty($input[self::TERMS_FIELD_NAME])) {
+                $errorsInFields[self::TERMS_FIELD_NAME] = "You must accept the terms and conditions";
+            } else {
+                unset($input[self::TERMS_FIELD_NAME]);
             }
         }
         
         if (!empty($errorsInFields)) {
             throw new BaseException("The following fields are not valid", $errorsInFields, get_class($this));
-        }
-        
-        $input['name']    = trim($input['name']);
-        $input['email']   = trim($input['email']);
-        $input['message'] = trim($input['message']);
-        
-        if ($this->subjectIsString === true) {
-            $input['subject'] = trim($input['subject']);
         }
         
         return $input;

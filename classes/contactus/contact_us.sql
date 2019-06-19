@@ -10,6 +10,7 @@ CREATE TABLE `contact_us`  (
   `name` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   `email` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   `subject` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `phone` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   `subject_id` int(10) UNSIGNED NOT NULL,
   `message` text CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   `ip` varchar(45) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
