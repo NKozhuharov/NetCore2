@@ -1031,6 +1031,58 @@ class Base
 
         return $this->executeUpdateQuery($updater);
     }
+    
+    /**
+     * Sets the hiddenField of the provided object to 1 (hides the object)
+     * Returns the number of affected rows
+     * It will throw Exception if the provided objectId is empty
+     * @param int $objectId - the id of the row to be hidden
+     * @throws Exception
+     * @return int
+     */
+    public function hideById(int $objectId)
+    {
+        $this->validateHiddenField();
+        
+        $this->validateObjectId($objectId);
+
+        $updater = new BaseUpdate($this->tableName);
+        $updater->addField($this->hiddenFieldName, 1);
+        $updater->setWhere(" `id` = {$objectId}");
+
+        if ($this->dumpQueries === true) {
+            echo "hideById: ".$updater->get().PHP_EOL;
+            echo '<br />';
+        }
+
+        return $this->executeUpdateQuery($updater);
+    }
+    
+    /**
+     * Sets the hiddenField of the provided object to 0 (shows the object)
+     * Returns the number of affected rows
+     * It will throw Exception if the provided objectId is empty
+     * @param int $objectId - the id of the row to be shown
+     * @throws Exception
+     * @return int
+     */
+    public function showById(int $objectId)
+    {
+        $this->validateHiddenField();
+        
+        $this->validateObjectId($objectId);
+
+        $updater = new BaseUpdate($this->tableName);
+        $updater->addField($this->hiddenFieldName, 0);
+        $updater->setWhere(" `id` = {$objectId}");
+
+        if ($this->dumpQueries === true) {
+            echo "showById: ".$updater->get().PHP_EOL;
+            echo '<br />';
+        }
+
+        return $this->executeUpdateQuery($updater);
+    }
 
     /**
      * Inserts or updates a translation for the provided object
