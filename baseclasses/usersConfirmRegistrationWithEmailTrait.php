@@ -15,6 +15,12 @@ trait UsersConfirmRegistrationWithEmail
     protected $usersRegistrationConfirmationTableName = null;
     
     /**
+     * @var string
+     * This field must exist in the table of the model and will act as a flag for user registration confirmation with email
+     */
+    protected $usersRegistrationConfrimationControlField = 'email_confirmed';
+    
+    /**
      * @var int
      * How much time the tokens for user registration confirmation with email are valid. 0 is infinite
      */
@@ -28,9 +34,15 @@ trait UsersConfirmRegistrationWithEmail
     
     /**
      * @var string
-     * This field must exist in the table of the model and will act as a flag for user registration confirmation with email
+     * The name of the controller which handles the login of user, in case his email is not confirmed
      */
-    protected $usersRegistrationConfrimationControlField = 'email_confirmed';
+    protected $usersRegistrationEmailNotConfirmedControllerName = 'register_not_confirmed';
+    
+    /**
+     * @var string
+     * The name of the controller which resets the token for user registration confirmation with email
+     */
+    protected $usersRegistrationConfrimationResetTokenControllerName = 'register_reset';
     
     /**
      * Makes sure that the database and the models are set up properly, to use user registration confirmation with email
@@ -126,23 +138,16 @@ trait UsersConfirmRegistrationWithEmail
     }
     
     /**
-     * Generates a token and inserts it in the database when using user registration confirmation with email.
-     * Sends email to the user, containig a link to verify his email.
-     * @param array $user - a user object, from register function
+     * Sends an email to the user, containing a link, which will verify his email address
+     * @param array $user - an user object
+     * @param strring $token - the users token
      * @param string $body - the message body (optional)
      * @param string $subject - the message subject (optional)
      */
-    private function getRegistrationConformationToken(array $user, string $body = null, string $subject = null)
+    private function sendRegistrationConfirmationEmail(array $user, string $token, string $body = null, string $subject = null)
     {
         global $Core;
-
-        $token = $this->generateToken();
-
-        $inserter = new BaseInsert($this->usersRegistrationConfirmationTableName);
-        $inserter->addField('user_id', $user['id']);
-        $inserter->addField('token', $token);
-        $inserter->execute();
-
+        
         if ($body === null) {
             $body =
             $Core->Language->thank_you_for_regitestring.'`'.$user['username'].'.`<br><br>'.
@@ -184,7 +189,83 @@ trait UsersConfirmRegistrationWithEmail
         } else {
             $Core->GlobalFunctions->sendEmail($Core->mailConfig['Username'], $Core->siteName, $subject, $user['email'], $body, true);
         }
-        return $token;               
+    }
+    
+    /**
+     * Generates a token and inserts it in the database when using user registration confirmation with email.
+     * Sends email to the user, containig a link to verify his email.
+     * @param array $user - an user object, from register function
+     * @param string $body - the message body (optional)
+     * @param string $subject - the message subject (optional)
+     */
+    private function getRegistrationConfirmationToken(array $user, string $body = null, string $subject = null)
+    {
+        global $Core;
+
+        $token = $this->generateToken();
+
+        $inserter = new BaseInsert($this->usersRegistrationConfirmationTableName);
+        $inserter->addField('user_id', $user['id']);
+        $inserter->addField('token', $token);
+        $inserter->execute();
+        
+        $this->sendRegistrationConfirmationEmail($user, $token, $body, $subject);
+        
+        return $token;
+    }
+    
+    /**
+     * When using user registration confirmation with email, call this function to reset the token and resend the email
+     * to the user (in case something went wrong durign registration).
+     * Also, this could be used to verify an user's email, if it's not required to login to the site.
+     * @param array $user - an user object, from the user's session
+     * @param string $body - the message body (optional)
+     * @param string $subject - the message subject (optional)
+     */
+    public function resetRegistrationConfirmationToken(array $user, string $body = null, string $subject = null)
+    {
+        global $Core;
+        
+        $this->validateConfirmRegistrationWithEmailConfiguration();
+        
+        //check for existing token
+        $selector = new BaseSelect($this->usersRegistrationConfirmationTableName);
+        $selector->setWhere("`user_id` = '{$user['id']}'");
+        $selector->setGlobalTemplate('fetch_assoc');
+        $selector->turnOffCache();
+        $token = $selector->execute();
+        
+        if (empty($token)) { //no token yet
+            $token = $this->generateToken();
+
+            $inserter = new BaseInsert($this->usersRegistrationConfirmationTableName);
+            $inserter->addField('user_id', $user['id']);
+            $inserter->addField('token', $token);
+            $inserter->execute();
+        } elseif ( //token is available, reset it
+            $this->usersRegistrationConfrimationTokenExpireTime > 0 && 
+            strtotime(strtotime($token['added']) < time() - $this->usersRegistrationConfrimationTokenExpireTime)
+        ) {
+            $updater = new BaseUpdate($this->usersRegistrationConfirmationTableName);
+            $updater->addField('added', $Core->GlobalFunctions->formatMysqlTime(time(), true));
+            $updater->setWhere("`user_id` = '{$user['id']}'");
+            $updater->execute();
+        } elseif ($this->usersRegistrationConfrimationTokenExpireTime > 0) { //token is expired
+            $deleter = new BaseDelete($this->usersRegistrationConfirmationTableName);
+            $deleter->setWhere("`token` = '$token'");
+            $deleter->execute();
+
+            $token = $this->generateToken();
+
+            $inserter = new BaseInsert($this->usersRegistrationConfirmationTableName);
+            $inserter->addField('user_id', $user['id']);
+            $inserter->addField('token', $token);
+            $inserter->execute();
+        }
+        
+        $this->sendRegistrationConfirmationEmail($user, $token, $body, $subject);
+        
+        return $token;
     }
     
     /**

@@ -409,13 +409,15 @@ class User extends Base
 
         $queryWhere[] = "`password` = '$password'";
         
-        $this->data = $this->getAll(1, " ".implode(' AND ', $queryWhere));
+        $this->data = $this->getAll(1, implode(' AND ', $queryWhere));
 
         if (!empty($this->data)) {
             $this->data = current($this->data);
             
             if ($this->confirmRegistrationWithEmail && empty($this->data[$this->usersRegistrationConfrimationControlField])) {
-                throw new BaseException("In order to login, you have to validate your email address");
+                $this->data['logged_in'] = false;
+                $this->setSessionInMemcache();
+                $Core->redirect($this->usersRegistrationEmailNotConfirmedControllerName);
             }
             
             $this->data['logged_in'] = true;
@@ -427,7 +429,7 @@ class User extends Base
             if ($this->lastLoginField) {
                 $this->updateById(
                     $this->data['id'],
-                    array($this->lastLoginField => $Core->globalFunctions->formatMysqlTime(time(),true))
+                    array($this->lastLoginField => $Core->globalFunctions->formatMysqlTime(time(), true))
                 );
             }
         } elseif ($this->registerWithEmail) {
