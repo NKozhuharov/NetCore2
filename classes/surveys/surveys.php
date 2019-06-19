@@ -1,9 +1,13 @@
 <?php
 /**
  * This is a platform module
- * It should be used directly, without extending it
- * Create the tables from the 'surveys.sql'
- * Drop `surveys_lang`/`surveys_questions_lang`/`surveys_answers_lang` table if it is not used
+ * This module can be extended with something like 'SiteSurveys extends Surveys', which allows configuration.
+ * IMPORTANT!!!
+ * If the module is extended, set the 'SurveysModuleName' variable in settings file in the 'Settings' folder of the project.
+ * It can also be used directly, without extending it, using the default configuration.
+ * Create the tables from the 'surveys.sql'.
+ * Drop `surveys_lang`/`surveys_questions_lang`/`surveys_answers_lang` table if it is not used.
+ * 
  */
 class Surveys extends Base
 {
@@ -25,6 +29,12 @@ class Surveys extends Base
      */
     public function __construct()
     {
+        global $Core;
+        
+        if ($Core->SurveysModuleName === false) {
+            $Core->SurveysModuleName = 'Surveys';
+        }
+        
         $this->tableName       = 'surveys';
         $this->hiddenFieldName = 'expired';
         

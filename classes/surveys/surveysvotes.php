@@ -1,6 +1,6 @@
 <?php
 /**
- * Refer to surveys
+ * Refer to Surveys module
  * DO NOT USE THIS MODEL WITHOUT SURVEYS
  */
 final class SurveysVotes extends Base
@@ -77,7 +77,7 @@ final class SurveysVotes extends Base
         
         if (!empty($lastVote)) {
             $lastVote = current($lastVote);
-            if ($lastVote['added_timestamp'] >= time() - $Core->Surveys->getVoteInterval()) {
+            if ($lastVote['added_timestamp'] >= time() - $Core->{$Core->SurveysModuleName}->getVoteInterval()) {
                 throw new Exception("You cannot vote again yet");
             }
         }

@@ -1,6 +1,6 @@
 <?php
 /**
- * Refer to surveys
+ * Refer to Surveys module
  * DO NOT USE THIS MODEL WITHOUT SURVEYS
  */
 final class SurveysQuestions extends Base
@@ -17,8 +17,10 @@ final class SurveysQuestions extends Base
         $this->orderByField = '`order`';
         $this->orderByType  = self::ORDER_ASC;
         
-        if ($Core->Surveys->isMultilanguageAllowed()) {
+        if ($Core->{$Core->SurveysModuleName}->isMultilanguageAllowed()) {
             $this->translationFields = array('question');
+        } else {
+            $this->translateResult = false;
         }
     }
     
