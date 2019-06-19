@@ -29,6 +29,4 @@ class FAQ extends Base
             $this->translateResult = false;
         }
     }
-    
-    //testing git
 }
