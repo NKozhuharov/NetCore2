@@ -47,6 +47,8 @@ class News extends Base
         
         if ($this->allowMultilanguage) {
             $this->translationFields = array('title', 'description', 'short_description', 'link');
+        } else {
+            $this->translateResult = false;
         }
     }
     

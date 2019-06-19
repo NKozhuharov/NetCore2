@@ -25,6 +25,8 @@ class Categories extends Base
         
         if ($this->allowMultilanguage) {
             $this->translationFields = array('name', 'link');
+        } else {
+            $this->translateResult = false;
         }
     }
     
