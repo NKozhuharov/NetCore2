@@ -2,6 +2,7 @@
 /**
  * This is a platform module
  * This module can be extended with something like 'SiteFAQ extends FAQ', which allows configuration
+ * It can also be used directly, without extending it, using the default configuration.
  * Create the tables from the 'faq.sql'
  * Drop `faq_lang` table if it's not used
  */

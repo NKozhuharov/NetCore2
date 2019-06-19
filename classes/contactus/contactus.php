@@ -1,7 +1,8 @@
 <?php
 /**
  * This is a platform module
- * This module can be extended with something like 'SiteContactUs extends ContactUs', which allows configuration
+ * This module can be extended with something like 'SiteContactUs extends ContactUs', which allows configuration.
+ * It can also be used directly, without extending it, using the default configuration.
  * Create the tables from the 'contactus.sql'
  * Use subjectIsString to choose wether to use string subjects or to use those from the `contact_us_subjects` table
  * If the `contact_us_subjects` is used, create it from 'contact_us_subjects.sql' and drop the column `subject` from the
