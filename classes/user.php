@@ -734,7 +734,7 @@ class User extends Base
         $input['id'] = $userId;
         
         if ($this->confirmRegistrationWithEmail === true) {
-            $this->getRegistrationConformationToken($input);
+            $this->getRegistrationConfirmationToken($input);
         }
         
         return $userId;
