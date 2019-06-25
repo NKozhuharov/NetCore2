@@ -15,7 +15,7 @@ CREATE TABLE `contact_us`  (
   `message` text CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   `ip` varchar(45) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   `added` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
-  `status` tinyint(1) UNSIGNED NULL DEFAULT 0 COMMENT '0 - unseen\r\n1 - seen\r\n2 - responded',
+  `status` tinyint(1) UNSIGNED NULL DEFAULT 0 COMMENT '0 - unread\r\n1 - read\r\n2 - replied',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `subject_id`(`subject_id`) USING BTREE,
   CONSTRAINT `contact_us_ibfk_1` FOREIGN KEY (`subject_id`) REFERENCES `contact_us_subjects` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
