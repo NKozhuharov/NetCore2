@@ -3,7 +3,7 @@ class ExceptionHandler
 {
     const MESSAGE_BREAKDOWN_DELIMITER = '%%';
     const DONT_TRANSLATE_DELIMITER = '##';
-    
+
     /**
      * Parses the exception message and makes sure it can be translated
      * @param Exception $exception - the thrown exception
@@ -46,15 +46,15 @@ class ExceptionHandler
         foreach ($styles as $style) {
             $message = str_replace('<style'.$style.'</style>', '', $message);
         }
-        
+
         $message = explode(self::MESSAGE_BREAKDOWN_DELIMITER, $message);
         $translation = '';
         foreach ($message as $messagePart) {
             if (
-                substr($messagePart, 0, strlen(self::DONT_TRANSLATE_DELIMITER)) !== self::DONT_TRANSLATE_DELIMITER && 
+                substr($messagePart, 0, strlen(self::DONT_TRANSLATE_DELIMITER)) !== self::DONT_TRANSLATE_DELIMITER &&
                 substr(
-                    $messagePart, 
-                    -(strlen(self::DONT_TRANSLATE_DELIMITER)), 
+                    $messagePart,
+                    -(strlen(self::DONT_TRANSLATE_DELIMITER)),
                     strlen(self::DONT_TRANSLATE_DELIMITER)
                 ) !== self::DONT_TRANSLATE_DELIMITER
             ) {
@@ -64,7 +64,7 @@ class ExceptionHandler
             } else {
                 $translation .= substr(
                     $messagePart,
-                    strlen(self::DONT_TRANSLATE_DELIMITER), 
+                    strlen(self::DONT_TRANSLATE_DELIMITER),
                     -(strlen(self::DONT_TRANSLATE_DELIMITER))
                 );
             }
@@ -113,8 +113,8 @@ class ExceptionHandler
         global $Core;
 
         header('HTTP/1.1 400 Bad Request', true, 400);
-        
-        if ($Core->clientIsDeveoper()) {     
+
+        if ($Core->clientIsDeveoper()) {
             $message = $error->__toString();
             $message .= PHP_EOL;
             $message .= "Thrown in ".$error->getFile()." on line ".$error->getLine();
@@ -130,7 +130,7 @@ class ExceptionHandler
             echo '</pre>';
         }
     }
-    
+
     /**
      * Transforms a BaseException into human readable error
      * @param BaseException $exception
@@ -138,9 +138,9 @@ class ExceptionHandler
     protected function outputBaseException(BaseException $exception)
     {
         global $Core;
-        
+
         $data = $exception->getData();
-        
+
         if ($Core->ajax) {
             echo $this->handleAjaxMessage($this->getExceptionMessage($exception), false, $data);
         } else {
@@ -154,7 +154,7 @@ class ExceptionHandler
         }
         unset ($data);
     }
-    
+
     /**
      * Handle a ForbiddenException throwable
      * @param ForbiddenException $exception

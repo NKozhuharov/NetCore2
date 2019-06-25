@@ -11,8 +11,8 @@ class Base
     use QueryExecuters;
     use SearchTrait;
 
-    const ORDER_ASC = 'ASC';
-    const ORDER_DESC = 'DESC';
+    const ORDER_ASC   = 'ASC';
+    const ORDER_DESC  = 'DESC';
     const ORDER_FIELD = 'FIELD';
 
     //main variables
@@ -47,7 +47,7 @@ class Base
      * Allows the user to set a default ordering for the select queries
      * This is the order type
      */
-    protected $orderByType = 'ASC';
+    protected $orderByType = self::ORDER_ASC;
 
     /**
      * @var int
@@ -1031,7 +1031,7 @@ class Base
 
         return $this->executeUpdateQuery($updater);
     }
-    
+
     /**
      * Sets the hiddenField of the provided object to 1 (hides the object)
      * Returns the number of affected rows
@@ -1043,7 +1043,7 @@ class Base
     public function hideById(int $objectId)
     {
         $this->validateHiddenField();
-        
+
         $this->validateObjectId($objectId);
 
         $updater = new BaseUpdate($this->tableName);
@@ -1057,7 +1057,7 @@ class Base
 
         return $this->executeUpdateQuery($updater);
     }
-    
+
     /**
      * Sets the hiddenField of the provided object to 0 (shows the object)
      * Returns the number of affected rows
@@ -1069,7 +1069,7 @@ class Base
     public function showById(int $objectId)
     {
         $this->validateHiddenField();
-        
+
         $this->validateObjectId($objectId);
 
         $updater = new BaseUpdate($this->tableName);
