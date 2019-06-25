@@ -393,8 +393,8 @@ class Core
     {
         foreach ($this->moduleDirectories as $coreDirectory) {
             $model = $this->initCoreModel(
-                $className, 
-                $coreDirectory.'/'.$className.'.php', 
+                $className,
+                $coreDirectory.'/'.$className.'.php',
                 $init
             );
             if ($model !== false) {
@@ -603,7 +603,7 @@ class Core
     public function setItemsPerPage(int $itemsPerPage)
     {
         if ($itemsPerPage <= 0) {
-            throw new Exeption("Items per page must be bigger than 0");
+            throw new Exception("Items per page must be bigger than 0");
         }
 
         $this->itemsPerPage = $itemsPerPage;
