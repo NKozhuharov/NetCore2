@@ -1,6 +1,53 @@
 <?php
 class GlobalFunctions
 {
+    /**
+     * Cuts string by given number of symbols
+     * Puts '...' at the end
+     * @param string $text
+     * @param int $symbols
+     */
+    public function cutText(string $text, int $symbols = 250)
+    {
+        if (strlen(trim($text)) <= $symbols) {
+            return trim($text);
+        }
+
+        $endSymbols = array('.', '!', '?');
+
+        $text = substr($text, 0, $symbols);
+
+        if (substr($text, -2) == '..' && substr($text, -3) != '...') {
+            $text = $text.'.';
+        }
+
+        $lastSymbol = substr($text, -1);
+
+        if (in_array($lastSymbol, $endSymbols)) {
+            return $text;
+        }
+
+        if (ctype_alnum($lastSymbol)) {
+            $text = trim(substr($text, 0, strrpos($text, ' ')));
+            $lastSymbol = substr($text, -1);
+        }
+
+        while (!ctype_alnum($lastSymbol) && !in_array($lastSymbol, $endSymbols) && !empty($lastSymbol)) {
+            $text = substr($text, 0, strlen($text) - 1);
+            $lastSymbol = substr($text, -1);
+        }
+
+        if (empty($text)) {
+            return $text;
+        }
+
+        if (!in_array($lastSymbol, $endSymbols)) {
+            $text = $text.'...';
+        }
+
+        return $text;
+    }
+
     function curl($url)
     {
         $ch = curl_init();
