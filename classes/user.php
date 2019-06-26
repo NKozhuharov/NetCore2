@@ -4,10 +4,10 @@ class User extends Base
     const DEFAULT_USER_ROLE     = "Nobody";
     const DEFAULT_USER_LEVEL    = 0;
     const DEFAULT_USER_LEVEL_ID = 0;
-    
+
     use UsersConfirmRegistrationWithEmail;
     use UsersRecovery;
-    
+
     /**
      * @var string
      * The key, which is used to store the session in the memcache
@@ -30,13 +30,13 @@ class User extends Base
      * User session time in seconds; after that the user will be logged out
      */
     protected $sessionTime = 3600;
-    
+
     /**
      * @var string
      * The domain for the session cookie; by default it's the current domain
      */
     protected $sessionCookieDomain = '';
-    
+
     //database structure properties
 
     /**
@@ -317,7 +317,7 @@ class User extends Base
             $selector = new BaseSelect($this->pagesTableName);
             $selector->addField('level', 'level', $this->usersLevelTableName);
             $selector->addLeftJoin($this->usersLevelTableName, 'id', 'level_id');
-            $selector->setWhere("`{$Core->dbName}`.`{$this->pagesTableName}`.`link` = '".$Core->db->escape($Core->rewrite->url)."'");
+            $selector->setWhere("`{$Core->dbName}`.`{$this->pagesTableName}`.`controller_path` = '".$Core->db->escape($Core->rewrite->controllerPath)."'");
             $selector->setGlobalTemplate('fetch_assoc');
             $level = $selector->execute();
             if (!empty($level) && isset($level['level']) && $level['level'] == 0) {
@@ -325,7 +325,7 @@ class User extends Base
             }
         } else {
             foreach ($this->data['pages'] as $page) {
-                if ($Core->Rewrite->url == $page['link']) {
+                if ($Core->Rewrite->controllerPath == $page['controller_path']) {
                     return;
                 }
             }
@@ -333,7 +333,7 @@ class User extends Base
 
         $this->userAccessDenied();
     }
-    
+
     /**
      * Allows to customize what happens when a user does not have an access to some page
      * By default it shows the page not found
@@ -341,8 +341,8 @@ class User extends Base
     protected function userAccessDenied()
     {
         global $Core;
-        
-        $Core->doOrDie();        
+
+        $Core->doOrDie();
     }
 
     /**
@@ -408,18 +408,18 @@ class User extends Base
         $queryWhere[] = "`username` = '$username'";
 
         $queryWhere[] = "`password` = '$password'";
-        
+
         $this->data = $this->getAll(1, implode(' AND ', $queryWhere));
 
         if (!empty($this->data)) {
             $this->data = current($this->data);
-            
+
             if ($this->confirmRegistrationWithEmail && empty($this->data[$this->usersRegistrationConfrimationControlField])) {
                 $this->data['logged_in'] = false;
                 $this->setSessionInMemcache();
                 $Core->redirect($this->usersRegistrationEmailNotConfirmedControllerName);
             }
-            
+
             $this->data['logged_in'] = true;
             $this->data = array_merge($this->data, $this->getUserLevelData());
             $this->data['pages'] = $this->getUserPages();
@@ -610,7 +610,7 @@ class User extends Base
         if (empty($email)) {
             throw new Exception("Provide email");
         }
-        
+
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             throw new Exception("Email is not valid");
         }
@@ -639,10 +639,10 @@ class User extends Base
      * @throws BaseException
      */
     public function validateRegisterationValues(
-        string $username, 
-        string $password, 
-        string $repeatPassword, 
-        int $levelId = null, 
+        string $username,
+        string $password,
+        string $repeatPassword,
+        int $levelId = null,
         int $typeId = null
     )
     {
@@ -677,7 +677,7 @@ class User extends Base
             throw new BaseException("The following fields are not valid", $errorsInFields, get_class($this));
         }
     }
-    
+
     /**
      * Allows the registration of users with username and password
      * Allows to set a user level id and user type id (if requried by the project)
@@ -690,11 +690,11 @@ class User extends Base
     public function register(array $input)
     {
         global $Core;
-        
+
         if ($this->confirmRegistrationWithEmail === true) {
             $this->validateConfirmRegistrationWithEmailConfiguration();
         }
-        
+
         if (empty($input)) {
             throw new Exception("Provide user data");
         }
@@ -706,13 +706,13 @@ class User extends Base
         $input['type_id']         = isset($input['type_id'])         ? intval($input['type_id']) : null;
 
         $this->validateRegisterationValues(
-            $input['username'], 
-            $input['password'], 
-            $input['repeat_password'], 
-            $input['level_id'], 
+            $input['username'],
+            $input['password'],
+            $input['repeat_password'],
+            $input['level_id'],
             $input['type_id']
         );
-        
+
         if ($this->confirmRegistrationWithEmail === true && $this->registerWithEmail === false) {
             $input = $this->getAndValidateEmailForConfirmRegistrationWithEmail($input);
         }
@@ -730,13 +730,13 @@ class User extends Base
         unset($input['repeat_password']);
 
         $userId = $this->insert($input);
-        
+
         $input['id'] = $userId;
-        
+
         if ($this->confirmRegistrationWithEmail === true) {
             $this->getRegistrationConfirmationToken($input);
         }
-        
+
         return $userId;
     }
 
@@ -796,7 +796,7 @@ class User extends Base
 
         return $this->updateById($userId, array('password' => $this->hashPassword($newPassword)));
     }
-    
+
     /**
      * Generates a random alpanumeric string, with a specific length
      * Throws exception if the provided length is negative, zero or larger than 32
@@ -809,11 +809,11 @@ class User extends Base
         if ($length <= 0) {
             throw new Exception("Password length must be bigger than 0");
         }
-        
+
         if ($length > 32) {
             throw new Exception("Password length must be less than 32");
         }
-        
+
         return strtoupper(substr(md5(time()), rand(0, (32 - $length)), $length));
     }
 

@@ -9,9 +9,15 @@ class Menu
 
     /**
      * @var string
-     * A copy of the $Core->Rewrite->url
+     * An imploded copy of the $Core->Rewrite->urlBreakdown
      */
     private $url = '';
+
+    /**
+     * @var string
+     * A copy of the $Core->Rewrite->controllerPath
+     */
+    private $controllerPath = '';
 
     /**
      * @var string
@@ -20,13 +26,21 @@ class Menu
     protected $linkField = 'link';
 
     /**
+     * @var string
+     * Use this field to specify the path field
+     */
+    protected $pathField = 'controller_path';
+
+    /**
      * Creates a new instance of the Menu class
      */
     public function __construct()
     {
         global $Core;
 
-        $this->url = $Core->Rewrite->url;
+        $this->url = '/'.implode('/', $Core->Rewrite->urlBreakdown);
+
+        $this->controllerPath = $Core->Rewrite->controllerPath;
     }
 
     /**
@@ -120,7 +134,7 @@ class Menu
             $isResp = true;
         }
 
-        $parents = $Core->globalFunctions->arraySearch($tree, $this->linkField, $this->url);
+        $parents = $Core->globalFunctions->arraySearch($tree, $this->pathField, $this->controllerPath);
 
         if (isset($parents[0], $parents[0]['parentsIds'])) {
             $parents = $parents[0]['parentsIds'];
@@ -135,7 +149,6 @@ class Menu
 
             if ($t['children']) {
                 $subMenu = false;
-
                 foreach ($t['children'] as $child) {
                     if ($child['name']) {
                         $subMenu = true;
@@ -167,7 +180,8 @@ class Menu
                         <?php $this->formTree($t['children'], $isResp); ?>
                     </ul>
                 </li>
-            <?php } else { ?>
+            <?php } else {
+                ?>
                 <li
                     id="<?php echo $t['id']; ?>"
                     title="<?php echo $name; ?>"

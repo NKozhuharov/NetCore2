@@ -27,6 +27,12 @@ class Rewrite
 
     /**
      * @var string
+     * The current controller path
+     */
+    private $controllerPath;
+
+    /**
+     * @var string
      * The part of the url after ? (get request)
      */
     private $urlGetPart = '';
@@ -105,6 +111,8 @@ class Rewrite
         } elseif (!empty($Core->rewriteOverride) && in_array($path, $Core->rewriteOverride)) {
             $this->showPageNotFound();
         }
+
+        $this->controllerPath = '/'.$path;
 
         $this->controller = $Core->Links->parseLink($path);
         $this->view = $Core->Links->parseLink($path);
