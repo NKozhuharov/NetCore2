@@ -5,13 +5,24 @@ class ExceptionHandler
     const DONT_TRANSLATE_DELIMITER = '##';
 
     /**
+     * If is set to false nothing will be translated
+     * @var bool $translate
+     */
+    protected $translate = true;
+
+    /**
      * Parses the exception message and makes sure it can be translated
      * @param Exception $exception - the thrown exception
      * @return string
      */
     protected function getExceptionMessage($exception)
     {
-        $message = $exception->getMessage();
+        if(!is_string($exception)){
+            $message = $exception->getMessage();
+        } else {
+            $message = $exception;
+        }
+
 
         if (empty($message)) {
             return '';
@@ -49,6 +60,7 @@ class ExceptionHandler
 
         $message = explode(self::MESSAGE_BREAKDOWN_DELIMITER, $message);
         $translation = '';
+
         foreach ($message as $messagePart) {
             if (
                 substr($messagePart, 0, strlen(self::DONT_TRANSLATE_DELIMITER)) !== self::DONT_TRANSLATE_DELIMITER &&
@@ -58,9 +70,14 @@ class ExceptionHandler
                     strlen(self::DONT_TRANSLATE_DELIMITER)
                 ) !== self::DONT_TRANSLATE_DELIMITER
             ) {
-                $messagePart = str_replace(' ', '_', mb_strtolower($messagePart));
-                $messagePart = trim($messagePart, ' _');
-                $translation .= $Core->Language->{$messagePart}.' ';
+                if ($this->translate) {
+                    $messagePart = str_replace(' ', '_', mb_strtolower($messagePart));
+                    $messagePart = trim($messagePart, ' _');
+                    $translation .= $Core->Language->{$messagePart}.' ';
+                } else{
+                    $translation .= $messagePart.' ';
+                }
+
             } else {
                 $translation .= substr(
                     $messagePart,
@@ -98,7 +115,7 @@ class ExceptionHandler
         header('HTTP/1.1 200 OK', true, 200);
 
         if ($Core->ajax) {
-            echo $this->handleAjaxMessage($this->getExceptionMessage($success), true);
+            $this->handleAjaxMessage($this->getExceptionMessage($success), true);
         } else {
             echo $this->getExceptionMessage($success);
         }
@@ -112,7 +129,7 @@ class ExceptionHandler
     {
         global $Core;
 
-        header('HTTP/1.1 400 Bad Request', true, 400);
+        header('HTTP/1.1 500 Internal Server Error', true, 500);
 
         if ($Core->clientIsDeveoper()) {
             $message = $error->__toString();
@@ -123,7 +140,7 @@ class ExceptionHandler
         }
 
         if ($Core->ajax) {
-            echo $this->handleAjaxMessage($message);
+            $this->handleAjaxMessage($message);
         } else {
             echo '<pre style="font-family: unset;">';
             echo $message;
@@ -142,13 +159,29 @@ class ExceptionHandler
         $data = $exception->getData();
 
         if ($Core->ajax) {
-            echo $this->handleAjaxMessage($this->getExceptionMessage($exception), false, $data);
+            if (!empty($data)) {
+                foreach ($data as $fieldName => $message) {
+                    unset($data[$fieldName]);
+
+                    $data[$this->translateMessage($fieldName)] = $this->translateMessage($message);
+                }
+            }
+
+            $this->handleAjaxMessage($this->getExceptionMessage($exception), false, $data);
         } else {
             echo $this->getExceptionMessage($exception);
+
             if (!empty($data)) {
                 echo ':';
+
                 foreach ($data as $fieldName => $message) {
-                    echo '<br>'.$this->translateMessage($fieldName).' - '.$this->translateMessage($message);
+                    echo '<br>';
+
+                    if (!is_numeric($fieldName)) {
+                        $this->translateMessage($fieldName).' - ';
+                    }
+
+                    echo $this->translateMessage($message);
                 }
             }
         }
@@ -185,13 +218,15 @@ class ExceptionHandler
     {
         global $Core;
 
-        header('HTTP/1.1 500 Internal Server Error', true, 500);
+        header('HTTP/1.1 400 Bad Request', true, 400);
+
+        $message = $this->getExceptionMessage($exception->getMessage());
 
         if ($Core->ajax) {
-            echo $this->handleAjaxMessage($exception->getMessage());
+            $this->handleAjaxMessage($message);
         } else {
             echo '<pre style="font-family: unset;">';
-            echo $exception->getMessage();
+            echo $message;
             echo '</pre>';
         }
     }
@@ -204,8 +239,22 @@ class ExceptionHandler
      */
     public function handleAjaxMessage(string $message, bool $isSuccess = null, array $data = null)
     {
-        ?>
-        <div><div id="alert"><?php echo $message; ?></div></div>
-        <?php
+        echo $message;
+
+        if ($data) {
+            if (!empty($data)) {
+                echo ':';
+
+                foreach ($data as $fieldName => $message) {
+                    echo '<br>';
+
+                    if (!is_numeric($fieldName)) {
+                        echo $fieldName.' - ';
+                    }
+
+                    echo $message;
+                }
+            }
+        }
     }
 }

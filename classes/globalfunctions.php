@@ -589,31 +589,6 @@ class GlobalFunctions
         return $folder;
     }
 
-    //validate an URL ($url) against a test string ($stringToCheck)
-    public function validateSpecificLink($url, $pattern)
-    {
-        global $Core;
-        $this->validateBasicUrl($url);
-        if (!preg_match("{".$pattern."}",$url)) {
-            throw new BaseException("%%`{$url}`%% is not valid");
-        }
-        return true;
-    }
-
-    //a basic check, if an URL is valid
-    public function validateBasicUrl($url)
-    {
-        global $Core;
-        if (!filter_var($url, FILTER_VALIDATE_URL))
-            throw new BaseException("%%`{$url}`%% is not a valid link");
-
-        if (!substr($url, 0, 7) == "http://" || !substr($url, 0, 8) == "https://") {
-            throw new BaseException("%%`{$url}`%% is not a valid link");
-        }
-
-        return true;
-    }
-
     public function checkIfProcessIsRunning($processName)
     {
         global $Core;

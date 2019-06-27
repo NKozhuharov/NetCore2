@@ -29,17 +29,17 @@ trait BaseInputQuery
     public function addFieldAndValue(string $field, string $value)
     {
         global $Core;
-        
+
         $field = $Core->db->escape(trim($field));
-        
+
         if (empty($field)) {
             throw new Exception("Field names cannot be empty");
         }
-        
+
         $this->fields[] = $field;
         $this->values[] = $Core->db->escape($value);
     }
-    
+
     /**
      * Allows to set the collection of fields one by one
      * Throws exception if the field name is empty
@@ -98,15 +98,15 @@ trait BaseInputQuery
     private function validateFieldsAndValues()
     {
         if (empty($this->fields)) {
-            throw new exception ("Provide at least one field");
+            throw new Exception("Provide at least one field");
         }
 
         if (empty($this->values)) {
-            throw new exception ("Provide at least one value");
+            throw new Exception("Provide at least one value");
         }
 
         if (count($this->fields) != count($this->values)) {
-            throw new exception ("Fields and values have to be the same amount");
+            throw new Exception("Fields and values have to be the same amount");
         }
     }
 }

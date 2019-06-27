@@ -141,7 +141,7 @@ class ContactUs extends Base
     protected function validateAndPrepareInputArray(array $input, bool $isUpdate = null)
     {
         global $Core;
-        
+
         $errorsInFields = array();
 
         if ($this->requireAcceptTerms === true && empty($isUpdate)) {
@@ -169,7 +169,7 @@ class ContactUs extends Base
 
             $input[self::NAME_FIELD_NAME] = trim($input[self::NAME_FIELD_NAME]);
         }
-        
+
         if (isset($fields[self::EMAIL_FIELD_NAME]) && isset($input[self::EMAIL_FIELD_NAME])) {
             if ($Core->Validations->validateEmail($input[self::EMAIL_FIELD_NAME]) === false) {
                 $errorsInFields[self::EMAIL_FIELD_NAME] = "Email is not valid";

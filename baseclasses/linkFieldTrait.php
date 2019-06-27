@@ -85,7 +85,7 @@ trait LinkField
             if (strstr($ex->getMessage(), 'The following controller was not found')) {
                 return '/'.mb_strtolower($object[$this->linkField]);
             }
-            throw new Exception ($ex->getMessage());
+            throw new Exception($ex->getMessage());
         }
     }
 
@@ -165,7 +165,7 @@ trait LinkField
             if (strstr($ex->getMessage(), 'The following controller was not found')) {
                 return '/'.$object['id'];
             }
-            throw new Exception ($ex->getMessage());
+            throw new Exception($ex->getMessage());
         }
     }
 
@@ -221,7 +221,7 @@ trait LinkField
         try {
             $this->tableFields = new BaseTableFields("{$this->tableName}_lang");
         } catch (Exception $ex) {
-            throw new Exception ("Table {$this->tableName}_lang does not exist in model `".get_class($this)."`");
+            throw new Exception("Table {$this->tableName}_lang does not exist in model `".get_class($this)."`");
         }
 
         foreach ($this->translationFields as $translationField) {

@@ -243,7 +243,7 @@ class Core
         global $_DELETE, $_PUT, $_PATCH;
 
         if (!isset($info['db']) || empty($info['db']) || !isset($info['mc']) || empty($info['mc'])) {
-            throw new Exception ("'db' and 'mc' variables are required for a Core instance!");
+            exit("'db' and 'mc' variables are required for a Core instance!");
         }
 
         $this->ajax = (
@@ -603,7 +603,7 @@ class Core
     public function setItemsPerPage(int $itemsPerPage)
     {
         if ($itemsPerPage <= 0) {
-            throw new Exception("Items per page must be bigger than 0");
+            exit("Items per page must be bigger than 0");
         }
 
         $this->itemsPerPage = $itemsPerPage;

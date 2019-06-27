@@ -167,7 +167,6 @@ class Menu
                         ($isResp ? ' respPad' : '').
                         (in_array($t['id'], $parents) ? ' active' : '');
                     ?>"
-
                 >
                     <?php if ($t[$this->linkField]) { ?>
                         <a class=" <?php echo $subMenu ? 'menu-name' : '';?>" href="<?php echo $t[$this->linkField]; ?>">

@@ -30,7 +30,7 @@ $_PATCH = array();
 
 if (isset($_SERVER['REQUEST_METHOD'])) {
     $contents = file_get_contents('php://input');
-    
+
     if (!empty($contents)) {
         if ($_SERVER['REQUEST_METHOD'] == 'DELETE') {
             if ($_SERVER['CONTENT_TYPE'] === 'application/json') {
@@ -69,7 +69,7 @@ if (isset($_SERVER['REQUEST_METHOD'])) {
                     exit("Invalid JSON: ".$contents);
                 }
             } else {
-                parse_str($contents, $_POST);    
+                parse_str($contents, $_POST);
             }
             $_REQUEST = array_merge($_REQUEST, $_POST);
         }
@@ -99,6 +99,9 @@ try {
 
     $Core = new Core($info);
 
+    //init Language class to listen for language change
+    $Core->Language;
+
     //init images class if present
     if ($Core->{$Core->imagesModel}) {
         $Core->{$Core->imagesModel};
@@ -108,7 +111,7 @@ try {
     if ($Core->{$Core->userModel}) {
         $Core->{$Core->userModel}->init();
     }
-    
+
     if ($Core->multiLanguageLinks === true) {
         $Core->Links->setLanguageChangeLinks(
             $Core->Links->getLanguageChangeLinksOfController()
@@ -130,6 +133,7 @@ try {
 } catch (ForbiddenException $e) {
     ob_end_clean();
     $Core->exceptionhandler->ForbiddenException($e);
+    die;
 } catch (BaseException $e) {
     ob_end_clean();
     $Core->exceptionhandler->BaseException($e);

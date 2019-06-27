@@ -16,7 +16,7 @@ class Validations
 
         return true;
     }
-    
+
     /**
      * Check if a phone is valid
      * @param string $phone - the inputted phone
@@ -32,7 +32,7 @@ class Validations
 
         return true;
     }
-    
+
     /**
      * Check if a name is valid
      * @param string $name - the inputted name
@@ -48,7 +48,7 @@ class Validations
         }
 
         $letters = "çèñàâăêÍøšųČčСрпскиîكوردی–á’éńí日本語ếệ現代標準漢粵ú̍ōīüə中文简体繁體한국어조선말ភាសរខ្មែΕληνικάՀայերնქართულიбелауяъгмдонйїьالعبيةفسܐܬܘܪܝëïĳôóûÆØÅæåÄÖäöŠŽžÕÜõßÇÊÎŞÛşĂÂŢţÔŴŶÁÉÏŵŷÓÚẂÝÀÈÌÒÙẀỲËẄŸẃýìòùẁỳẅÿĈĜĤĴŜŬĉĝĥĵŝŭĞİğıÐÞðþŐŰőű·ŒœãÑ¡¿ÃẼĨŨỸ̃ẽĩũỹĄ́ĘĮŁŃąęįłǪā̄ēǫǭūŲżćśźůŻĆĐĎĚŇŘŤŮďěňřťĽĹŔľĺŕĀĒĢĪĶĻŅŌŖŪģķļņŗĖėẢẠẰẲẴẮẶẦẨẪẤẬẺẸỀỂỄẾỆỈỊỎỌỒỔỖỐỘƠỜỞỠỚỢỦỤƯỪỬỮỨỰỶỴđảạằẳẵắặầẩẫấậẻẹềểễỉịỏọồổỗốơờởỡớợủụưừửữứựỷỵꞗĕŏ᷄Asameঅআইঈউঊঋএঐওঔকখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযৰলৱশষসহ়্ৎংঃঁrbicﺍﺏﺕﺙﺝﺡﺥﺩﺫﺭﺯﺱﺵﺹﺽﻁﻅﻉﻍﻑﻕﻙﻝﻡﻥهـﻭﻱnԱԲԳԴԵԶԷԸԹԺԻԼԽԾԿՁՂՃՄՅՆՇՈՉՊՋՌՍՎՏՐՑՒՓՔՕՖSyܒܓܕܗܙܚܛܟܠܡܢܣܥܦܨܩܫ.ClАБВГДЕЖЗИІКЛМНОПРТУФХЦЧШЩЪЫЬЮЯGogბგდევზკმნოპჟსტფღყშჩცძწჭხჯჰkΑΒΓΔΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩHwאבגדהוזחטיכלמנסעפצקרשתLtBDEFIJKMNOPQRTUVWXYZuㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣpfㄅㄆㄇㄈㄉㄊㄋㄌㄍㄎㄏㄐㄑㄒㄓㄔㄕㄖㄗㄘㄙㄚㄛㄜㄝㄞㄟㄠㄡㄢㄣㄤㄥㄦㄧㄨㄩㄭh ᚁᚂᚃᚄᚅᚆᚇᚈᚉᚊᚋᚌᚍᚎᚏᚐᚑᚒᚓᚔᚕᚖᚗᚘᚙᚚ᚛᚜ሀለሐመሠረሰቀበተኀነአከወዐዘየደገጠጰጸፀፈፐⴰⴱⵛⴷⴹⴻⴼⴳⵯⵀⵃⵉⵊⴽⵍⵎⵏⵓⵄⵖⵅⵇⵔⵕⵙⵚⵜⵟⵡⵢتثجحخذزشصضطظغقمنپچژگািীুূৃেৈোৌ‍র০১২৩৪৫৬৭৮৯अपआाइिईीउुऊूऋृॠॄऌॢॡॣऍॅऎॆएेऐैऑॉऒॊओोऔौकखगघङचछजझञटठडढणतथदधनफबभमयरलळवशषसह०१२३४५६७८९्ँंः़ऽਅਆਇਈਉਊਏਐਓਔਕਖਗਘਙਚਛਜਝਞਟਠਡਢਣਤਥਦਧਨਪਫਬਭਮਯਰਲ਼ਵਸਹઅઆઇઈઉઊઋઌઍએઐઑઓઔકખગઘઙચછજઝઞટઠડઢણતથદધનપફબભમયરલળવશષસહૠૡૢૣཀཁགངཅཆཇཉཏཐདནཔཕབམཙཚཛཝཞཟའཡརལཤསཧཨЙЁЭЎҐЄЇЉЊЏЈЃЌЅЋЂꙂꙀꙈꙊѠꙐѢꙖѤѦѨѪѬѮѰѲѴҀӁαβγδεζθμξοπρσςτυφχψωֿ字化圈あいうえおのアイウエオノ위키백과에ˋˊㄪㄫㄬកគឃងចឆជឈញដឋឌឍណតថទធនបផពហយលឡអវჱჲჳჴჵჶჷჸ—«»șțĲ‘´¨ċġħ¸‐~ǎ¯。、，…讠钅饣纟门语银饭纪问訁釒飠糹門銀飯紀問国会这来对开关时个书长万边东车爱儿國會這來對開關時個書長萬邊東車愛兒嘅咗咁嚟啲唔佢乜嘢既カタナひらがな「」しゃ　りゅょってシャリュョッテでずデガズぱぴパをは성១២៣៤៥៦៧៨៩ិីឹឺុូួើឿៀេៃៅំះោ។ίέήόύώϊΐϋΰᾶἀἁὰᾳῥёіўыэшчщювтјљњџѓќѕђћєґإىک‮ٹ‎ڈڑںےہள்துகிறனமழஅவரஉசல″®​ⵣⵥ";
-        
+
         for ($i = 0; $i < mb_strlen($name, 'UTF-8'); $i++) {
             $char = mb_substr($name, $i, 1);
 
@@ -59,7 +59,7 @@ class Validations
 
         return true;
     }
-    
+
     /**
      * Check if a birth date is valid
      * Checks for d-m-Y and Y-m-d formats
@@ -74,21 +74,21 @@ class Validations
 
         return true;
     }
-    
+
     /**
      * Check if a bulgarian EGN is valid
      * @param string $egn - the inputted EGN
      * @return bool
      */
     public function validateBGEGN(string $egn)
-    { 
+    {
         if (!is_numeric($egn) || strlen(trim($egn)) != 10 || preg_match_all( "/[0-9]/", $egn) != 10) {
             return false;
         }
 
         return true;
     }
-    
+
     /**
      * Check if a bulgarian EIK is valid
      * @param string $eik - the inputted EIK
@@ -136,7 +136,7 @@ class Validations
 
         return ($a13 == $a[3]);
     }
-    
+
     /**
      * Check if a string contains phone
      * @param string $string - the inputted string
@@ -148,14 +148,14 @@ class Validations
         if (empty($minLength)) {
             $minLength = 6;
         }
-        
+
         if (preg_match_all("~(\+|\*|)(?! |-)[0-9 \-]{".$minLength.",}+~", $string)) {
             return true;
         }
 
         return false;
     }
-    
+
     /**
      * Check if a string contains email
      * @param string $string - the inputted string
@@ -168,5 +168,33 @@ class Validations
         }
 
         return false;
+    }
+
+    //validate an URL ($url) against a test string ($stringToCheck)
+    public function validateSpecificLink($url, $pattern)
+    {
+        $this->validateBasicUrl($url);
+
+        if (!preg_match("{".$pattern."}", $url)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    //a basic check, if an URL is valid
+    public function validateBasicUrl($url)
+    {
+        if (
+            !strstr($url, '.') ||
+            !substr($url, 0, 2) == "//" ||
+            !substr($url, 0, 7) == "http://" ||
+            !substr($url, 0, 8) == "https://"
+        )
+        {
+            return false;
+        }
+
+        return true;
     }
 }

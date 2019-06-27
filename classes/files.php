@@ -20,7 +20,7 @@ class Files extends Base
     {
         $this->tableName = 'files';
     }
-    
+
     /**
      * Gets file info from the database, using the file hash
      * Throws Exception if an ivalid hash is provided or the file does not exist
@@ -34,18 +34,18 @@ class Files extends Base
 
         $hash = $Core->db->escape(trim($hash));
         if (empty($hash)) {
-            throw new Exception ('Invalid hash');
+            throw new Exception('Invalid hash');
         }
-        
+
         $result = $this->getAll(1, "`hash`='$hash'");
-        
+
         if (empty($result)) {
             throw new Exception('File not found');
         }
 
         return current($result);
     }
-    
+
     /**
      * Gets file info from the database, using the file src
      * Throws Exception if an ivalid src is provided or the file does not exist
@@ -60,7 +60,7 @@ class Files extends Base
         $src = $Core->db->escape(trim($src));
 
         if (empty($src)) {
-            throw new Exception ('Invalid file source');
+            throw new Exception('Invalid file source');
         }
 
         $src   = explode('/', $src);
@@ -72,16 +72,16 @@ class Files extends Base
 
         $hashedName = $src[$count - 1];
         $dir        = $src[$count - 2];
-        
+
         $result = $this->getAll(1, "`dir` = '$dir' AND `hashed_name`='$hashedName'");
-        
+
         if (empty($result)) {
             throw new Exception('File not found');
         }
-        
+
         return current($result);
     }
-    
+
     /**
      * Gets the src of a file
      * @param array $file - the file info from the database
@@ -92,7 +92,7 @@ class Files extends Base
         global $Core;
         return $Core->filesWebDir.$file['dir'].'/'.$file['hashed_name'];
     }
-    
+
     /**
      * Gets the unique hash for every file body
      * @param array $file - an uploaded file
@@ -102,7 +102,7 @@ class Files extends Base
     {
         return md5_file($file['tmp_name']);
     }
-    
+
     /**
      * Gets the unique hash for every file name
      * @param array $file - an uploaded file
@@ -133,10 +133,10 @@ class Files extends Base
             move_uploaded_file($file['tmp_name'],$Core->filesDir.$currentDirId.'/'.$file['hashed_name']);
             return $currentDirId;
         }
-        
+
         return $this->insertFile($currentDirId + 1, $file);
     }
-    
+
     /**
      * Uploads an array of files
      * Throws Exception if something is wrong the inputted files, or the upload fails
@@ -184,7 +184,7 @@ class Files extends Base
         }
         return $return;
     }
-    
+
     /**
      * Converts a file upload error message code to human-readble text
      * @param string $code
@@ -225,7 +225,7 @@ class Files extends Base
      * Gets the code of a file type
      * @param string $type - the type of the file
      * @param string $name - the name of the file
-     * @return string 
+     * @return string
      */
     public function typeMap(string $type, string $name)
     {
@@ -260,7 +260,7 @@ class Files extends Base
         }
         return 'unknown';
     }
-    
+
     /**
      * Initiates a downloads of a file from the system
      * It works by providing the file src or the file id
@@ -303,7 +303,7 @@ class Files extends Base
             throw new Exception('File not found');
         }
     }
-    
+
     /**
      * Gives a preview of a file from the system
      * It works by providing the file src or the file id
@@ -321,7 +321,7 @@ class Files extends Base
             $file = $this->getBySrc($fileTo);
             $fileTo = GLOBAL_PATH.substr(SITE_PATH, 0, -1).$fileTo;
         }
-        
+
         if (is_file($fileTo)) {
             header('Content-Disposition: filename="' . $file['name'] . '";');
             header('Content-Length: ' . $file['size']);
@@ -331,7 +331,7 @@ class Files extends Base
             throw new Exception('File not found');
         }
     }
-    
+
     /**
      * Deletes a file, both from the file system and the database
      * It works by providing the file src or the file id
@@ -342,14 +342,14 @@ class Files extends Base
     public function deleteFile($fileTo)
     {
         global $Core;
-        
+
         if (is_numeric($fileTo) && $file = $this->getById($fileTo)) {
             $fileTo = $Core->filesDir.$file['dir'].'/'.$file['hashed_name'];
         } else {
             $file = $this->getBySrc($fileTo);
             $fileTo = GLOBAL_PATH.substr(SITE_PATH, 0, -1).$fileTo;
         }
-        
+
         if (!is_file($fileTo)) {
             throw new Exception('File not found');
         }
@@ -357,7 +357,7 @@ class Files extends Base
         unlink($fileTo);
         $this->deleteById($file['id']);
     }
-    
+
     /**
      * Changes the value of the is_private file property to the opposite one
      * Throws Exception if the file does not exist
@@ -370,7 +370,7 @@ class Files extends Base
         if (empty($fileInfo)) {
             throw new Exception('File not found');
         }
-        
+
         if ($fileInfo['is_private'] == 0) {
             $this->updateById($fileId, array('is_private' => 1));
         } else {

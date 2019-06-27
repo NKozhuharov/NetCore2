@@ -749,7 +749,7 @@ class Base
         }
 
         if (empty($resultObjectIds)) {
-            throw new Exception ("Cannot translate query results, which do not contain the id column");
+            throw new Exception("Cannot translate query results, which do not contain the id column");
         }
 
         $selector = new BaseSelect("{$this->tableName}_lang");
@@ -1137,7 +1137,7 @@ class Base
         try {
             $this->tableFields = new BaseTableFields("{$this->tableName}_lang");
         } catch (Exception $ex) {
-            throw new Exception ("Table {$this->tableName}_lang does not exist in model `".get_class($this)."`");
+            throw new Exception("Table {$this->tableName}_lang does not exist in model `".get_class($this)."`");
         }
 
         foreach ($this->translationFields as $translationField) {

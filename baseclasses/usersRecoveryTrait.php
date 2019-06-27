@@ -18,7 +18,7 @@ trait UsersRecovery
      * The name of the controller which handles the tokens for user password recovery
      */
     protected $usersRecoveryControllerName = 'recovery';
-    
+
     /**
      * Allows a user to recover his username with his email
      * Sends an email to the user with his username
@@ -121,7 +121,7 @@ trait UsersRecovery
         if ($typeId !== null) {
             $queryWhere .= " AND `type_id` = $typeId ";
         }
-        
+
         $selector = new BaseSelect($this->tableName);
         $selector->setWhere($queryWhere);
         $selector->setGlobalTemplate('fetch_assoc');
@@ -220,7 +220,7 @@ trait UsersRecovery
         $token = $Core->db->escape(trim($token));
 
         if (empty($token)) {
-            throw new BaseException("Provide token");
+            throw new BaseException("Provide a token");
         }
 
         $queryWhere = "`token` = '$token'";

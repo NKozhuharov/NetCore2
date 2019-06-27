@@ -101,7 +101,7 @@ class Language extends Base
         }
         return $phrase;
     }
-    
+
     /**
      * Gets an array, containing all phrases from the database.
      * Priority of tables: phrases => phrases_platform => phrases_text
@@ -112,17 +112,17 @@ class Language extends Base
         if ($this->phrases === null) {
             $this->getPhrases();
         }
-        
+
         $phrases = $this->phrasesText;
-        
+
         foreach ($this->phrasesPlatform as $phrase => $translation) {
             $phrases[$phrase] = $translation;
         }
-        
+
         foreach ($this->phrases as $phrase => $translation) {
             $phrases[$phrase] = $translation;
         }
-        
+
         return $phrases;
     }
 
@@ -172,8 +172,8 @@ class Language extends Base
             "SELECT
                 `phrase`,
                 IF(
-                    `{$this->currentLanguage}` IS NULL OR `{$this->currentLanguage}` = '', 
-                    `{$Core->defaultLanguage}`, 
+                    `{$this->currentLanguage}` IS NULL OR `{$this->currentLanguage}` = '',
+                    `{$Core->defaultLanguage}`,
                     `{$this->currentLanguage}`
                 ) AS `translation`
             FROM
@@ -189,8 +189,8 @@ class Language extends Base
             "SELECT
                 `phrase`,
                 IF(
-                    `{$this->currentLanguage}` IS NULL OR `{$this->currentLanguage}` = '', 
-                    `{$Core->defaultLanguage}`, 
+                    `{$this->currentLanguage}` IS NULL OR `{$this->currentLanguage}` = '',
+                    `{$Core->defaultLanguage}`,
                     `{$this->currentLanguage}`
                 ) AS `translation`
             FROM
@@ -206,8 +206,8 @@ class Language extends Base
             "SELECT
                 `phrase`,
                 IF(
-                    `{$this->currentLanguage}` IS NULL OR `{$this->currentLanguage}` = '', 
-                    `{$Core->defaultLanguage}`, 
+                    `{$this->currentLanguage}` IS NULL OR `{$this->currentLanguage}` = '',
+                    `{$Core->defaultLanguage}`,
                     `{$this->currentLanguage}`
                 ) AS `translation`
             FROM
@@ -218,15 +218,15 @@ class Language extends Base
             'phrase',
             'translation'
         );
-        
+
         if (empty($this->phrases)) {
             $this->phrases = array();
         }
-        
+
         if (empty($this->phrasesText)) {
             $this->phrasesText = array();
         }
-        
+
         if (empty($this->phrasesPlatform)) {
             $this->phrasesPlatform = array();
         }
@@ -255,7 +255,7 @@ class Language extends Base
             setcookie('language', $language, time()+86400, '/');
             $this->getPhrases();
         } else {
-            throw new Exception("This language does not exist or not allowed");
+            throw new Exception("This language does not exist or is not allowed");
         }
     }
 
@@ -272,7 +272,7 @@ class Language extends Base
             setcookie('language', $language, time()+86400, '/');
             $this->getPhrases();
         } else {
-            throw new Exception("This language does not exist or not allowed");
+            throw new Exception("This language does not exist or is not allowed");
         }
     }
 

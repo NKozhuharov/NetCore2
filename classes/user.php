@@ -362,7 +362,7 @@ class User extends Base
                 throw new Exception("Invalid user type");
             }
         } else if (!empty($this->userTypesTableName)) {
-            throw new Exception("Type id is not allowed set");
+            throw new Exception("Type id is not set");
         }
     }
 
@@ -807,11 +807,11 @@ class User extends Base
     public function generatePassword(int $length)
     {
         if ($length <= 0) {
-            throw new Exception("Password length must be bigger than 0");
+            throw new Exception("Password length must be bigger than %%0%% symbols");
         }
 
         if ($length > 32) {
-            throw new Exception("Password length must be less than 32");
+            throw new Exception("Password length must be less than %%32%% symbols");
         }
 
         return strtoupper(substr(md5(time()), rand(0, (32 - $length)), $length));

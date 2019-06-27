@@ -418,10 +418,10 @@ trait InputValidations
             throw new Exception("The field `{$this->parentField}` does not exist in table `{$this->tableName}`");
         }
     }
-    
+
     /**
      * Validates the provided object id, it should be bigger than 0
-     * Throws Exception if it is not 
+     * Throws Exception if it is not
      * @param int $objectId - the object id to check
      * @throws Exception
      */
@@ -431,7 +431,7 @@ trait InputValidations
             throw new Exception("Object id must be bigger than 0 in model `".get_class($this)."`");
         }
     }
-    
+
     /**
      * Throws Exception if translationFields property is empty
      * @throws Exception
@@ -442,7 +442,7 @@ trait InputValidations
             throw new Exception("You cannot translate an object, without any translation fields in model ".get_class($this)."`");
         }
     }
-    
+
     /**
      * Checks if the hidden field in current model is set and it exists in the table of the model
      * Throws Exception if the field is not set or does not exist
@@ -453,7 +453,7 @@ trait InputValidations
         if (empty($this->hiddenFieldName)) {
             throw new Exception("Set the hiddenFieldName for the model `".get_class($this)."`");
         }
-        
+
         if (!array_key_exists($this->hiddenFieldName, $this->tableFields->getFields())) {
             throw new Exception("The field `{$this->hiddenFieldName}` does not exist in table `{$this->tableName}`");
         }
