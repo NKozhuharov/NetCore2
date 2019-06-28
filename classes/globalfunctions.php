@@ -70,6 +70,7 @@ class GlobalFunctions
         $string = trim(preg_replace('~\P{Xan}++~u', ' ', $string));
         $string = preg_replace("~\s+~", '-', strtolower($string));
         $string = substr($string, 0, 200);
+        $string = mb_strtolower($string);
 
         return $string;
     }
@@ -81,6 +82,7 @@ class GlobalFunctions
         $url = $this->getUrl($title);
         $url = $Core->db->escape(substr($url, 0, 200));
         $and = '';
+
         if ($id && is_numeric($id)) {
             $and = " `id` != '$id' AND ";
         }
