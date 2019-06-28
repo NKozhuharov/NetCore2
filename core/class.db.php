@@ -186,7 +186,7 @@
                             $this->memcache->set($cacheName,array('cacheTime' => time(),'query' => ($results)));
                         }
                     }else{
-                        if ($Core->clientIsDeveoper()) {
+                        if ($Core->clientIsDeveloper()) {
                             $info = array();
                             if (isset($this->select->error)) {
                                 $info['error'] = "##{$this->select->error}##";
@@ -269,7 +269,7 @@
                             }
                             return false;
                         }else{
-                            if ($Core->clientIsDeveoper()) {
+                            if ($Core->clientIsDeveloper()) {
                                 $info = array();
                                 if (isset($this->select->error)) {
                                     $info['error'] = "##{$this->select->error}##";

@@ -99,7 +99,7 @@ class Links extends Base
             if (empty($link)) {
                 $controllerName = explode(self::MULTI_LANGUAGE_LINKS_SEPARATOR, $controllerName);
 
-                if ($Core->clientIsDeveoper()) {
+                if ($Core->clientIsDeveloper()) {
                     throw new Error (
                         "The following controller was not found in the `{$this->tableName}` table - ".
                         "`{$controllerName[0]}` for language id {$controllerName[1]} ".

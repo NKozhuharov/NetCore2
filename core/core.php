@@ -547,7 +547,7 @@ class Core
      * If the client has is bot or no debug ips are specified, he is considered developer
      * @return bool
      */
-    public function clientIsDeveoper()
+    public function clientIsDeveloper()
     {
         if (!isset($_SERVER['REMOTE_ADDR']) && !$this->isBot) {
             return false;

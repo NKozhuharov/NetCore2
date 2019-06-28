@@ -131,7 +131,7 @@ class ExceptionHandler
 
         header('HTTP/1.1 500 Internal Server Error', true, 500);
 
-        if ($Core->clientIsDeveoper()) {
+        if ($Core->clientIsDeveloper()) {
             $message = $error->__toString();
             $message .= PHP_EOL;
             $message .= "Thrown in ".$error->getFile()." on line ".$error->getLine();

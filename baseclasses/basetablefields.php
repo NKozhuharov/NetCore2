@@ -12,7 +12,7 @@ class BaseTableFields
         global $Core;
 
         $this->tableName = $tableName;
-        $this->getTableInfo($Core->clientIsDeveoper());
+        $this->getTableInfo($Core->clientIsDeveloper());
     }
 
     //get a list of the table fields
