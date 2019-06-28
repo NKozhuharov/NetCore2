@@ -164,7 +164,7 @@ class ContactUs extends Base
                 $errorsInFields[self::NAME_FIELD_NAME] = "Must be between %%{$this->minimumNameLength}%%".
                 " and %%$this->maximumNameLength%% symbols";
             } elseif ($Core->Validations->validateName($input[self::NAME_FIELD_NAME]) === false) {
-                $errorsInFields[self::NAME_FIELD_NAME] = "Is not a valid name";
+                $errorsInFields[self::NAME_FIELD_NAME] = "Name is not valid";
             }
 
             $input[self::NAME_FIELD_NAME] = trim($input[self::NAME_FIELD_NAME]);

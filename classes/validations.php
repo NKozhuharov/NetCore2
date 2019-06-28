@@ -39,7 +39,7 @@ class Validations
      * @param string $allowedSymbols - a string of additional allowed symbols (like space)
      * @return bool
      */
-    public function validateName(string $name, string $allowedSymbols = null)
+    public function validateName(string $name, string $allowedSymbols = '. ')
     {
         global $Core;
 
