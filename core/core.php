@@ -247,7 +247,7 @@ class Core
         }
 
         $this->ajax = (
-            (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') ||
+            (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && mb_strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') ||
             (isset($_REQUEST['ajax'])) ||
             (isset($AJAX) && $AJAX == true)
         ) ? true : false;

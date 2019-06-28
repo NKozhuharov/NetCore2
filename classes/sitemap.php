@@ -74,7 +74,7 @@ class Sitemap{
         $sql = $this->db->query("SELECT ".INDEX_FIELD.", ".SITEMAP_URL." AS `loc`, `".SITEMAP_LAST_MOD_FIELD."` AS `last_mod` FROM `".SITEMAP_SOURCE_TABLE."` WHERE `".INDEX_FIELD."` > '$last_index' ".$SITEMAP_SOURCE_TABLE_CONDITION." LIMIT ".SITEMAP_LIMIT."");
         if($sql->num_rows){
             while($row = $sql->fetch_assoc()){
-                $last_mod = substr($row['last_mod'], 0,strpos($row['last_mod'], ' '));
+                $last_mod = mb_substr($row['last_mod'], 0,mb_strpos($row['last_mod'], ' '));
                 file_put_contents($SITEMAP_DESTINATION.SITEMAP_NAME.$i.".xml", "<url><loc>".$SITEDOMAIN."/".$row['loc']."</loc><lastmod>".$last_mod."</lastmod><priority>1.0</priority></url>", FILE_APPEND);
                 $last_index_update = $row[INDEX_FIELD];
             }
@@ -94,7 +94,7 @@ class Sitemap{
             mkdir($ROBOTS_DESTINATION, 0755, true);
         }
         if(!is_file($ROBOTS_DESTINATION.'robots.txt')){
-            file_put_contents($ROBOTS_DESTINATION.'robots.txt', "User-agent: *\r\nAllow: /\r\nSitemap: ".$SITEDOMAIN.(substr($SITEMAP_INDEX, strrpos($SITEMAP_INDEX, '/'))));
+            file_put_contents($ROBOTS_DESTINATION.'robots.txt', "User-agent: *\r\nAllow: /\r\nSitemap: ".$SITEDOMAIN.(mb_substr($SITEMAP_INDEX, mb_strrpos($SITEMAP_INDEX, '/'))));
         }
 
         if(!is_file($SITEMAP_INDEX)){
@@ -128,7 +128,7 @@ class Sitemap{
                     while($row = $items->fetch_assoc()){
                         $url = $lastSitemap->addChild('url');
                         $url->addChild('loc', $SITEDOMAIN."/".$row['loc']);
-                        $url->addChild('lastmod', substr($row['last_mod'], 0,strpos($row['last_mod'], ' ')));
+                        $url->addChild('lastmod', mb_substr($row['last_mod'], 0,mb_strpos($row['last_mod'], ' ')));
                         $url->addChild('priority', '1.0');
                         $last_index_update = $row[INDEX_FIELD];
                     }

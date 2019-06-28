@@ -61,7 +61,7 @@ abstract class BaseQuery
      */
     public function __get(string $varName)
     {
-        if (strtolower($varName) === 'query') {
+        if (mb_strtolower($varName) === 'query') {
             if (empty($this->query)) {
                 $this->build();
             }

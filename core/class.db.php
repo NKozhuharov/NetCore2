@@ -131,7 +131,7 @@
             }
             $select=0;
 
-            if(substr(preg_replace('{[^a-zA-Z0-9]}','',strtoupper($sql)),0,strlen("SELECT"))=="SELECT")
+            if(mb_substr(preg_replace('{[^a-zA-Z0-9]}','',mb_strtoupper($sql)),0,mb_strlen("SELECT"))=="SELECT")
                 $select=1;
 
             if($this->select == false && $select == 1)
@@ -193,7 +193,7 @@
                             }
 
                             $info['query'] = "##{$sql}##";
-                            
+
                             throw new BaseException("MySQL query execution error", $info);
                         }
                         throw new Exception($Core->generalErrorText);
@@ -219,7 +219,7 @@
                             throw new Exception("Mysql Error: ".$this->insert->error);
                     $this->insert_id=$this->insert->insert_id;
 
-                    if(substr(preg_replace('{[^a-zA-Z0-9]}','',strtoupper($sql)),0,strlen("INSERT"))=="INSERT"){
+                    if(mb_substr(preg_replace('{[^a-zA-Z0-9]}','',mb_strtoupper($sql)),0,mb_strlen("INSERT"))=="INSERT"){
                         return $this->insert_id;
                     }else{
                         return mysqli_affected_rows($this->insert);
@@ -237,7 +237,7 @@
                 $cacheTime = -1;
             }
 
-            if(strtolower(substr(preg_replace('{[^a-zA-Z0-9]}','',$sql),0,strlen("SELECT")))=="select"){
+            if(mb_strtolower(mb_substr(preg_replace('{[^a-zA-Z0-9]}','',$sql),0,mb_strlen("SELECT")))=="select"){
                 if(preg_match("{[\s]*SELECT[\s]+(.*)[\s]+FROM}im",$sql,$matches)){
                     $cacheName=md5("result_".$sql);
                     if($cacheTime<=0)
@@ -256,7 +256,7 @@
                             $query->free_result();
                             $field=$matches[1];
                             if(stristr($field,'from'))
-                                $field=substr($field,0,stripos($field,' from'));
+                                $field=mb_substr($field, 0, mb_stripos($field,' from'));
 
                             if(isset($row[$field])){
                                 if($cacheTime!=0 && ($row[$field]!==false || $cacheTime==-1))
@@ -274,9 +274,9 @@
                                 if (isset($this->select->error)) {
                                     $info['error'] = "##{$this->select->error}##";
                                 }
-    
+
                                 $info['query'] = "##{$sql}##";
-                                
+
                                 throw new BaseException("MySQL query execution error", $info);
                             }
                             throw new Exception($Core->generalErrorText);

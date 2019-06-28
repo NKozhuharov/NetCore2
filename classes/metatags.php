@@ -57,7 +57,7 @@ class MetaTags
      */
     public function __get(string $property)
     {
-        $property = strtolower($property);
+        $property = mb_strtolower($property);
         if (isset($this->$property)) {
             return $this->$property;
         }
@@ -73,7 +73,7 @@ class MetaTags
      */
     public function __set(string $property, string $value)
     {
-        $property = strtolower($property);
+        $property = mb_strtolower($property);
         if (!array_key_exists($property, get_object_vars($this))) {
             throw new Exception("This variable ({$property}) does not exist!");
         }

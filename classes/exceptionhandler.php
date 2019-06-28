@@ -63,11 +63,11 @@ class ExceptionHandler
 
         foreach ($message as $messagePart) {
             if (
-                substr($messagePart, 0, strlen(self::DONT_TRANSLATE_DELIMITER)) !== self::DONT_TRANSLATE_DELIMITER &&
-                substr(
+                mb_substr($messagePart, 0, mb_strlen(self::DONT_TRANSLATE_DELIMITER)) !== self::DONT_TRANSLATE_DELIMITER &&
+                mb_substr(
                     $messagePart,
-                    -(strlen(self::DONT_TRANSLATE_DELIMITER)),
-                    strlen(self::DONT_TRANSLATE_DELIMITER)
+                    -(mb_strlen(self::DONT_TRANSLATE_DELIMITER)),
+                    mb_strlen(self::DONT_TRANSLATE_DELIMITER)
                 ) !== self::DONT_TRANSLATE_DELIMITER
             ) {
                 if ($this->translate) {
@@ -79,10 +79,10 @@ class ExceptionHandler
                 }
 
             } else {
-                $translation .= substr(
+                $translation .= mb_substr(
                     $messagePart,
-                    strlen(self::DONT_TRANSLATE_DELIMITER),
-                    -(strlen(self::DONT_TRANSLATE_DELIMITER))
+                    mb_strlen(self::DONT_TRANSLATE_DELIMITER),
+                    -(mb_strlen(self::DONT_TRANSLATE_DELIMITER))
                 );
             }
         }

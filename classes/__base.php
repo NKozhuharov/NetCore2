@@ -388,8 +388,8 @@ class Base
                     if (empty($resultRow[$field])) {
                         $resultRow[$field] = array();
                     } else {
-                        if (substr($resultRow[$field], 0, strlen($this->explodeDelimiter)) == $this->explodeDelimiter) {
-                            $resultRow[$field] = substr($resultRow[$field], strlen($this->explodeDelimiter));
+                        if (mb_substr($resultRow[$field], 0, mb_strlen($this->explodeDelimiter)) == $this->explodeDelimiter) {
+                            $resultRow[$field] = mb_substr($resultRow[$field], mb_strlen($this->explodeDelimiter));
                         }
 
                         $explodedArray = array();
@@ -796,7 +796,7 @@ class Base
 
             foreach ($_REQUEST as $parameterName => $parameterValue) {
                 if (
-                    array_key_exists(strtolower($parameterName), $this->tableFields->getFields()) &&
+                    array_key_exists(mb_strtolower($parameterName), $this->tableFields->getFields()) &&
                     (is_string($parameterValue) || is_numeric($parameterValue)) && trim($parameterValue) !== ''
                 ) {
                     $query[] = " `$parameterName` = '{$Core->db->escape($parameterValue)}' ";
@@ -822,7 +822,7 @@ class Base
      */
     public function delete(string $additional)
     {
-        if (empty($additional) || strlen(trim($additional)) === 0) {
+        if (empty($additional) || mb_strlen(trim($additional)) === 0) {
             throw new Exception("A delete query without where parameter is not allowed. Use deleteAll instead. Model: `".get_class($this)."`");
         }
 
@@ -942,7 +942,7 @@ class Base
      */
     public function update(array $input, string $additional)
     {
-        if (empty($additional) || strlen(trim($additional)) === 0) {
+        if (empty($additional) || mb_strlen(trim($additional)) === 0) {
             throw new Exception("An update query without where parameter is not allowed. Use updateAll instead. Model: `".get_class($this)."`");
         }
 

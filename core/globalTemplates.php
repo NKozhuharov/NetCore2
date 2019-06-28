@@ -12,7 +12,7 @@
                 throw new Exception("Table `$TABLE_SCHEMA`.`$TABLE_NAME` does'n exist.");
             }
 
-            $queryType = strtoupper($queryType);
+            $queryType = mb_strtoupper($queryType);
             if($queryType != 'INSERT' && $queryType != 'UPDATE'){
                 throw new Exception("Query type must be INSERT or UPDATE.");
             }
@@ -59,7 +59,7 @@
                     }
                 }
 
-                $kv = substr($kv, 0, -2);
+                $kv = mb_substr($kv, 0, -2);
                 if(!$kv){
                     throw new Exception("Nothing to update.");
                 }

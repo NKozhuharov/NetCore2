@@ -6,44 +6,44 @@ trait UsersConfirmRegistrationWithEmail
      * Set to true if the user has to confirm his registration, using his email
      */
     protected $confirmRegistrationWithEmail = false;
-    
+
     /**
      * @var string
      * The name of the table, used to store the tokens for user registration confirmation with email
      * Must contain user_id(int), token(varchar 50) and added (timestamp)
      */
     protected $usersRegistrationConfirmationTableName = null;
-    
+
     /**
      * @var string
      * This field must exist in the table of the model and will act as a flag for user registration confirmation with email
      */
     protected $usersRegistrationConfrimationControlField = 'email_confirmed';
-    
+
     /**
      * @var int
      * How much time the tokens for user registration confirmation with email are valid. 0 is infinite
      */
     protected $usersRegistrationConfrimationTokenExpireTime = 3600;
-    
+
     /**
      * @var string
      * The name of the controller which handles the tokens for user registration confirmation with email
      */
     protected $usersRegistrationConfrimationControllerName = 'register_confirm';
-    
+
     /**
      * @var string
      * The name of the controller which handles the login of user, in case his email is not confirmed
      */
     protected $usersRegistrationEmailNotConfirmedControllerName = 'register_not_confirmed';
-    
+
     /**
      * @var string
      * The name of the controller which resets the token for user registration confirmation with email
      */
     protected $usersRegistrationConfrimationResetTokenControllerName = 'register_reset';
-    
+
     /**
      * Makes sure that the database and the models are set up properly, to use user registration confirmation with email
      * @throws Exception
@@ -53,48 +53,48 @@ trait UsersConfirmRegistrationWithEmail
         if (empty($this->usersRegistrationConfirmationTableName)) {
             throw new Exception("Registration is not possible, without setting the usersRegistrationConfirmationTableName");
         }
-        
+
         if (empty($this->usersRegistrationConfrimationControlField)) {
             throw new Exception("Registration is not possible, without setting the usersRegistrationConfrimationControlField");
         }
-        
+
         $usersRegistrationConfirmationTable = new BaseTableFields($this->usersRegistrationConfirmationTableName);
         $fields = $usersRegistrationConfirmationTable->getFields();
-        
+
         if (!isset($fields['user_id']) || $fields['user_id']['type'] !== 'int' || $fields['user_id']['field_info'] !== '10 unsigned') {
             throw new Exception(
                 "Registration is not possible, field `user_id` ".
                 "at `{$this->usersRegistrationConfirmationTableName}` must be int 10 unsigned"
             );
         }
-        
+
         if (!isset($fields['token']) || $fields['token']['type'] !== 'varchar' || $fields['token']['field_info'] !== '50') {
             throw new Exception(
                 "Registration is not possible, field `token` ".
                 "at `{$this->usersRegistrationConfirmationTableName}` must be varchar 50"
             );
         }
-        
+
         if (!isset($fields['added']) || $fields['added']['type'] !== 'timestamp' || $fields['added']['default'] !== 'CURRENT_TIMESTAMP') {
             throw new Exception(
                 "Registration is not possible, field `added` ".
                 "at `{$this->usersRegistrationConfirmationTableName}` must be timestamp default CURRENT_TIMESTAMP"
             );
         }
-        
+
         unset($fields);
-        
+
         $this->checkTableFields();
-        
+
         $fields = $this->tableFields->getFields();
-        
+
         if (!isset($fields[$this->usersRegistrationConfrimationControlField])) {
             throw new Exception(
                 "Registration is not possible, field `{$this->usersRegistrationConfrimationControlField}` ".
                 "must be present at `{$this->tableName}`"
             );
         }
-        
+
         if (
             $fields[$this->usersRegistrationConfrimationControlField]['type'] !== 'tinyint' ||
             $fields[$this->usersRegistrationConfrimationControlField]['field_info'] !== '1 unsigned' ||
@@ -106,7 +106,7 @@ trait UsersConfirmRegistrationWithEmail
             );
         }
     }
-    
+
     /**
      * Makes sure that the `email` field is provided and valid when using user registration confirmation with email
      * @throws BaseException
@@ -114,9 +114,9 @@ trait UsersConfirmRegistrationWithEmail
     private function getAndValidateEmailForConfirmRegistrationWithEmail(array $input)
     {
         $input['email'] = isset($input['email']) ? trim($input['email']) : '';
-        
+
         $this->validateEmail($input['email']);
-        
+
         $queryWhere = "`email` = '{$input['email']}'";
         if ($typeId !== null) {
             $queryWhere .= " AND `type_id` = '".($typeId)."' ";
@@ -133,10 +133,10 @@ trait UsersConfirmRegistrationWithEmail
             throw new BaseException("This email is already taken");
         }
         unset($userId);
-        
+
         return $input;
     }
-    
+
     /**
      * Sends an email to the user, containing a link, which will verify his email address
      * @param array $user - an user object
@@ -147,7 +147,7 @@ trait UsersConfirmRegistrationWithEmail
     private function sendRegistrationConfirmationEmail(array $user, string $token, string $body = null, string $subject = null)
     {
         global $Core;
-        
+
         if ($body === null) {
             $body =
             $Core->Language->thank_you_for_regitestring.'`'.$user['username'].'.`<br><br>'.
@@ -165,15 +165,15 @@ trait UsersConfirmRegistrationWithEmail
         } else {
             $body = str_replace(
                 array(
-                    '%TOKEN%', 
-                    '%USERNAME%', 
-                    '%EMAIL%', 
+                    '%TOKEN%',
+                    '%USERNAME%',
+                    '%EMAIL%',
                     '%URL%'
                 ),
                 array(
-                    $token, 
-                    $user['username'], 
-                    $email, 
+                    $token,
+                    $user['username'],
+                    $email,
                     $Core->siteDomain.'/'.$this->usersRegistrationConfrimationControllerName.'?token='.$token
                 ),
                 $body
@@ -183,14 +183,14 @@ trait UsersConfirmRegistrationWithEmail
         if ($subject === null) {
             $subject = $Core->Language->confirm_your_registration;
         }
-        
+
         if ($this->registerWithEmail === true) {
             $Core->GlobalFunctions->sendEmail($Core->mailConfig['Username'], $Core->siteName, $subject, $user['username'], $body, true);
         } else {
             $Core->GlobalFunctions->sendEmail($Core->mailConfig['Username'], $Core->siteName, $subject, $user['email'], $body, true);
         }
     }
-    
+
     /**
      * Generates a token and inserts it in the database when using user registration confirmation with email.
      * Sends email to the user, containig a link to verify his email.
@@ -208,12 +208,12 @@ trait UsersConfirmRegistrationWithEmail
         $inserter->addField('user_id', $user['id']);
         $inserter->addField('token', $token);
         $inserter->execute();
-        
+
         $this->sendRegistrationConfirmationEmail($user, $token, $body, $subject);
-        
+
         return $token;
     }
-    
+
     /**
      * When using user registration confirmation with email, call this function to reset the token and resend the email
      * to the user (in case something went wrong durign registration).
@@ -225,16 +225,16 @@ trait UsersConfirmRegistrationWithEmail
     public function resetRegistrationConfirmationToken(array $user, string $body = null, string $subject = null)
     {
         global $Core;
-        
+
         $this->validateConfirmRegistrationWithEmailConfiguration();
-        
+
         //check for existing token
         $selector = new BaseSelect($this->usersRegistrationConfirmationTableName);
         $selector->setWhere("`user_id` = '{$user['id']}'");
         $selector->setGlobalTemplate('fetch_assoc');
         $selector->turnOffCache();
         $token = $selector->execute();
-        
+
         if (empty($token)) { //no token yet
             $token = $this->generateToken();
 
@@ -243,7 +243,7 @@ trait UsersConfirmRegistrationWithEmail
             $inserter->addField('token', $token);
             $inserter->execute();
         } elseif ( //token is available, reset it
-            $this->usersRegistrationConfrimationTokenExpireTime > 0 && 
+            $this->usersRegistrationConfrimationTokenExpireTime > 0 &&
             strtotime(strtotime($token['added']) < time() - $this->usersRegistrationConfrimationTokenExpireTime)
         ) {
             $updater = new BaseUpdate($this->usersRegistrationConfirmationTableName);
@@ -262,12 +262,12 @@ trait UsersConfirmRegistrationWithEmail
             $inserter->addField('token', $token);
             $inserter->execute();
         }
-        
+
         $this->sendRegistrationConfirmationEmail($user, $token, $body, $subject);
-        
+
         return $token;
     }
-    
+
     /**
      * Verifies the token, which the user received, in order to verify his email address
      * Throws BaseException if something is wrong
@@ -277,34 +277,34 @@ trait UsersConfirmRegistrationWithEmail
     public function confirmRegistrationEmail(string $token)
     {
         global $Core;
-        
+
         $this->validateConfirmRegistrationWithEmailConfiguration();
-        
+
         $token = $Core->db->real_escape_string(trim($token));
-        
+
         if (empty($token)) {
             throw new BaseException("Provide a token");
         }
-        
+
         $queryWhere = "`token` = '$token'";
         if ($this->usersRegistrationConfrimationTokenExpireTime > 0) {
             $queryWhere .= " AND `added` < NOW - {$this->usersRegistrationConfrimationTokenExpireTime}";
         }
-        
+
         $selector = new BaseSelect($this->usersRegistrationConfirmationTableName);
         $selector->setWhere($queryWhere);
         $selector->setGlobalTemplate('fetch_assoc');
         $selector->turnOffCache();
         $tokenInfo = $selector->execute();
-        
+
         if (empty($tokenInfo)) {
             throw new BaseException("Invalid token");
         }
-        
+
         $this->updateById(
             $tokenInfo['user_id'],
             array(
-                $this->usersRegistrationConfrimationControlField => 1  
+                $this->usersRegistrationConfrimationControlField => 1
             )
         );
     }

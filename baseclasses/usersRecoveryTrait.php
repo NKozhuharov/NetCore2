@@ -251,7 +251,7 @@ trait UsersRecovery
             throw new BaseException("Invalid token");
         }
 
-        $newPass = strtoupper(substr(md5(time()),5,10));
+        $newPass = mb_strtoupper(mb_substr(md5(time()),5,10));
 
         $updater = new BaseUpdate($this->tableName);
         $updater->addField('password', $this->hashPassword($newPass));

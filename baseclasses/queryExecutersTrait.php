@@ -14,7 +14,7 @@ trait QueryExecuters
             $this->parseDeleteMySQLError($ex);
         }
     }
-    
+
     /**
      * Executes a insert query statment and parses any thrown exceptions
      * @param BaseInsert $inserter - the deleter instance of the BaseInsert class
@@ -28,7 +28,7 @@ trait QueryExecuters
             $this->parseInsertMysqlError($ex);
         }
     }
-    
+
     /**
      * Executes a update query statment and parses any thrown exceptions
      * @param BaseUpdate $updater - the updater instance of the BaseUpdate class
@@ -57,12 +57,12 @@ trait QueryExecuters
 
         $message = $ex->getMessage();
 
-        if (stristr($message, 'Mysql Error: Cannot delete or update a parent row: a foreign key constraint fails')) {
-            $modelName = strtolower(get_class($this));
-            $referencedTableName = substr($message, strpos($message, 'constraint fails (') + strlen('constraint fails ('));
+        if (mb_stristr($message, 'Mysql Error: Cannot delete or update a parent row: a foreign key constraint fails')) {
+            $modelName = mb_strtolower(get_class($this));
+            $referencedTableName = mb_substr($message, mb_strpos($message, 'constraint fails (') + mb_strlen('constraint fails ('));
             $referencedTableName = str_replace("`{$Core->dbName}`.", "", $referencedTableName);
             $referencedTableName = str_replace("`", "", $referencedTableName);
-            $referencedTableName = substr($referencedTableName, 0, strpos($referencedTableName, ','));
+            $referencedTableName = mb_substr($referencedTableName, 0, mb_strpos($referencedTableName, ','));
 
             throw new BaseException(
                 "You cannot delete from %%{$modelName}%% if there are %%$referencedTableName%% attached to it",
@@ -73,7 +73,7 @@ trait QueryExecuters
 
         throw new Exception($ex->getMessage());
     }
-    
+
     /**
      * Parses a MySQL Error, occured when using any of the insert functions
      * It will throw the same Exception if it wasn't parsed
@@ -83,13 +83,13 @@ trait QueryExecuters
     protected function parseInsertMysqlError(Exception $ex)
     {
         $message = $ex->getMessage();
-        
+
         $this->parseDuplicateKeyMysqlError($message);
         $this->parseForeignKeyMysqlError($message);
-        
+
         throw new Exception($ex->getMessage());
     }
-    
+
     /**
      * Parses a MySQL Error, occured when using any of the update functions
      * It will throw the same Exception if it wasn't parsed
@@ -99,13 +99,13 @@ trait QueryExecuters
     protected function parseUpdateMysqlError(Exception $ex)
     {
         $message = $ex->getMessage();
-        
+
         $this->parseDuplicateKeyMysqlError($message);
         $this->parseForeignKeyMysqlError($message);
-        
+
         throw new Exception($ex->getMessage());
     }
-    
+
     /**
      * Parses a Duplicate key MySQL Error
      * It will throw BaseException with the parsed error
@@ -115,18 +115,18 @@ trait QueryExecuters
      */
     protected function parseDuplicateKeyMysqlError(string $message)
     {
-        if (strstr($message, 'Mysql Error: Duplicate entry')) {
+        if (mb_strstr($message, 'Mysql Error: Duplicate entry')) {
             $message = str_replace("Mysql Error: Duplicate entry '", '', $message);
-            $duplicatedValue = substr($message, 0, strpos($message, "'"));
+            $duplicatedValue = mb_substr($message, 0, mb_strpos($message, "'"));
             $duplicatedKey = str_replace("$duplicatedValue' for key", '', $message);
             $duplicatedKey = trim(str_replace("'", '', $duplicatedKey));
-            
-            $modelName = strtolower(get_class($this));
-            
-            if (substr($modelName, strlen($modelName) - 1, 1) === 's') {
-                $modelName = substr($modelName, 0, -1);
+
+            $modelName = mb_strtolower(get_class($this));
+
+            if (mb_substr($modelName, mb_strlen($modelName) - 1, 1) === 's') {
+                $modelName = mb_substr($modelName, 0, -1);
             }
-            
+
             throw new BaseException(
                 "The following %%{$modelName}%% already exists %%`{$duplicatedValue}`%%",
                 null,
@@ -134,7 +134,7 @@ trait QueryExecuters
             );
         }
     }
-    
+
     /**
      * Parses a Foreign key MySQL Error
      * It will throw BaseException with the parsed error
@@ -144,12 +144,12 @@ trait QueryExecuters
      */
     protected function parseForeignKeyMysqlError(string $message)
     {
-        if (strstr($message, 'Mysql Error: Cannot add or update a child row: a foreign key constraint fails')) {
-            $message = substr($message, strpos($message, 'FOREIGN KEY') + 12);
-            $message = substr($message, 0, strpos($message, 'REFERENCES') - 1);
+        if (mb_strstr($message, 'Mysql Error: Cannot add or update a child row: a foreign key constraint fails')) {
+            $message = mb_substr($message, mb_strpos($message, 'FOREIGN KEY') + 12);
+            $message = mb_substr($message, 0, mb_strpos($message, 'REFERENCES') - 1);
             $message = trim(str_replace(array(')','(','`'), '', $message));
             $message = str_replace('_id', '', $message);
-            
+
             throw new BaseException("This %%{$message}%% does not exist", null, get_class($this));
         }
     }

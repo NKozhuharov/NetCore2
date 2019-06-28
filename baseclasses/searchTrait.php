@@ -10,12 +10,12 @@ trait SearchTrait
      * @var string
      */
     protected $searchByField;
-    
+
     /**
      * Builds the WHERE clause for the search query, using LIKE.
      * Requires the searchByField to be set, throws Exception if it doesn't.
      * Supports left, right and full searches.
-     * Allows the $additional condition to start with OR/AND. If it doesn't, it will apply it with AND. 
+     * Allows the $additional condition to start with OR/AND. If it doesn't, it will apply it with AND.
      * @param string $phrase - the phrase to search for
      * @param int $searchType - the search type (0, 1 or 2)
      * @param string $additional - where clause additional conditions (optional)
@@ -25,15 +25,15 @@ trait SearchTrait
     private function buildSearchQueryWhereClause(string $phrase, int $searchType, string $additional = null)
     {
         global $Core;
-        
+
         if (empty($this->searchByField)) {
             throw new Exception("To use the search function, set a search by field first!");
         }
-        
+
         $phrase = $Core->db->real_escape_string($phrase);
-        
+
         $query = "`{$Core->dbName}`.`{$this->tableName}`.`{$this->searchByField}` LIKE '";
-        
+
         if ($searchType === SEARCH_TYPE_LEFT) {
             $query .= "%{$phrase}";
         } else if ($searchType === SEARCH_TYPE_RIGHT) {
@@ -43,21 +43,21 @@ trait SearchTrait
         } else {
             throw new Exception("Invalid search type");
         }
-        
+
         $query .= "' ";
         if (!empty($additional)) {
             $additional = trim($additional);
-            $additionalLogic = substr($additional, 0, 3);
-            if (stristr($additionalLogic, 'and') || stristr($additionalLogic, 'or')) {
+            $additionalLogic = mb_substr($additional, 0, 3);
+            if (mb_stristr($additionalLogic, 'and') || mb_stristr($additionalLogic, 'or')) {
                 $query .= " {$additional}";
             } else {
                 $query .= " AND ({$additional})";
             }
         }
-        
+
         return $query;
     }
-    
+
     /**
      * Executes the search query and returns the result in an array (info, total)
      * Uses the getCound and getAll Base functions, so uses the $limit and $orderBy parameters accordingly
@@ -65,20 +65,20 @@ trait SearchTrait
      * @param int $limit - the limit override
      * @param string $orderBy - the order by override
      */
-    private function search(string $whereCondition, int $limit = null, string $orderBy = null) 
+    private function search(string $whereCondition, int $limit = null, string $orderBy = null)
     {
         $count = $this->getCount($whereCondition);
-        
+
         if ($count) {
             return array(
                 'info' => $this->getAll($limit, $whereCondition, $orderBy),
                 'total' => $count,
             );
         }
-        
+
         return $this->getEmptySearchResult();
     }
-    
+
     /**
      * Get a structured result, when the search query does not have results
      * All search queries should return array with keys 'info' and 'total'
@@ -91,7 +91,7 @@ trait SearchTrait
             'total' => 0,
         );
     }
-    
+
     /**
      * Sets the name of the field from the table of the model, used to carry on the searches
      * The field must exist in the table of the model, otherwize it will throw Exception
@@ -101,16 +101,16 @@ trait SearchTrait
     public final function setSearchByField(string $searchByFieldName)
     {
         $this->checkTableFields();
-        
+
         if (!array_key_exists($searchByFieldName, $this->tableFields->getFields())) {
             throw new Exception("The field `$searchByFieldName` does not exist in table `{$this->tableName}`");
         }
-        
+
         $this->searchByField = $searchByFieldName;
     }
-    
+
     /**
-     * Executes a MySQL SELECT query to a search in the search field, 
+     * Executes a MySQL SELECT query to a search in the search field,
      * using left match (LIKE '%var') for the provided expression.
      * Uses the Base getAll and getCount functions.
      * Returns search structured array (info, total).
@@ -126,11 +126,11 @@ trait SearchTrait
             $this->buildSearchQueryWhereClause($phrase, SEARCH_TYPE_LEFT, $additional),
             $limit,
             $orderBy
-        );   
+        );
     }
-    
+
     /**
-     * Executes a MySQL SELECT query to a search in the search field, 
+     * Executes a MySQL SELECT query to a search in the search field,
      * using right match (LIKE 'var%') for the provided expression.
      * Uses the Base getAll and getCount functions.
      * Returns search structured array (info, total).
@@ -146,11 +146,11 @@ trait SearchTrait
             $this->buildSearchQueryWhereClause($phrase, SEARCH_TYPE_RIGHT, $additional),
             $limit,
             $orderBy
-        );   
+        );
     }
-    
+
     /**
-     * Executes a MySQL SELECT query to a search in the search field, 
+     * Executes a MySQL SELECT query to a search in the search field,
      * using full match (LIKE '%var%') for the provided expression.
      * Uses the Base getAll and getCount functions.
      * Returns search structured array (info, total).
@@ -166,6 +166,6 @@ trait SearchTrait
             $this->buildSearchQueryWhereClause($phrase, SEARCH_TYPE_FULL, $additional),
             $limit,
             $orderBy
-        );   
+        );
     }
 }

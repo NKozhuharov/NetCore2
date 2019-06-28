@@ -249,7 +249,7 @@ class Language extends Base
      */
     public function changeLanguage(string $language)
     {
-        if (in_array(strtolower($language), $this->allowedLanguages)) {
+        if (in_array(mb_strtolower($language), $this->allowedLanguages)) {
             $this->currentLanguage = $language;
             $this->currentLanguageId = $this->getLanguageMap()[$this->currentLanguage]['id'];
             setcookie('language', $language, time()+86400, '/');

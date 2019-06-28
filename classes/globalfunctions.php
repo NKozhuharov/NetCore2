@@ -9,32 +9,32 @@ class GlobalFunctions
      */
     public function cutText(string $text, int $symbols = 250)
     {
-        if (strlen(trim($text)) <= $symbols) {
+        if (mb_strlen(trim($text)) <= $symbols) {
             return trim($text);
         }
 
         $endSymbols = array('.', '!', '?');
 
-        $text = substr($text, 0, $symbols);
+        $text = mb_substr($text, 0, $symbols);
 
-        if (substr($text, -2) == '..' && substr($text, -3) != '...') {
+        if (mb_substr($text, -2) == '..' && mb_substr($text, -3) != '...') {
             $text = $text.'.';
         }
 
-        $lastSymbol = substr($text, -1);
+        $lastSymbol = mb_substr($text, -1);
 
         if (in_array($lastSymbol, $endSymbols)) {
             return $text;
         }
 
         if (ctype_alnum($lastSymbol)) {
-            $text = trim(substr($text, 0, strrpos($text, ' ')));
-            $lastSymbol = substr($text, -1);
+            $text = trim(mb_substr($text, 0, mb_strrpos($text, ' ')));
+            $lastSymbol = mb_substr($text, -1);
         }
 
         while (!ctype_alnum($lastSymbol) && !in_array($lastSymbol, $endSymbols) && !empty($lastSymbol)) {
-            $text = substr($text, 0, strlen($text) - 1);
-            $lastSymbol = substr($text, -1);
+            $text = mb_substr($text, 0, mb_strlen($text) - 1);
+            $lastSymbol = mb_substr($text, -1);
         }
 
         if (empty($text)) {
@@ -65,11 +65,17 @@ class GlobalFunctions
         return $r;
     }
 
+    /**
+     * Creates a link from the provided string. Replaces all special characters and spaces with dashes (-)
+     *
+     * @param string $string - string by which to create the link
+     * @return string
+     */
     public function getUrl($string)
     {
         $string = trim(preg_replace('~\P{Xan}++~u', ' ', $string));
-        $string = preg_replace("~\s+~", '-', strtolower($string));
-        $string = substr($string, 0, 200);
+        $string = preg_replace("~\s+~", '-', mb_strtolower($string));
+        $string = mb_substr($string, 0, 200);
         $string = mb_strtolower($string);
 
         return $string;
@@ -80,7 +86,7 @@ class GlobalFunctions
         global $Core;
 
         $url = $this->getUrl($title);
-        $url = $Core->db->escape(substr($url, 0, 200));
+        $url = $Core->db->escape(mb_substr($url, 0, 200));
         $and = '';
 
         if ($id && is_numeric($id)) {
@@ -90,10 +96,10 @@ class GlobalFunctions
         $count = 0;
         while($Core->db->result("SELECT `id` FROM `{$Core->dbName}`.`$table` WHERE $and `$field` = '$url'")) {
             $count++;
-            $postFix = substr($url, strripos($url, '-'));
+            $postFix = mb_substr($url, mb_strripos($url, '-'));
             if ($count > 1) {
                 $postFix = str_replace('-'.($count-1),'-'.$count, $postFix);
-                $url = substr($url, 0, strripos($url, '-')).$postFix;
+                $url = mb_substr($url, 0, mb_strripos($url, '-')).$postFix;
             } else {
                 $url .= '-'.$count;
             }
@@ -285,8 +291,8 @@ class GlobalFunctions
 
         if (!$showFirstPage && $url == '/') {
             $firstUrl = '/';
-        }elseif (!$showFirstPage && substr($url, -1, 1) == '/') {
-            $firstUrl = substr($url, 0, -1);
+        }elseif (!$showFirstPage && mb_substr($url, -1, 1) == '/') {
+            $firstUrl = mb_substr($url, 0, -1);
         }elseif (!$showFirstPage) {
             $firstUrl = $Core->rewrite->URL.((preg_replace("~(&|\?|)(page=)(\d+|)~", "", http_build_query($_GET))) ? '?'.(preg_replace("~(&|\?|)(page=)(\d+|)~", "", http_build_query($_GET))) : '');
         } else {
@@ -370,12 +376,12 @@ class GlobalFunctions
     //returns the content between 2 points of a string
     public function getBetween($content, $start, $end)
     {
-        if (!strpos($content,$start)) {
+        if (!mb_strpos($content,$start)) {
             return '';
         }
 
-        $content=substr($content,strpos($content,$start)+strlen($start));
-        $content=substr($content,0,strpos($content,$end));
+        $content=mb_substr($content,mb_strpos($content,$start)+mb_strlen($start));
+        $content=mb_substr($content,0,mb_strpos($content,$end));
 
         return $content;
     }
@@ -384,11 +390,11 @@ class GlobalFunctions
     public function getBetweenAll($content, $start, $end, $return = array())
     {
         while(stristr($content,$start)) {
-            $startpos=strpos($content,$start)+strlen($start);
-            $a=$content=substr($content,$startpos);
-            $endpos=strpos($content,$end);
-            $b[]=substr($content,0,$endpos);
-            $content=substr($content,$endpos);
+            $startpos=mb_strpos($content,$start)+mb_strlen($start);
+            $a=$content=mb_substr($content,$startpos);
+            $endpos=mb_strpos($content,$end);
+            $b[]=mb_substr($content,0,$endpos);
+            $content=mb_substr($content,$endpos);
         }
 
         if (isset($b)) {

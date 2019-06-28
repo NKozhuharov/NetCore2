@@ -202,7 +202,7 @@ class Images extends Base
             }
         }
         //create image on demand
-        elseif (substr($_SERVER['REQUEST_URI'], 0, strlen($Core->imagesWebDir)) == $Core->imagesWebDir) {
+        elseif (mb_substr($_SERVER['REQUEST_URI'], 0, mb_strlen($Core->imagesWebDir)) == $Core->imagesWebDir) {
             $this->setOnDemand();
 
             $this->setImagick();
@@ -248,7 +248,7 @@ class Images extends Base
 
         $this->checkUploadedImage($file);
 
-        $this->name = substr($file['name'], 0, strripos($file['name'], '.'));
+        $this->name = mb_substr($file['name'], 0, mb_strripos($file['name'], '.'));
 
         if (empty($this->sizeType)) {
             $this->sizeType = 'org';
@@ -332,7 +332,7 @@ class Images extends Base
         if (preg_match("~^".$Core->imagesWebDir."(width|height)/((?!0)[\d]+)/((?!0)[\d]+)/(.*)~",$_SERVER['REQUEST_URI'] ,$m)) {
             $this->sizeType            = $m[1];
             $this->sizeKey             = $m[2];
-            $this->name                = urldecode(substr($m[4], 0, strripos($m[4], '.')));
+            $this->name                = urldecode(mb_substr($m[4], 0, mb_strripos($m[4], '.')));
             $this->currentFolder       = $m[1].'/'.$m[2].'/'.$m[3].'/';
             $this->currentFileLocation = urldecode($Core->imagesStorage.$m[3].'/'.$m[4]);
 
@@ -349,13 +349,13 @@ class Images extends Base
             $this->width               = $ratio[0];
             $this->height              = $ratio[1];
 
-            $this->name                = urldecode(substr($m[4], 0, strripos($m[4], '.')));
+            $this->name                = urldecode(mb_substr($m[4], 0, mb_strripos($m[4], '.')));
             $this->currentFolder       = $m[1].'/'.$m[2].'/'.$m[3].'/';
             $this->currentFileLocation = urldecode($Core->imagesStorage.$m[3].'/'.$m[4]);
         } elseif (preg_match("~^".$Core->imagesWebDir."(org)/((?!0)[\d]+)/(.*)~",$_SERVER['REQUEST_URI'] ,$m)) {
             $this->sizeType            = 'org';
             $this->sizeKey             = 'org';
-            $this->name                = urldecode(substr($m[3], 0, strripos($m[3], '.')));
+            $this->name                = urldecode(mb_substr($m[3], 0, mb_strripos($m[3], '.')));
             $this->currentFolder       = $m[1].'/'.$m[2].'/';
             $this->currentFileLocation = urldecode($Core->imagesStorage.$m[2].'/'.$m[3]);
         } else {
@@ -823,16 +823,16 @@ class Images extends Base
     {
         if (empty($this->imageFormat)) {
             $fileMimeType      = mime_content_type($this->currentFileLocation);
-            $this->imageFormat = substr($fileMimeType, strrpos($fileMimeType, '/') + 1);
+            $this->imageFormat = mb_substr($fileMimeType, mb_strrpos($fileMimeType, '/') + 1);
         }
 
         if (stristr($this->imageFormat, 'svg')) {
             $this->imageFormat = 'svg';
         }
 
-        $this->imageFormat = strtolower($this->imageFormat);
+        $this->imageFormat = mb_strtolower($this->imageFormat);
 
-        if (strtolower($this->imagick->getImageFormat()) != $this->imageFormat) {
+        if (mb_strtolower($this->imagick->getImageFormat()) != $this->imageFormat) {
             $this->imagick->setImageFormat($this->imageFormat);
         }
     }
@@ -845,7 +845,7 @@ class Images extends Base
     {
         header("Content-Type: image/".$this->imageFormat);
 
-        readfile(GLOBAL_PATH.PROJECT_PATH.(substr($fileLocation, 1)));
+        readfile(GLOBAL_PATH.PROJECT_PATH.(mb_substr($fileLocation, 1)));
 
         die;
     }

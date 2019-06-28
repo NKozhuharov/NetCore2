@@ -26,7 +26,7 @@ class Validations
     {
         global $Core;
 
-        if(!trim($phone) || !preg_match("~^(\+|\*|)(?! |-)[0-9 \-]+$~", $phone) || strlen($phone) < 3){
+        if(!trim($phone) || !preg_match("~^(\+|\*|)(?! |-)[0-9 \-]+$~", $phone) || mb_strlen($phone) < 3){
             return false;
         }
 
@@ -82,7 +82,7 @@ class Validations
      */
     public function validateBGEGN(string $egn)
     {
-        if (!is_numeric($egn) || strlen(trim($egn)) != 10 || preg_match_all( "/[0-9]/", $egn) != 10) {
+        if (!is_numeric($egn) || mb_strlen(trim($egn)) != 10 || preg_match_all( "/[0-9]/", $egn) != 10) {
             return false;
         }
 
@@ -187,9 +187,9 @@ class Validations
     {
         if (
             !strstr($url, '.') ||
-            !substr($url, 0, 2) == "//" ||
-            !substr($url, 0, 7) == "http://" ||
-            !substr($url, 0, 8) == "https://"
+            !mb_substr($url, 0, 2) == "//" ||
+            !mb_substr($url, 0, 7) == "http://" ||
+            !mb_substr($url, 0, 8) == "https://"
         )
         {
             return false;

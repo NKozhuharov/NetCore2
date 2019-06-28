@@ -24,7 +24,7 @@ trait InputAndTranslate
             }
         }
     }
-    
+
     /**
      * Checks if the input contains values for all translation fields
      * Throws BaseException a field is not set or it's empty
@@ -58,7 +58,7 @@ trait InputAndTranslate
             throw new BaseException("The following fields must not be empty", $emptyFields, get_class($this));
         }
     }
-    
+
     /**
      * Inserts and directly translates the provided input
      * Requries translationFields to work
@@ -85,10 +85,10 @@ trait InputAndTranslate
                 $this->translate($objectId, $languageId, $inputData);
             }
         }
-        
+
         return $objectId;
     }
-    
+
     /**
      * Updates and directly translates the provided input
      * Requries translationFields to work
@@ -117,7 +117,7 @@ trait InputAndTranslate
                 $this->translate($objectId, $languageId, $inputData);
             }
         }
-        
+
         return $rows;
     }
 }

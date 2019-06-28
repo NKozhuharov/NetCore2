@@ -538,11 +538,11 @@ class User extends Base
             throw new Exception("No spaces are allowed in the username");
         }
 
-        if ($this->userNameMinLen && strlen($username) < $this->userNameMinLen) {
+        if ($this->userNameMinLen && mb_strlen($username) < $this->userNameMinLen) {
             throw new Exception("Username must be minimum %%{$this->userNameMinLen}%% symbols");
         }
 
-        if ($this->userNameMaxLen && strlen($username) > $this->userNameMaxLen) {
+        if ($this->userNameMaxLen && mb_strlen($username) > $this->userNameMaxLen) {
             throw new Exception("Username must be maximum %%{$this->userNameMaxLen}%% symbols");
         }
 
@@ -582,10 +582,10 @@ class User extends Base
         if (stristr($password, ' ')) {
             throw new Exception("No spaces are allowed in the password");
         }
-        if ($this->passMinLen && strlen($password) < $this->passMinLen) {
+        if ($this->passMinLen && mb_strlen($password) < $this->passMinLen) {
             throw new Exception("Password must be minimum %%{$this->passMinLen}%% symbols");
         }
-        if ($this->passMaxLen && strlen($password) > $this->passMaxLen) {
+        if ($this->passMaxLen && mb_strlen($password) > $this->passMaxLen) {
             throw new Exception("Password must be maximum %%{$this->passMaxLen}%% symbols");
         }
         if ($this->passNumbersRequired && !preg_match("#[0-9]+#", $password)) {
@@ -814,7 +814,7 @@ class User extends Base
             throw new Exception("Password length must be less than %%32%% symbols");
         }
 
-        return strtoupper(substr(md5(time()), rand(0, (32 - $length)), $length));
+        return mb_strtoupper(mb_substr(md5(time()), rand(0, (32 - $length)), $length));
     }
 
     /**

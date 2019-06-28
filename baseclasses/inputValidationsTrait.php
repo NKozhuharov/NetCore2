@@ -157,10 +157,10 @@ trait InputValidations
 
             $fieldType = $this->tableFields->getFieldType($fieldName);
 
-            if ((strstr($fieldType, 'int') || $fieldType === 'double' || $fieldType === 'float')) {
+            if ((mb_strstr($fieldType, 'int') || $fieldType === 'double' || $fieldType === 'float')) {
                 if (!is_numeric($value)) {
                     $inputErrors[$fieldName] = "Must be a number";
-                } else if (strstr($fieldType, 'int') && $error = $this->validateIntegerField($fieldName, $value)) {
+                } else if (mb_strstr($fieldType, 'int') && $error = $this->validateIntegerField($fieldName, $value)) {
                     $inputErrors[$fieldName] = $error;
                 }
             } else if ($fieldType === 'date' && $error = $this->validateIntegerField($value)) {
@@ -174,7 +174,7 @@ trait InputValidations
                 if (!empty($error)) {
                     $inputErrors[$fieldName] = $error;
                 }
-            } else if (strstr($fieldType, 'text') || strstr($fieldType, 'blob')) {
+            } else if (mb_strstr($fieldType, 'text') || mb_strstr($fieldType, 'blob')) {
                 if (is_array($value)) {
                     $error = $this->validateTextOrBlobField($fieldName, implode($this->explodeDelimiter, $value));
                 } else {
@@ -194,7 +194,7 @@ trait InputValidations
                 }
 
                 foreach ($value as $explodeFieldKey => $explodeFieldValue) {
-                    if (strstr($explodeFieldValue, $this->explodeDelimiter)) {
+                    if (mb_strstr($explodeFieldValue, $this->explodeDelimiter)) {
                         $inputErrors[$fieldName] = "The following %%`{$this->explodeDelimiter}`%% is not allowed in explode field";
                     }
                 }
@@ -244,52 +244,52 @@ trait InputValidations
         $info = $this->tableFields->getFieldInfo($fieldName);
 
         if ($fieldType === 'int') {
-            if (stristr($info, 'unsigned')) {
-                if (strlen($value) > 10 || $value < 0 || $value > 4294967295) {
+            if (mb_stristr($info, 'unsigned')) {
+                if (mb_strlen($value) > 10 || $value < 0 || $value > 4294967295) {
                     return 'Should be between %%0%% and %%4294967295%%';
                 }
             } else {
-                if (strlen($value) > 11 ||$value < -2147483648 || $value > 2147483647) {
+                if (mb_strlen($value) > 11 ||$value < -2147483648 || $value > 2147483647) {
                     return 'Should be between %%-2147483648%% and %%2147483647%%';
                 }
             }
         } else if ($fieldType === 'tinyint') {
-            if (stristr($info, 'unsigned')) {
-                if (strlen($value) > 3 || $value < 0 || $value > 255) {
+            if (mb_stristr($info, 'unsigned')) {
+                if (mb_strlen($value) > 3 || $value < 0 || $value > 255) {
                     return 'Should be between %%0%% and %%255%%';
                 }
             } else {
-                if (strlen($value) > 4 || $value < -128 || $value > 127) {
+                if (mb_strlen($value) > 4 || $value < -128 || $value > 127) {
                     return 'Should be between %%-128%% and %%127%%';
                 }
             }
         } else if ($fieldType === 'bigint') {
-            if (stristr($info, 'unsigned')) {
-                if (strlen($value) > 20 || $value < 0 || $value > 18446744073709551615) {
+            if (mb_stristr($info, 'unsigned')) {
+                if (mb_strlen($value) > 20 || $value < 0 || $value > 18446744073709551615) {
                     return 'Should be between %%0%% and %%65535%%';
                 }
             } else {
-                if (strlen($value) > 20 || $value < -9223372036854775808 || $value > 9223372036854775807) {
+                if (mb_strlen($value) > 20 || $value < -9223372036854775808 || $value > 9223372036854775807) {
                     return 'Should be between %%-9223372036854775808%% and %%9223372036854775807%%';
                 }
             }
         }  else if ($fieldType === 'smallint') {
-            if (stristr($info, 'unsigned')) {
-                if (strlen($value) > 6 || $value < 0 || $value > 65535) {
+            if (mb_stristr($info, 'unsigned')) {
+                if (mb_strlen($value) > 6 || $value < 0 || $value > 65535) {
                     return 'Should be between %%0%% and %%65535%%';
                 }
             } else {
-                if (strlen($value) > 6 || $value < -32768 || $value > 32767) {
+                if (mb_strlen($value) > 6 || $value < -32768 || $value > 32767) {
                     return 'Should be between %%-32768%% and %%32767%%';
                 }
             }
         } else if ($fieldType === 'mediumint') {
-            if (stristr($info, 'unsigned')) {
-                if (strlen($value) > 8 || $value < 0 || $value > 16777215) {
+            if (mb_stristr($info, 'unsigned')) {
+                if (mb_strlen($value) > 8 || $value < 0 || $value > 16777215) {
                     return 'Should be between %%0%% and %%16777215%%';
                 }
             } else {
-                if (strlen($value) > 8 || $value < -8388608 || $value > 8388607) {
+                if (mb_strlen($value) > 8 || $value < -8388608 || $value > 8388607) {
                     return 'Should be between %%-8388608%% and %%8388607%%';
                 }
             }
@@ -309,7 +309,7 @@ trait InputValidations
     {
         $info = $this->tableFields->getFieldInfo($fieldName);
 
-        if (strlen($value) > $info) {
+        if (mb_strlen($value) > $info) {
             return "Must not be longer than %%{$info}%% symbols";
         }
 
@@ -326,15 +326,15 @@ trait InputValidations
     protected function validateTextOrBlobField(string $fieldName, string $value)
     {
         $fieldType = $this->tableFields->getFieldType($fieldName);
-        $valueLength = strlen($value);
+        $valueLength = mb_strlen($value);
 
         if (($fieldType === 'text' || $fieldType === 'blob') && $valueLength > 65535) {
             return 'Must not be longer than %%65535%% symbols';
-        } else if (strstr($fieldType, 'tiny') && $valueLength > 255) {
+        } else if (mb_strstr($fieldType, 'tiny') && $valueLength > 255) {
             return 'Must not be longer than %%255%% symbols';
-        } else if (strstr($fieldType, 'medium') && $valueLength > 16777215) {
+        } else if (mb_strstr($fieldType, 'medium') && $valueLength > 16777215) {
             return 'Must not be longer than %%16777215%% symbols';
-        } else if (strstr($fieldType, 'long') && $valueLength > 4294967295) {
+        } else if (mb_strstr($fieldType, 'long') && $valueLength > 4294967295) {
             return 'Must not be longer than %%4294967295%% symbols';
         }
 

@@ -93,7 +93,7 @@ class Links extends Base
                 $lanugageId = $Core->Language->getCurrentLanguageId();
             }
 
-            $controllerName = strtolower($controllerName).self::MULTI_LANGUAGE_LINKS_SEPARATOR.$lanugageId;
+            $controllerName = mb_strtolower($controllerName).self::MULTI_LANGUAGE_LINKS_SEPARATOR.$lanugageId;
             $link = array_search($controllerName, $this->multiLanguageLinksInfo);
 
             if (empty($link)) {

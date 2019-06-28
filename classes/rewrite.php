@@ -60,7 +60,7 @@ class Rewrite
         $q = urldecode($_SERVER['REQUEST_URI']);
 
         if (mb_stristr($q, '?')) {
-            $qs = substr($q, 0, strpos($q, '?'));
+            $qs = mb_substr($q, 0, mb_strpos($q, '?'));
             preg_match_all("{/([^/]*)}", $qs, $matches);
         } else {
             preg_match_all("{/([^/]*)}", $q, $matches);
@@ -70,7 +70,7 @@ class Rewrite
         $this->urlBreakdown = $matches;
 
         if (stristr($q, '?')) {
-            $this->urlGetPart = substr($q, strpos($q, '?'));
+            $this->urlGetPart = mb_substr($q, mb_strpos($q, '?'));
         }
 
         if (isset($matches[count($matches) - 1]) && is_numeric($matches[count($matches) - 1])) {
@@ -100,7 +100,7 @@ class Rewrite
             $path = implode('/', $matches);
         }
 
-        if (substr($path, -1) === '/') {
+        if (mb_substr($path, -1) === '/') {
             $this->showPageNotFound();
         }
 
@@ -189,7 +189,7 @@ class Rewrite
                     $vars[0] = array_unique($vars[0]);
 
                     foreach ($vars[0] as $r) {
-                        $r = substr($r, 1);
+                        $r = mb_substr($r, 1);
                         if (isset(${$r})) {
                             $output[$r] = ${$r};
                         }

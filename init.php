@@ -39,7 +39,7 @@ if (isset($_SERVER['REQUEST_METHOD'])) {
                     exit("Invalid JSON: ".$contents);
                 }
             } else {
-                parse_str($contents, $_DELETE);
+                mb_parse_str($contents, $_DELETE);
             }
             $_REQUEST = array_merge($_REQUEST, $_DELETE);
         } elseif ($_SERVER['REQUEST_METHOD'] == 'PUT') {
@@ -49,7 +49,7 @@ if (isset($_SERVER['REQUEST_METHOD'])) {
                     exit("Invalid JSON: ".$contents);
                 }
             } else {
-                parse_str($contents, $_PUT);
+                mb_parse_str($contents, $_PUT);
             }
             $_REQUEST = array_merge($_REQUEST, $_PUT);
         } elseif ($_SERVER['REQUEST_METHOD'] == 'PATCH') {
@@ -59,7 +59,7 @@ if (isset($_SERVER['REQUEST_METHOD'])) {
                     exit("Invalid JSON: ".$contents);
                 }
             } else {
-                parse_str($contents, $_PATCH);
+                mb_parse_str($contents, $_PATCH);
             }
             $_REQUEST = array_merge($_REQUEST, $_PATCH);
         } elseif ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -69,7 +69,7 @@ if (isset($_SERVER['REQUEST_METHOD'])) {
                     exit("Invalid JSON: ".$contents);
                 }
             } else {
-                parse_str($contents, $_POST);
+                mb_parse_str($contents, $_POST);
             }
             $_REQUEST = array_merge($_REQUEST, $_POST);
         }

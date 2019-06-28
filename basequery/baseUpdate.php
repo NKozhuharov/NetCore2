@@ -58,7 +58,7 @@ final class BaseUpdate extends BaseQuery
             $this->addAValueToQuery($this->values[$i]);
         }
 
-        $this->query = substr($this->query, 0, -2);
+        $this->query = mb_substr($this->query, 0, -2);
 
         $this->addWhereToQuery();
         $this->addOrderByToQuery();

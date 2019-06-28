@@ -231,7 +231,7 @@ class Files extends Base
     {
         if ($type == 'application/octet-stream') {
             $name = strrev($name);
-            $name = substr($name,0,strpos($name,'.'));
+            $name = mb_substr($name,0,mb_strpos($name,'.'));
             $name = strrev($name);
             if ($name == 'zip' || $name == 'rar') {
                 return $name;
@@ -276,7 +276,7 @@ class Files extends Base
             $fileTo = $Core->filesDir.$file['dir'].'/'.$file['hashed_name'];
         } else {
             $file = $this->getBySrc($fileTo);
-            $fileTo = GLOBAL_PATH.substr(SITE_PATH, 0, -1).$fileTo;
+            $fileTo = GLOBAL_PATH.mb_substr(SITE_PATH, 0, -1).$fileTo;
         }
 
         if (is_file($fileTo)) {
@@ -319,7 +319,7 @@ class Files extends Base
             $fileTo = $Core->filesDir.$file['dir'].'/'.$file['hashed_name'];
         } else {
             $file = $this->getBySrc($fileTo);
-            $fileTo = GLOBAL_PATH.substr(SITE_PATH, 0, -1).$fileTo;
+            $fileTo = GLOBAL_PATH.mb_substr(SITE_PATH, 0, -1).$fileTo;
         }
 
         if (is_file($fileTo)) {
@@ -347,7 +347,7 @@ class Files extends Base
             $fileTo = $Core->filesDir.$file['dir'].'/'.$file['hashed_name'];
         } else {
             $file = $this->getBySrc($fileTo);
-            $fileTo = GLOBAL_PATH.substr(SITE_PATH, 0, -1).$fileTo;
+            $fileTo = GLOBAL_PATH.mb_substr(SITE_PATH, 0, -1).$fileTo;
         }
 
         if (!is_file($fileTo)) {

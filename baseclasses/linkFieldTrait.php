@@ -69,7 +69,7 @@ trait LinkField
             $translatedObject = $this->getTranslation($object, $lanugageId);
 
             #if ($translatedObject[$this->linkField] === $object[$this->linkField]) {
-            #    return $Core->Links->getLink(strtolower(get_class($this)), false, $lanugageId);
+            #    return $Core->Links->getLink(mb_strtolower(get_class($this)), false, $lanugageId);
             #}
 
             $object = $translatedObject;
@@ -80,9 +80,9 @@ trait LinkField
         }
 
         try {
-            return $Core->Links->getLink(strtolower(get_class($this)), '/'.mb_strtolower($object[$this->linkField]), $lanugageId);
+            return $Core->Links->getLink(mb_strtolower(get_class($this)), '/'.mb_strtolower($object[$this->linkField]), $lanugageId);
         } catch (Exception $ex) {
-            if (strstr($ex->getMessage(), 'The following controller was not found')) {
+            if (mb_strstr($ex->getMessage(), 'The following controller was not found')) {
                 return '/'.mb_strtolower($object[$this->linkField]);
             }
             throw new Exception($ex->getMessage());
@@ -160,9 +160,9 @@ trait LinkField
         }
 
         try {
-            return $Core->Links->getLink(strtolower(get_class($this)), '/'.$object['id'], $lanugageId);
+            return $Core->Links->getLink(mb_strtolower(get_class($this)), '/'.$object['id'], $lanugageId);
         } catch (Exception $ex) {
-            if (strstr($ex->getMessage(), 'The following controller was not found')) {
+            if (mb_strstr($ex->getMessage(), 'The following controller was not found')) {
                 return '/'.$object['id'];
             }
             throw new Exception($ex->getMessage());
@@ -190,11 +190,11 @@ trait LinkField
         while ($this->getAll(1, $additional."`{$this->linkField}` = '{$link}'")) {
             $count++;
 
-            $postFix = substr($link, strripos($link, '-'));
+            $postFix = mb_substr($link, mb_strripos($link, '-'));
 
             if ($count > 1) {
                 $postFix = str_replace('-'.($count-1),'-'.$count, $postFix);
-                $link = substr($link, 0, strripos($link, '-')).$postFix;
+                $link = mb_substr($link, 0, mb_strripos($link, '-')).$postFix;
             } else {
                 $link .= '-'.$count;
             }
@@ -259,7 +259,7 @@ trait LinkField
                 if ($count == 1) {
                     $link .= '-1';
                 } else {
-                    $link = substr($link, 0, (-strlen($count) - 1));
+                    $link = mb_substr($link, 0, (-mb_strlen($count) - 1));
                     $link .= '-'.$count;
                 }
             }
@@ -281,9 +281,10 @@ trait LinkField
         global $Core;
 
         $string = trim(preg_replace('~\P{Xan}++~u', ' ', $string));
-        $string = preg_replace("~\s+~", '-', strtolower($string));
-        $string = substr($string, 0, 200);
+        $string = preg_replace("~\s+~", '-', mb_strtolower($string));
+        $string = mb_substr($string, 0, 200);
+        $string = mb_strtolower($string);
 
-        return $Core->db->escape(substr($string, 0, 200));
+        return $string;
     }
 }
