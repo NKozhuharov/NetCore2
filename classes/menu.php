@@ -170,10 +170,10 @@ class Menu
                 >
                     <?php if ($t[$this->linkField]) { ?>
                         <a class=" <?php echo $subMenu ? 'menu-name' : '';?>" href="<?php echo $t[$this->linkField]; ?>">
-                            <?php echo $t['icon']; ?><?php echo $name; ?>
+                            <span class="menu-name-icon"><?php echo $t['icon']; ?></span><?php echo $name; ?>
                         </a>
                     <?php } else { ?>
-                        <div class="menu-name"><?php echo $t['icon']; ?><?php echo $name; ?></div>
+                        <div class="menu-name"><span class="menu-name-icon"><?php echo $t['icon']; ?></span><?php echo $name; ?></div>
                     <?php } ?>
                     <ul class="<?php echo (in_array($t['id'], $parents) ? 'opened' : '').($isResp ? ' resp' : ''); ?>">
                         <?php $this->formTree($t['children'], $isResp); ?>
@@ -187,9 +187,9 @@ class Menu
                     class="noMenu <?php echo $t[$this->linkField] == $this->url ? ' is-current' : ''; ?>"
                 >
                     <?php if ($t[$this->linkField]) { ?>
-                        <a href="<?php echo $t[$this->linkField]; ?>"><?php echo $t['icon']; ?><?php echo $name; ?></a>
+                        <a href="<?php echo $t[$this->linkField]; ?>"><span class="menu-name-icon"><?php echo $t['icon']; ?></span><?php echo $name; ?></a>
                     <?php } else { ?>
-                        <div class="menu-name"><?php echo $t['icon']; ?><?php echo $name; ?></div>
+                        <div class="menu-name"><span class="menu-name-icon"><?php echo $t['icon']; ?></span><?php echo $name; ?></div>
                     <?php } ?>
                 </li>
             <?php
