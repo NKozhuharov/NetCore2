@@ -124,22 +124,62 @@ try {
     unset($info, $platformFiles, $file);
 } catch (Success $e) {
     ob_end_clean();
-    $Core->exceptionhandler->Success($e);
+
+    if (isset($Core) && is_object($Core->exceptionhandler)) {
+        $Core->exceptionhandler->Success($e);
+    } else {
+        header('HTTP/1.1 500 Internal Server Error', true, 500);
+
+        echo "Internal Server Error";
+    }
+
     die;
 } catch (Error $e) {
     ob_end_clean();
-    $Core->exceptionhandler->Error($e);
+
+    if (isset($Core) && is_object($Core->exceptionhandler)) {
+        $Core->exceptionhandler->Error($e);
+    } else {
+        header('HTTP/1.1 500 Internal Server Error', true, 500);
+
+        echo "Internal Server Error";
+    }
+
     die;
 } catch (ForbiddenException $e) {
     ob_end_clean();
-    $Core->exceptionhandler->ForbiddenException($e);
+
+    if (isset($Core) && is_object($Core->exceptionhandler)) {
+        $Core->exceptionhandler->ForbiddenException($e);
+    } else {
+        header('HTTP/1.1 500 Internal Server Error', true, 500);
+
+        echo "Internal Server Error";
+    }
+
     die;
 } catch (BaseException $e) {
     ob_end_clean();
-    $Core->exceptionhandler->BaseException($e);
+
+    if (isset($Core) && is_object($Core->exceptionhandler)) {
+        $Core->exceptionhandler->BaseException($e);
+    } else {
+        header('HTTP/1.1 500 Internal Server Error', true, 500);
+
+        echo "Internal Server Error";
+    }
+
     die;
 } catch (Exception $e) {
     ob_end_clean();
-    $Core->exceptionhandler->Exception($e);
+
+    if (isset($Core) && is_object($Core->exceptionhandler)) {
+        $Core->exceptionhandler->Exception($e);
+    } else {
+        header('HTTP/1.1 500 Internal Server Error', true, 500);
+
+        echo "Internal Server Error";
+    }
+
     die;
 }
