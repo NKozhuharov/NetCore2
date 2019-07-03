@@ -115,7 +115,7 @@ trait InputValidations
         }
 
         if (!empty($emptyFields)) {
-            throw new BaseException("The following fields must not be empty", $emptyFields, get_class($this));
+            throw new BaseException("The following fields are not valid", $emptyFields, get_class($this));
         }
     }
 
