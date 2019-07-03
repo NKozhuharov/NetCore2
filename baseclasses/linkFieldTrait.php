@@ -54,7 +54,6 @@ trait LinkField
      * @param int $languageId - get the link in this language
      * @return string
      * @throws Exception
-     * @todo check commented rows
      */
     private function getLinkByIdIfLinkFieldIsPresentInObject(array $object, int $lanugageId)
     {
@@ -67,10 +66,6 @@ trait LinkField
             }
 
             $translatedObject = $this->getTranslation($object, $lanugageId);
-
-            #if ($translatedObject[$this->linkField] === $object[$this->linkField]) {
-            #    return $Core->Links->getLink(mb_strtolower(get_class($this)), false, $lanugageId);
-            #}
 
             $object = $translatedObject;
 
@@ -177,30 +172,9 @@ trait LinkField
      */
     public function getUniqueLink(string $string, int $objectId = null)
     {
-        $link = $this->getLinkFromString($string);
-
-        $additional = null;
-
-        if ($objectId !== null) {
-            $additional = " `id` != '{$objectId}' AND ";
-        }
-
-        $count = 0;
-
-        while ($this->getAll(1, $additional."`{$this->linkField}` = '{$link}'")) {
-            $count++;
-
-            $postFix = mb_substr($link, mb_strripos($link, '-'));
-
-            if ($count > 1) {
-                $postFix = str_replace('-'.($count-1),'-'.$count, $postFix);
-                $link = mb_substr($link, 0, mb_strripos($link, '-')).$postFix;
-            } else {
-                $link .= '-'.$count;
-            }
-        }
-
-        return $link;
+        global $Core;
+        
+        return $Core->GlobalFunctions->getHref($string, $this->tableName, $this->linkField, $objectId);
     }
 
     /**
@@ -214,6 +188,8 @@ trait LinkField
      */
     public function getUniqueLinkTranslation(string $string, int $languageId = null, int $objectId = null)
     {
+        global $Core;
+        
         if (($languageId === null && $objectId !== null) || ($languageId !== null && $objectId === null)) {
             throw new Exception("Provide both language id and object id");
         }
@@ -245,8 +221,8 @@ trait LinkField
             AND ";
         }
 
-        $link = $this->getLinkFromString($string);
-
+        $link = $Core->GlobalFunctions->getUrl($string);
+        
         $selector = new BaseSelect("{$this->tableName}_lang");
         $selector->setWhere($additional."`{$this->linkField}` = '{$link}'");
         $selector->setLimit(1);
@@ -268,23 +244,5 @@ trait LinkField
         }
 
         return $link;
-    }
-
-    /**
-     * Creates a link from the provided string. Replaces all special characters and spaces with dashes (-)
-     *
-     * @param string $string - string by which to create the link
-     * @return string
-     */
-    private function getLinkFromString(string $string)
-    {
-        global $Core;
-
-        $string = trim(preg_replace('~\P{Xan}++~u', ' ', $string));
-        $string = preg_replace("~\s+~", '-', mb_strtolower($string));
-        $string = mb_substr($string, 0, 200);
-        $string = mb_strtolower($string);
-
-        return $string;
     }
 }
