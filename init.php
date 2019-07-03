@@ -99,8 +99,10 @@ try {
 
     $Core = new Core($info);
 
-    //init Language class to listen for language change
-    $Core->Language;
+    //init Language class to listen for language change if multilanguage is allowed
+    if ($Core->allowMultilanguage) {
+        $Core->Language;
+    }
 
     //init images class if present
     if ($Core->{$Core->imagesModel}) {

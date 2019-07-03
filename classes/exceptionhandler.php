@@ -5,12 +5,6 @@ class ExceptionHandler
     const DONT_TRANSLATE_DELIMITER = '##';
 
     /**
-     * If is set to false nothing will be translated
-     * @var bool $translate
-     */
-    protected $translate = true;
-
-    /**
      * Parses the exception message and makes sure it can be translated
      * @param Exception $exception - the thrown exception
      * @return string
@@ -70,7 +64,7 @@ class ExceptionHandler
                     mb_strlen(self::DONT_TRANSLATE_DELIMITER)
                 ) !== self::DONT_TRANSLATE_DELIMITER
             ) {
-                if ($this->translate) {
+                if ($Core->allowMultylanguage) {
                     $messagePart = str_replace(' ', '_', mb_strtolower($messagePart));
                     $messagePart = trim($messagePart, ' _');
                     $translation .= $Core->Language->{$messagePart}.' ';

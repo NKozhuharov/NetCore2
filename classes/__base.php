@@ -352,7 +352,9 @@ class Base
      */
     protected function isTranslationAvailable()
     {
-        return  $this->translateResult !== false && !empty($this->translationFields) ;
+        global $Core;
+        
+        return  $this->translateResult !== false && !empty($this->translationFields) && $Core->allowMultilanguage === true;
     }
 
     /**

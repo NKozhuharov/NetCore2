@@ -109,6 +109,12 @@ class Core
     private $exceptionhandler;
 
     /**
+     * @var bool
+     * Shows if the site has more than 1 language
+     */
+    private $allowMultilanguage = true;
+
+    /**
      * @var string
      * The short name of the default language
      */
