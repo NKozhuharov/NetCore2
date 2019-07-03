@@ -75,7 +75,7 @@ class Rewrite
 
         if (isset($matches[count($matches) - 1]) && is_numeric($matches[count($matches) - 1])) {
             if ($Core->allowFirstPage === false && intval($matches[count($matches) - 1]) === 1) {
-                $this->showPageNotFound();
+                return $this->showPageNotFound();
             }
 
             $this->currentPage = intval($matches[count($matches) - 1]);
@@ -83,14 +83,14 @@ class Rewrite
             unset($matches[count($matches) - 1]);
         } elseif (isset($_REQUEST['page']) && is_numeric($_REQUEST['page'])) {
             if ($Core->allowFirstPage === false && intval($_REQUEST['page']) === 1) {
-                $this->showPageNotFound();
+                return $this->showPageNotFound();
             }
 
             $this->currentPage = intval($_REQUEST['page']);
         }
 
         if ($this->currentPage < 1) {
-            $this->showPageNotFound();
+            return $this->showPageNotFound();
         }
 
         //if the request is for file it will not search subdirectories
@@ -101,7 +101,7 @@ class Rewrite
         }
 
         if (mb_substr($path, -1) === '/') {
-            $this->showPageNotFound();
+            return $this->showPageNotFound();
         }
 
         $this->url = '/'.$path;
@@ -109,7 +109,7 @@ class Rewrite
         if (isset($Core->rewriteOverride[$path])) {
             $path = $Core->rewriteOverride[$path];
         } elseif (!empty($Core->rewriteOverride) && in_array($path, $Core->rewriteOverride)) {
-            $this->showPageNotFound();
+            return $this->showPageNotFound();
         }
 
         $this->controllerPath = '/'.$path;
@@ -138,8 +138,6 @@ class Rewrite
 
         $this->setController($Core->pageNotFoundLocation);
         $this->setView($Core->pageNotFoundLocation);
-        $this->getFiles();
-        die;
     }
 
     /**
