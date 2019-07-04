@@ -2,7 +2,7 @@
 trait QueryExecuters
 {
     /**
-     * Executes a delete query statment and parses any thrown exceptions
+     * Executes a delete query statment and parses any thrown errors
      * @param BaseDelete $deleter - the deleter instance of the BaseDelete class
      * @return int
      */
@@ -10,13 +10,13 @@ trait QueryExecuters
     {
         try {
             return $deleter->execute();
-        } catch (Exception $ex) {
+        } catch (Error $ex) {
             $this->parseDeleteMySQLError($ex);
         }
     }
 
     /**
-     * Executes a insert query statment and parses any thrown exceptions
+     * Executes a insert query statment and parses any thrown errors
      * @param BaseInsert $inserter - the deleter instance of the BaseInsert class
      * @return int
     */
@@ -24,13 +24,13 @@ trait QueryExecuters
     {
         try {
             return $inserter->execute();
-        } catch (Exception $ex) {
+        } catch (Error $ex) {
             $this->parseInsertMysqlError($ex);
         }
     }
 
     /**
-     * Executes a update query statment and parses any thrown exceptions
+     * Executes a update query statment and parses any thrown errors
      * @param BaseUpdate $updater - the updater instance of the BaseUpdate class
      * @return int
     */
@@ -38,7 +38,7 @@ trait QueryExecuters
     {
         try {
             return $updater->execute();
-        } catch (Exception $ex) {
+        } catch (Error $ex) {
             $this->parseUpdateMysqlError($ex);
         }
     }
@@ -47,11 +47,11 @@ trait QueryExecuters
      * Parses a MySQL Error, occured when using any of the delete functions
      * Looks for foreign key constraint fails and returns a human readble error with BaseException
      * It will throw the same Error if it wasn't parsed
-     * @param Exception $ex - an Exception thrown when executing a delete query
+     * @param Error $ex - an Error thrown when executing a delete query
      * @throws BaseException
      * @throws Error
      */
-    protected function parseDeleteMySQLError(Exception $ex)
+    protected function parseDeleteMySQLError(Error $ex)
     {
         global $Core;
 
@@ -77,10 +77,10 @@ trait QueryExecuters
     /**
      * Parses a MySQL Error, occured when using any of the insert functions
      * It will throw the same Error if it wasn't parsed
-     * @param Exception $ex - an Exception thrown when executing a insert query
+     * @param Error $ex - an Error thrown when executing a insert query
      * @throws Error
      */
-    protected function parseInsertMysqlError(Exception $ex)
+    protected function parseInsertMysqlError(Error $ex)
     {
         $message = $ex->getMessage();
 
@@ -93,10 +93,10 @@ trait QueryExecuters
     /**
      * Parses a MySQL Error, occured when using any of the update functions
      * It will throw the same Error if it wasn't parsed
-     * @param Exception $ex - an Exception thrown when executing a update query
+     * @param Error $ex - an Error thrown when executing a update query
      * @throws Error
      */
-    protected function parseUpdateMysqlError(Exception $ex)
+    protected function parseUpdateMysqlError(Error $ex)
     {
         $message = $ex->getMessage();
 
