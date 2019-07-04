@@ -109,13 +109,13 @@ class Base
 
     /**
      * Ensures that tableFields variable is initialized; if not it will initialize it
-     * Throws Exception if the table name is not provided
-     * @throws Exception
+     * Throws Error if the table name is not provided
+     * @throws Error
      */
     protected final function checkTableFields()
     {
         if (empty($this->tableName)) {
-            throw new Exception("Provide a table name for model `".get_class($this)."`");
+            throw new Error("Provide a table name for model `".get_class($this)."`");
         }
 
         if (empty($this->tableFields)) {
@@ -140,7 +140,7 @@ class Base
     public function changeTableName(string $name)
     {
         if (empty($name)) {
-            throw new Exception("Empty table name in model `".get_class($this)."`");
+            throw new Error("Empty table name in model `".get_class($this)."`");
         }
 
         $this->tableName = $name;
@@ -169,9 +169,9 @@ class Base
      * Set the order by field to a new value.
      * Ensures the field exists in the table; if returnTimestamps is true, it will also consider '_timestamp' fields
      * as existing.
-     * Throws Exception if the provided field does not exist in the table
+     * Throws Error if the provided field does not exist in the table
      * @param string $field - the name of the new field
-     * @throws Exception
+     * @throws Error
      */
     public function changeOrderByField(string $field)
     {
@@ -188,7 +188,7 @@ class Base
         }
 
         if (!in_array($field, $fieldsToCheck)) {
-            throw new Exception("The field `$field` does not exist in table `{$this->tableName}`");
+            throw new Error("The field `$field` does not exist in table `{$this->tableName}`");
         }
 
         $this->orderByField = $field;
@@ -244,14 +244,14 @@ class Base
 
     /**
      * It will turn on the cache for all select queries from now on
-     * It will throw Exception if the provided parameter is <= 0
+     * It will throw Error if the provided parameter is <= 0
      * @param int $cacheTime - allows to set the specific cache time (in minutes)
-     * @throws Exception
+     * @throws Error
      */
     public function turnOnQueryCache(int $cacheTime)
     {
         if ($cacheTime <= 0) {
-            throw new Exception("Query cache time should be bigger than 0 in model `".get_class($this)."`");
+            throw new Error("Query cache time should be bigger than 0 in model `".get_class($this)."`");
         }
 
         $this->queryCacheTime = $cacheTime;
@@ -353,7 +353,7 @@ class Base
     protected function isTranslationAvailable()
     {
         global $Core;
-        
+
         return  $this->translateResult !== false && !empty($this->translationFields) && $Core->allowMultilanguage === true;
     }
 
@@ -566,10 +566,10 @@ class Base
     /**
      * Basic method of the Base class
      * It will select a single rows from the table of the model, which contains the provided id
-     * Throws Exception if row id is invalid or this field does not exist of the table in the model
+     * Throws Error if row id is invalid or this field does not exist of the table in the model
      * @param int $rowId - the id of the row
      * @return array
-     * @throws Exception
+     * @throws Error
      */
     public function getById(int $rowId)
     {
@@ -580,7 +580,7 @@ class Base
         $this->checkTableFields();
 
         if (!array_key_exists('id', $this->tableFields->getFields())) {
-            throw new Exception("The field `id` does not exist in table `{$this->tableName}`");
+            throw new Error("The field `id` does not exist in table `{$this->tableName}`");
         }
 
         $selector = $this->initializeBaseSelector();
@@ -700,11 +700,12 @@ class Base
     /**
      * It will return the value of the parent field of the provided row
      * @param int $rowId - the id of the row
+     * @throws Error
      */
     public function getParentId(int $rowId)
     {
         if (empty($this->parentField)) {
-            throw new Exception("Set a parent field in model `".get_class($this)."`");
+            throw new Error("Set a parent field in model `".get_class($this)."`");
         }
 
         $object = $this->getById($rowId);
@@ -721,7 +722,7 @@ class Base
      * @param array $result - the result from a select query
      * @param int $languageId - the id of the language
      * @return array
-     * @throws Exception
+     * @throws Error
      */
     public function getTranslation(array $result, int $languageId = null)
     {
@@ -735,7 +736,7 @@ class Base
 
         foreach ($this->translationFields as $translationField) {
             if (!isset($this->tableFields->getFields()[$translationField])) {
-                throw new Exception("Translation field `{$translationField}` does not exist in table `{$this->tableName}`");
+                throw new Error("Translation field `{$translationField}` does not exist in table `{$this->tableName}`");
             }
         }
 
@@ -751,7 +752,7 @@ class Base
         }
 
         if (empty($resultObjectIds)) {
-            throw new Exception("Cannot translate query results, which do not contain the id column");
+            throw new Error("Cannot translate query results, which do not contain the id column");
         }
 
         $selector = new BaseSelect("{$this->tableName}_lang");
@@ -821,11 +822,12 @@ class Base
      * Returns the number of deleted rows
      * @param string $additional - the where clause override
      * @return int
+     * @throws Error
      */
     public function delete(string $additional)
     {
         if (empty($additional) || mb_strlen(trim($additional)) === 0) {
-            throw new Exception("A delete query without where parameter is not allowed. Use deleteAll instead. Model: `".get_class($this)."`");
+            throw new Error("A delete query without where parameter is not allowed. Use deleteAll instead. Model: `".get_class($this)."`");
         }
 
         $deleter = new BaseDelete($this->tableName);
@@ -880,9 +882,9 @@ class Base
     /**
      * Deletes all rows in the table of the model that match the provided parent id
      * Returns the number of deleted rows
-     * It will throw Exception if a parentField is not set for the model, the provided parent id is empty or invalid
+     * It will throw Error if a parentField is not set for the model, the provided parent id is empty or invalid
      * @param int $id - the parent id of the rows
-     * @throws Exception
+     * @throws Error
      * @return int
      */
     public function deleteByParentId(int $parentId)
@@ -903,11 +905,11 @@ class Base
     /**
      * Inserts a rows into the model table
      * Returns the id of the inserted row
-     * Throws exception if a flag is provided and it is not valid
+     * Throws Error if a flag is provided and it is not valid
      * @param array $input - it must contain the field names => values
      * @param int $flag - used for insert ignore and insert on duplicate key update queries
      * @return int
-     * @throws Exception
+     * @throws Error
      */
     public function insert(array $input, int $flag = null)
     {
@@ -918,7 +920,7 @@ class Base
         } elseif ($flag === INSERT_ON_DUPLICATE_KEY_UPDATE) {
             $inserter->setUpdateOnDuplicate(true);
         } elseif ($flag !== null) {
-            throw new Exception("Allowed flags are `INSERT_IGNORE` (0) and `INSERT_ON_DUPLICATE_KEY_UPDATE` (1) in model `".get_class($this)."`");
+            throw new Error("Allowed flags are `INSERT_IGNORE` (0) and `INSERT_ON_DUPLICATE_KEY_UPDATE` (1) in model `".get_class($this)."`");
         }
 
         $inserter->setFieldsAndValues($this->validateAndPrepareInputArray($input));
@@ -934,18 +936,18 @@ class Base
     /**
      * Updates a rows into the model table by the provided where override
      * Returns the number of affected rows
-     * It will throw Exception if a where override is not provided
-     * It will throw Exception if there is a problem with the provided input
+     * It will throw Error if a where override is not provided
+     * It will throw Error if there is a problem with the provided input
      * @param int $objectId - the id of the row to be updated
      * @param array $input - it must contain the field names => values
      * @param string $additional - the where clause override
-     * @throws Exception
+     * @throws Error
      * @return int
      */
     public function update(array $input, string $additional)
     {
         if (empty($additional) || mb_strlen(trim($additional)) === 0) {
-            throw new Exception("An update query without where parameter is not allowed. Use updateAll instead. Model: `".get_class($this)."`");
+            throw new Error("An update query without where parameter is not allowed. Use updateAll instead. Model: `".get_class($this)."`");
         }
 
         $updater = new BaseUpdate($this->tableName);
@@ -963,12 +965,12 @@ class Base
     /**
      * Updates a rows into the model table by it's id
      * Returns the number of affected rows
-     * It will throw Exception if the provided objectId is empty
-     * It will throw Exception if there is a problem with the provided input
+     * It will throw Error if the provided objectId is empty
+     * It will throw Error if there is a problem with the provided input
      * @param int $objectId - the id of the row to be updated
      * @param array $input - it must contain the field names => values
      * @param string $additional - the where clause override
-     * @throws Exception
+     * @throws Error
      * @return int
      */
     public function updateById(int $objectId, array $input, string $additional = null)
@@ -990,12 +992,12 @@ class Base
     /**
      * Updates a rows into the model table by it's id
      * Returns the number of affected rows
-     * It will throw Exception if a parentField is not set for the model, the provided parent id is empty or invalid
-     * It will throw Exception if there is a problem with the provided input
+     * It will throw Error if a parentField is not set for the model, the provided parent id is empty or invalid
+     * It will throw Error if there is a problem with the provided input
      * @param int $parentId - the id of the parent field
      * @param array $input - it must contain the field names => values
      * @param string $additional - the where clause override
-     * @throws Exception
+     * @throws Error
      * @return int
      */
     public function updateByParentId(int $parentId, array $input, string $additional = null)
@@ -1016,9 +1018,9 @@ class Base
 
     /**
      * Updates all fields in the table with the provided input
-     * It will throw Exception if there is a problem with the provided input
+     * It will throw Error if there is a problem with the provided input
      * @param string $additional - the where clause override
-     * @throws Exception
+     * @throws Error
      * @return int
      */
     public function updateAll(array $input)
@@ -1037,9 +1039,9 @@ class Base
     /**
      * Sets the hiddenField of the provided object to 1 (hides the object)
      * Returns the number of affected rows
-     * It will throw Exception if the provided objectId is empty
+     * It will throw Error if the provided objectId is empty
      * @param int $objectId - the id of the row to be hidden
-     * @throws Exception
+     * @throws Error
      * @return int
      */
     public function hideById(int $objectId)
@@ -1063,9 +1065,9 @@ class Base
     /**
      * Sets the hiddenField of the provided object to 0 (shows the object)
      * Returns the number of affected rows
-     * It will throw Exception if the provided objectId is empty
+     * It will throw Error if the provided objectId is empty
      * @param int $objectId - the id of the row to be shown
-     * @throws Exception
+     * @throws Error
      * @return int
      */
     public function showById(int $objectId)
@@ -1093,7 +1095,7 @@ class Base
      * @param int $languageId - the language id to translate to
      * @param array $input - the translated object data
      * @return int
-     * @throws Exception
+     * @throws Error
      */
     public function translate(int $objectId, int $languageId, array $input)
     {
@@ -1104,18 +1106,18 @@ class Base
         $this->validateObjectId($objectId);
 
         if ($languageId <= 0) {
-            throw new Exception("Language id should be bigger than 0 in model `".get_class($this)."`");
+            throw new Error("Language id should be bigger than 0 in model `".get_class($this)."`");
         }
 
         if (!array_key_exists($languageId, $Core->Language->getActiveLanguages())) {
-            throw new Exception("Language id should be the id of an active language in model `".get_class($this)."`");
+            throw new Error("Language id should be the id of an active language in model `".get_class($this)."`");
         }
 
         $this->checkTableFields();
 
         foreach ($this->translationFields as $translationField) {
             if (!array_key_exists($translationField, $this->tableFields->getFields())) {
-                throw new Exception("The translation field `$translationField` does not exists in table `{$this->tableName}`");
+                throw new Error("The translation field `$translationField` does not exists in table `{$this->tableName}`");
             }
         }
 
@@ -1128,7 +1130,7 @@ class Base
         $this->translateResult = $currentTranslation;
 
         if (empty($objectInfo)) {
-            throw new Exception("The object you are trying to translate does not exist in model `".get_class($this)."`");
+            throw new Error("The object you are trying to translate does not exist in model `".get_class($this)."`");
         }
 
         $this->validateTranslateExplodeFields($input, $objectInfo);
@@ -1138,13 +1140,13 @@ class Base
 
         try {
             $this->tableFields = new BaseTableFields("{$this->tableName}_lang");
-        } catch (Exception $ex) {
-            throw new Exception("Table {$this->tableName}_lang does not exist in model `".get_class($this)."`");
+        } catch (Error $ex) {
+            throw new Error("Table {$this->tableName}_lang does not exist in model `".get_class($this)."`");
         }
 
         foreach ($this->translationFields as $translationField) {
             if (!array_key_exists($translationField, $this->tableFields->getFields())) {
-                throw new Exception("The translation field `$translationField` does not exists in table `".$this->tableName."_lang"."`");
+                throw new Error("The translation field `$translationField` does not exists in table `".$this->tableName."_lang"."`");
             }
         }
 

@@ -14,7 +14,7 @@ class Categories extends Base
      * @var bool
      */
     protected $allowMultilanguage = true;
-    
+
     /**
      * Creates a new instance of Categories class
      */
@@ -22,67 +22,67 @@ class Categories extends Base
     {
         $this->tableName    = 'categories';
         $this->orderByField = 'position';
-        
+
         if ($this->allowMultilanguage) {
             $this->translationFields = array('name', 'link');
         } else {
             $this->translateResult = false;
         }
     }
-    
+
     /**
      * Override the base function to add automatic generation of links
      * @param array $input - it must contain the field names => values
      * @param int $flag - used for insert ignore and insert on duplicate key update queries
      * @return int
-     * @throws Exception
+     * @throws Error
      */
     public function insert(array $input, int $flag = null)
     {
         global $Core;
-        
+
         if (!isset($input['link']) || empty($input['link'])) {
             $input['link'] = $Core->GlobalFunctions->getHref($input['name'], $this->tableName, $this->linkField);
         }
-        
+
         return parent::insert($input, $flag);
     }
-    
+
     /**
      * Override the base function to add automatic generation of links
      * @param int $objectId - the id of the row where the translated object is
      * @param int $languageId - the language id to translate to
      * @param array $input - the translated object data
      * @return int
-     * @throws Exception
+     * @throws Error
      */
     public function translate(int $objectId, int $languageId, array $input)
     {
         global $Core;
-        
+
         if (!isset($input['link']) || empty($input['link'])) {
             $input['link'] = $Core->GlobalFunctions->getHref($input['name'], "{$this->tableName}_lang", $this->linkField);
         }
-        
+
         return parent::translate($objectId, $languageId, $input);
     }
-    
+
     /**
      * Override the base function to add automatic generation of links
      * @param int $objectId - the id of the row to be updated
      * @param array $input - it must contain the field names => values
      * @param string $additional - the where clause override
-     * @throws Exception
+     * @throws Error
      * @return int
      */
     public function updateById(int $objectId, array $input, string $additional = null)
     {
         global $Core;
-        
+
         if (!isset($input['link']) || empty($input['link'])) {
             $input['link'] = $Core->GlobalFunctions->getHref($input['name'], $this->tableName, $this->linkField);
         }
-        
+
         return parent::updateById($objectId, $input, $additional);
     }
 }

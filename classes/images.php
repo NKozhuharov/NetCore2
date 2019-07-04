@@ -156,7 +156,7 @@ class Images extends Base
         global $Core;
 
         if (!isset($_SERVER['REQUEST_URI'])) {
-            throw new Exception('Unallowed action');
+            throw new Error('Unallowed action');
         }
 
         if($this->allowedSizes){
@@ -259,11 +259,11 @@ class Images extends Base
         }
 
         if(!isset($this->allowedSizes[$this->sizeType])) {
-            throw new Exception('Allowed sizes type must be one of the following: `org`, `fixed`, `width`, `height`');
+            throw new Error('Allowed sizes type must be one of the following: `org`, `fixed`, `width`, `height`');
         }
 
         if(!isset($this->allowedSizes[$this->sizeType][$this->sizeKey])) {
-            throw new Exception("Unallowed size key `{$this->sizeKey}` for size type `{$this->sizeType}`");
+            throw new Error("Unallowed size key `{$this->sizeKey}` for size type `{$this->sizeType}`");
         }
 
         $fileLocation = urldecode($file['tmp_name']);
@@ -275,8 +275,8 @@ class Images extends Base
 
     /**
      * Stores the original image and sets the response data for the current file(image location)
-     * Throws Exception if $Core->imagesStorage is equal to $Core->imagesDir and watermark is required
-     * @throws Exception
+     * Throws Error if $Core->imagesStorage is equal to $Core->imagesDir and watermark is required
+     * @throws Error
      */
     private function upload()
     {
@@ -286,7 +286,7 @@ class Images extends Base
 
         if ($Core->imagesStorage === $Core->imagesDir) {
             if ($this->watermarkFile) {
-               throw new Exception('Adding watermark is not allowed when `$Core->imagesStorage` is the same as `$Core->imagesDir`');
+               throw new Error('Adding watermark is not allowed when `$Core->imagesStorage` is the same as `$Core->imagesDir`');
             }
 
             $addOrgFolder = 'org/';
@@ -466,7 +466,7 @@ class Images extends Base
 
     /**
      * Validates org size type, using the allowedSizes property
-     * @throws Exception
+     * @throws Error
      */
     private function validateOrgImageSizeType()
     {
@@ -480,7 +480,7 @@ class Images extends Base
             (is_numeric($this->allowedSizes['org']['org']['width']) && intval($this->allowedSizes['org']['org']['width']) <= 0) ||
             (is_numeric($this->allowedSizes['org']['org']['height']) && intval($this->allowedSizes['org']['org']['height']) <= 0)
         ) {
-             throw new Exception(
+             throw new Error(
                 get_class($this)." class error.".PHP_EOL.PHP_EOL.
                 "allowedSizes['org'] value must be an array containing only one array with the following structure:".
                 PHP_EOL.PHP_EOL."array('org' => array('width' => false or numeric, 'height' => false or numeric))"
@@ -490,13 +490,13 @@ class Images extends Base
 
     /**
      * Validates width size type, using the allowedSizes property
-     * @throws Exception
+     * @throws Error
      */
     private function validateWidthImageSizeType()
     {
         foreach ($this->allowedSizes['width'] as $widthKey => $widthValue){
             if (!is_numeric($widthKey)) {
-                throw new Exception(
+                throw new Error(
                     get_class($this)." class error.".PHP_EOL.PHP_EOL.
                     "allowedSizes['width'] keys must be numeric (greater than 0)"
                 );
@@ -511,7 +511,7 @@ class Images extends Base
                 intval($widthKey) <= 0 ||
                 intval($widthValue['width']) <= 0
             ) {
-               throw new Exception(
+               throw new Error(
                    get_class($this)." class error.".PHP_EOL.PHP_EOL.
                    "allowedSizes['width'] value must be an array containing arrays with the following structure:".
                    PHP_EOL.PHP_EOL."'1920' => array('width' => '1920' (equal to parent array key), ".
@@ -523,13 +523,13 @@ class Images extends Base
 
    /**
      * Validates height size type, using the allowedSizes property
-     * @throws Exception
+     * @throws Error
      */
     private function validateHeightImageSizeType()
     {
         foreach ($this->allowedSizes['height'] as $heighthKey => $heightValue){
             if (!is_numeric($heighthKey)) {
-                throw new Exception(
+                throw new Error(
                     get_class($this)." class error.".PHP_EOL.PHP_EOL.
                     "allowedSizes['height'] keys must be numeric (greater than 0)"
                 );
@@ -544,7 +544,7 @@ class Images extends Base
                 intval($heighthKey) <= 0 ||
                 intval($heightValue['height']) <= 0
             ) {
-               throw new Exception(
+               throw new Error(
                    get_class($this)." class error.".PHP_EOL.PHP_EOL.
                    "allowedSizes['height'] value must be an array containing arrays with the following structure:".
                    PHP_EOL.PHP_EOL."'1080' => array('width' => false (always false), ".
@@ -556,7 +556,7 @@ class Images extends Base
 
     /**
      * Validates fixed size type, using the allowedSizes property
-     * @throws Exception
+     * @throws Error
      */
     private function validateFixedImageSizeType()
     {
@@ -570,7 +570,7 @@ class Images extends Base
                 $keyParts[0] <= 0 ||
                 $keyParts[1] <= 0
             ) {
-                throw new Exception(
+                throw new Error(
                     get_class($this)." class error.".PHP_EOL.PHP_EOL.
                     "nallowedSizes['fixed'] keys must be 'numeric (greater than 0)-numeric (greater than 0)' eg. '1920-1080'"
                 );
@@ -584,7 +584,7 @@ class Images extends Base
                 intval($fixedValue['width']) != intval($keyParts[0]) ||
                 intval($fixedValue['height']) != intval($keyParts[1])
             ) {
-               throw new Exception(
+               throw new Error(
                    get_class($this)." class error.".PHP_EOL.PHP_EOL.
                    "allowedSizes['fixed'] value must be an array containing arrays with the following structure:".PHP_EOL.
                    PHP_EOL."'1920-1080' => array('width' => 1920 (equal to the first part of parent array key), ".
@@ -596,21 +596,21 @@ class Images extends Base
 
     /**
      * Static checks when $this->alloweedSizes is not empty
-     * @throws Exception
+     * @throws Error
      */
     private function checkAllowedSizes()
     {
         if (!is_array($this->allowedSizes)) {
-            throw new Exception('Allowed sizes must be an array');
+            throw new Error('Allowed sizes must be an array');
         }
 
         foreach($this->allowedSizes as $sizeType => $sizeValue) {
             if (!is_array($sizeValue)) {
-                 throw new Exception('Allowed sizes `'.$sizeType.'` value must be an array');
+                 throw new Error('Allowed sizes `'.$sizeType.'` value must be an array');
             }
 
             if (!in_array($sizeType, array('org', 'fixed', 'width', 'height'))) {
-                throw new Exception('Allowed sizes type must be one of the following: `org`, `fixed`, `width`, `height`');
+                throw new Error('Allowed sizes type must be one of the following: `org`, `fixed`, `width`, `height`');
             }
 
             if ($sizeType == 'org') {
@@ -640,13 +640,14 @@ class Images extends Base
 
     /**
      * Adds watermark to current image
+     * @throws Error
      */
     private function addWatermark()
     {
         global $Core;
 
         if (!is_file($this->watermarkFile)) {
-            throw new Exception('Unexisting watermark file');
+            throw new Error('Unexisting watermark file');
         }
 
         // Open the watermark

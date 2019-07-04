@@ -23,20 +23,20 @@ trait UsersRecovery
      * Allows a user to recover his username with his email
      * Sends an email to the user with his username
      * Throws BaseException if something is wrong with the credentials of the user
-     * Throws Exception if something is wrong with the platform setup
+     * Throws Error if something is wrong with the platform setup
      * @param string $email - the email in the user profile
      * @param string $body - the message body (optional)
      * @param string $subject - the message subject (optional)
      * @param int $typeId - the type of the user (optional)
      * @throws BaseException
-     * @throws Exception
+     * @throws Error
      */
     public function recoverUsername(string $email, string $body = null, string $subject = null, int $typeId = null)
     {
         global $Core;
 
         if ($this->registerWithEmail) {
-            throw new Exception("Username recovery is not allowed when the users register with email");
+            throw new Error("Username recovery is not allowed when the users register with email");
         }
 
         $email = $Core->db->escape(trim($email));
@@ -85,13 +85,13 @@ trait UsersRecovery
      * Sends an email to the user with his token
      * Returns the token
      * Throws BaseException if something is wrong with the credentials of the user
-     * Throws Exception if something is wrong with the platform setup
+     * Throws Error if something is wrong with the platform setup
      * @param string $email - the email in the user profile
      * @param string $body - the message body (optional)
      * @param string $subject - the message subject (optional)
      * @param int $typeId - the type of the user (optional)
      * @throws BaseException
-     * @throws Exception
+     * @throws Error
      * @return string
      */
     public function requestPasswordToken(string $email, string $body = null, string $subject = null, int $typeId = null)
@@ -99,7 +99,7 @@ trait UsersRecovery
         global $Core;
 
         if (empty($this->usersRecoveryTableName)) {
-            throw new Exception("Recovery is not possible, without setting the usersRecoveryTableName");
+            throw new Error("Recovery is not possible, without setting the usersRecoveryTableName");
         }
 
         $email = $Core->db->escape(trim($email));
@@ -201,12 +201,12 @@ trait UsersRecovery
      * Sends an email to the user with his new password
      * Returns the new password
      * Throws BaseException if something is wrong with the credentials of the user
-     * Throws Exception if something is wrong with the platform setup
+     * Throws Error if something is wrong with the platform setup
      * @param string $token - the token from the user's email
      * @param string $subject - the message subject (optional)
      * @param int $typeId - the type of the user (optional)
      * @throws BaseException
-     * @throws Exception
+     * @throws Error
      * @return string
      */
     public function recoverPassword(string $token, string $body = null, string $subject = null)
@@ -214,7 +214,7 @@ trait UsersRecovery
         global $Core;
 
         if (empty($this->usersRecoveryTableName)) {
-            throw new Exception("Recovery is not possible, without setting the usersRecoveryTableName");
+            throw new Error("Recovery is not possible, without setting the usersRecoveryTableName");
         }
 
         $token = $Core->db->escape(trim($token));

@@ -10,9 +10,9 @@ trait InputAndTranslate
 {
     /**
      * Checks if the input contains all of the active languages
-     * Throws Exception if it doesn't
+     * Throws Error if it doesn't
      * @param array $input - the input to check
-     * @throws Exception
+     * @throws Error
      */
     private function checkInputForMissingLanguages(array $input)
     {
@@ -20,7 +20,7 @@ trait InputAndTranslate
 
         foreach ($Core->Language->getActiveLanguagesIds() as $activeLanguagesId) {
             if (!isset($input[$activeLanguagesId])) {
-                throw new Exception("The input must have all data for all active languages! Missing - {$activeLanguagesId}");
+                throw new Error("The input must have all data for all active languages! Missing - {$activeLanguagesId}");
             }
         }
     }

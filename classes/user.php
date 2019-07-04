@@ -149,7 +149,7 @@ class User extends Base
     public function init()
     {
         if (!isset($_SERVER['REMOTE_ADDR'], $_SERVER['REQUEST_URI'])) {
-            throw new Exception("Remote address or request uri is not set");
+            throw new Error("Remote address or request uri is not set");
         }
 
         $this->cookieName = 'user_'.sha1($this->tableName);
@@ -256,12 +256,13 @@ class User extends Base
     /**
      * Gets the data for the level of security, allowed for the current user
      * @return array
+     * @throws Error
      */
     private function getUserLevelData()
     {
         if ($this->usersLevelTableName) {
             if (!isset($this->data['level_id'])) {
-                throw new Exception("Column `level_id` does not exist in table `{$this->tableName}`");
+                throw new Error("Column `level_id` does not exist in table `{$this->tableName}`");
             }
 
             $selector = new BaseSelect($this->usersLevelTableName);
@@ -347,22 +348,22 @@ class User extends Base
 
     /**
      * Validates the provided user type
-     * Throws Exception if something is wrong
+     * Throws Error if something is wrong
      * @param int $typeId - the type of the user
-     * @throws Exception
+     * @throws Error
      */
     private function validateUserType(int $typeId = null)
     {
         if ($typeId !== null) {
             if (empty($this->userTypesTableName)) {
-                throw new Exception("userTypesTableName is not set");
+                throw new Error("userTypesTableName is not set");
             }
 
             if (!isset($this->getUserTypes()[$typeId])) {
-                throw new Exception("Invalid user type");
+                throw new Error("Invalid user type");
             }
         } else if (!empty($this->userTypesTableName)) {
-            throw new Exception("Type id is not set");
+            throw new Error("Type id is not set");
         }
     }
 
@@ -441,22 +442,22 @@ class User extends Base
 
     /**
      * Allows the developer to force login by user id
-     * Throws Exception if the user id is not provided or the user does not exist
+     * Throws Error if the user id is not provided or the user does not exist
      * @param int $userId - the id of the user
-     * @throws Exception
+     * @throws Error
      */
     public function loginById(int $userId)
     {
         global $Core;
 
         if (empty($id)) {
-            throw new Exception("Provide user id");
+            throw new Error("Provide user id");
         }
 
         $this->data = $this->getById($userId);
 
         if (empty($this->data)) {
-            throw new Exception("This user does not exist");
+            throw new Error("This user does not exist");
         } else {
             $this->data['logged_in'] = true;
             $this->data = array_merge($this->data, $this->getUserLevelData());
@@ -618,14 +619,14 @@ class User extends Base
 
     /**
      * Validates the provided user level
-     * Throws Exception if something is wrong
+     * Throws Error if something is wrong
      * @param int $levelId - the type of the user
-     * @throws Exception
+     * @throws Error
      */
     private function validateUserLevel(int $levelId = null)
     {
         if ($this->usersLevelTableName && (empty($levelId) || !isset($this->getUserLevels()[$levelId]))) {
-            throw new Exception("User level is not supported or invalid");
+            throw new Error("User level is not supported or invalid");
         }
     }
 
@@ -682,10 +683,10 @@ class User extends Base
      * Allows the registration of users with username and password
      * Allows to set a user level id and user type id (if requried by the project)
      * Returns the registered user id
-     * Throws Exception if input is empty
+     * Throws Error if input is empty
      * @param array $input - the user credentials; it must have the fields 'username', 'password', 'repeat_password'
      * @return int
-     * @throws Exception
+     * @throws Error
      */
     public function register(array $input)
     {
@@ -696,7 +697,7 @@ class User extends Base
         }
 
         if (empty($input)) {
-            throw new Exception("Provide user data");
+            throw new Error("Provide user data");
         }
 
         $input['username']        = isset($input['username'])        ? trim($input['username']) : '';
@@ -743,25 +744,25 @@ class User extends Base
     /**
      * Allows to change the password of the user
      * Throws BaseException if something is wrong with the credentials of the user
-     * Throws Exception if a user id is not provided
+     * Throws Error if a user id is not provided
      * @param int $userId - the id of the user
      * @param string $newPassword - the new password
      * @param string $repeatPassword - repeat the new password
      * @param string $currentPassword - the current password of the user (optional)
      * @throws BaseException
-     * @throws Exception
+     * @throws Error
      */
     public function changePassword(int $userId, string $newPassword, string $repeatPassword, string $currentPassword = null){
         global $Core;
 
         if (empty($userId)) {
-            throw new Exception("Provide user id");
+            throw new Error("Provide user id");
         }
 
         $userData = $this->getById($userId);
 
         if (empty($userData)) {
-            throw new BaseException("This user does not exist");
+            throw new Error("This user does not exist");
         }
 
         $errorsInFields = array();
@@ -799,19 +800,19 @@ class User extends Base
 
     /**
      * Generates a random alpanumeric string, with a specific length
-     * Throws exception if the provided length is negative, zero or larger than 32
+     * Throws Error if the provided length is negative, zero or larger than 32
      * @param int $length - the length of the password to generate (between 1 and 32 symbols)
      * @return string
-     * @throws Exception
+     * @throws Error
      */
     public function generatePassword(int $length)
     {
         if ($length <= 0) {
-            throw new Exception("Password length must be bigger than %%0%% symbols");
+            throw new Error("Password length must be bigger than %%0%% symbols");
         }
 
         if ($length > 32) {
-            throw new Exception("Password length must be less than %%32%% symbols");
+            throw new Error("Password length must be less than %%32%% symbols");
         }
 
         return mb_strtoupper(mb_substr(md5(time()), rand(0, (32 - $length)), $length));

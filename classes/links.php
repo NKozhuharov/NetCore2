@@ -204,7 +204,7 @@ class Links extends Base
                 if ($langId !== $Core->Language->getCurrentLanguageId()) {
                     try {
                         $links[$langId] = $Core->$modelName->getLinkById($objectId, $langId);
-                    } catch (Exception $ex) {
+                    } catch (Error $ex) {
                         if (!strstr($ex->getMessage(), 'The following controller was not found in the `multilanguage_links` table')) {
                             throw new Error ($ex->getMessage());
                         }

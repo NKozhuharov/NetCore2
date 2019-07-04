@@ -9,9 +9,9 @@ trait BaseOrderBy
 
     /**
      * Sets the ORDER BY clause of the query
-     * Thorws Exception if the order does not contain ASC or DESC (case sensitive)
+     * Thorws Error if the order does not contain ASC or DESC (case sensitive)
      * @param string $orderBy - the body of the order by clause
-     * @throws Exception
+     * @throws Error
      */
     public function setOrderBy(string $orderBy)
     {
@@ -21,7 +21,7 @@ trait BaseOrderBy
             !strstr($orderBy, self::ORDER_DESC) &&
             !strstr($orderBy, self::ORDER_FIELD)
         ) {
-            throw new Exception("Invalid order type provided, it must contain ASC, DESC or FIELD");
+            throw new Error("Invalid order type provided, it must contain ASC, DESC or FIELD");
         }
             
         $this->orderBy = $orderBy;
@@ -30,24 +30,24 @@ trait BaseOrderBy
     /**
      * Adds an ORDER BY clause to the query
      * It can be called multiple times, to add additional orders
-     * Thorws Exception if the field or the order type are empty
-     * Thorws Exception if the order type is not ASC or DESC (case sensitive)
+     * Thorws Error if the field or the order type are empty
+     * Thorws Error if the order type is not ASC or DESC (case sensitive)
      * @param string $field - the field to order by
      * @param string $orderType - the order type (ASC or DESC)
-     * @throws Exception
+     * @throws Error
      */
     public function addOrderBy(string $field, string $orderType) 
     {
         if (empty($field)) {
-            throw new Exception("Select a field to order by");
+            throw new Error("Select a field to order by");
         }
         
         if (empty($orderType)) {
-            throw new Exception("Select order type");
+            throw new Error("Select order type");
         }
         
         if ($orderType !== self::ORDER_ASC && $orderType !== self::ORDER_DESC) {
-            throw new Exception("Invalid order type provided, it must be ASC or DESC");
+            throw new Error("Invalid order type provided, it must be ASC or DESC");
         }
         
         if (!empty($this->orderBy)) {

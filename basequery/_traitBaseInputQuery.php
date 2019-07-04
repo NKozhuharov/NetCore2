@@ -21,10 +21,10 @@ trait BaseInputQuery
 
     /**
      * Allows to set the collection of fields one by one
-     * Throws exception if the field name is empty
+     * Throws Error if the field name is empty
      * @param string $field - the name of the field
      * @param string $value - the value of the field
-     * @throws Exception
+     * @throws Error
      */
     public function addFieldAndValue(string $field, string $value)
     {
@@ -33,7 +33,7 @@ trait BaseInputQuery
         $field = $Core->db->escape(trim($field));
 
         if (empty($field)) {
-            throw new Exception("Field names cannot be empty");
+            throw new Error("Field names cannot be empty");
         }
 
         $this->fields[] = $field;
@@ -42,10 +42,10 @@ trait BaseInputQuery
 
     /**
      * Allows to set the collection of fields one by one
-     * Throws exception if the field name is empty
+     * Throws Error if the field name is empty
      * @param string $field - the name of the field
      * @param string $value - the value of the field
-     * @throws Exception
+     * @throws Error
      */
     public function addField(string $field, string $value)
     {
@@ -54,9 +54,9 @@ trait BaseInputQuery
 
     /**
      * Sets the collection of fields and values of the query with a single aray
-     * Throws exception if a field name is empty
+     * Throws Error if a field name is empty
      * @param array $input - the array which is going to be inserted
-     * @throws Exception
+     * @throws Error
      */
     public function setFieldsAndValues(array $input)
     {
@@ -94,19 +94,20 @@ trait BaseInputQuery
     /**
      * Validates the fields and values collections
      * Makes sure they are not empty and they are the same size
+     * @throws Error
      */
     private function validateFieldsAndValues()
     {
         if (empty($this->fields)) {
-            throw new Exception("Provide at least one field");
+            throw new Error("Provide at least one field");
         }
 
         if (empty($this->values)) {
-            throw new Exception("Provide at least one value");
+            throw new Error("Provide at least one value");
         }
 
         if (count($this->fields) != count($this->values)) {
-            throw new Exception("Fields and values have to be the same amount");
+            throw new Error("Fields and values have to be the same amount");
         }
     }
 }

@@ -9,21 +9,21 @@ trait BaseLimit
 
     /**
      * Adds the LIMIT clause to the query
-     * Throws Exception if limit or offset are less than 0
+     * Throws Error if limit or offset are less than 0
      * @param int $limit - how many rows to select
      * @param int $offset - how many rows to skip
-     * @throws Exception
+     * @throws Error
      */
     public function setLimit(int $limit, int $offset = null)
     {
         if ($limit < 0) {
-            throw new Exception("Limit must be bigger than -1!");
+            throw new Error("Limit must be bigger than -1!");
         }
 
         $this->limit = $limit;
         if ($offset !== null) {
             if ($offset < 0) {
-                throw new Exception("Offset must be bigger than -1!");
+                throw new Error("Offset must be bigger than -1!");
             }
             $this->limit .= ', '.$offset;
         }

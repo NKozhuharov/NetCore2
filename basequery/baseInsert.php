@@ -20,14 +20,14 @@ final class BaseInsert extends BaseQuery
 
     /**
      * Set the query to ON DUPLICATE KEY UPDATE query (or not)
-     * It will throw exception if INSERT IGNORE QUERY is already chosen
+     * It will throw Error if INSERT IGNORE QUERY is already chosen
      * @param bool $onDuplicateKeyUpdate - set the query to ON DUPLICATE KEY UPDATE query (or not)
-     * @throws Exception
+     * @throws Error
      */
     public function setUpdateOnDuplicate(bool $onDuplicateKeyUpdate)
     {
         if ($onDuplicateKeyUpdate && $this->ignore) {
-            throw new Exception("INSERT IGNORE query already selected! Choose between INSERT INGORE or ON DUPLICATE KEY UPDATE!");
+            throw new Error("INSERT IGNORE query already selected! Choose between INSERT INGORE or ON DUPLICATE KEY UPDATE!");
         }
 
         $this->updateOnDuplicate = $onDuplicateKeyUpdate;

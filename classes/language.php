@@ -49,8 +49,8 @@ class Language extends Base
      * Makes a query to the databse to get a list of the allowed languages
      * Sets the PHP locale to the current language
      * Requires languages, languages_lang, phrases and phrases_text tables to work!
-     * Throws Exception if no languages are allowed
-     * @throws Exception
+     * Throws Error if no languages are allowed
+     * @throws Error
      */
     public function __construct()
     {
@@ -74,7 +74,7 @@ class Language extends Base
         );
 
         if (!$this->allowedLanguages) {
-            throw new Exception("No allowed languages");
+            throw new Error("No allowed languages");
         }
 
         $this->getCurrentLanguageFromRequestOrCookie();
@@ -246,6 +246,7 @@ class Language extends Base
     /**
      * Allows the user to manually change the current language by it's short
      * @param string $language - the short name of the language
+     * @throws Error
      */
     public function changeLanguage(string $language)
     {
@@ -255,13 +256,14 @@ class Language extends Base
             setcookie('language', $language, time()+86400, '/');
             $this->getPhrases();
         } else {
-            throw new Exception("This language does not exist or is not allowed");
+            throw new Error("This language does not exist or is not allowed");
         }
     }
 
     /**
      * Allows the user to manually change the current language by its id
      * @param int $languageId - the id name of the language
+     * @throws Error
      */
     public function changeLanguageById(int $languageId)
     {
@@ -272,7 +274,7 @@ class Language extends Base
             setcookie('language', $language, time()+86400, '/');
             $this->getPhrases();
         } else {
-            throw new Exception("This language does not exist or is not allowed");
+            throw new Error("This language does not exist or is not allowed");
         }
     }
 
@@ -280,6 +282,7 @@ class Language extends Base
      * Gets a map of all languages
      * @param bool $onlyActive - if set to false, it will return all languages; otherwise it will return only the active
      * @return array
+     * @throws Error
      */
     public function getLanguageMap(bool $onlyActive = null)
     {
@@ -306,9 +309,9 @@ class Language extends Base
 
         if (empty($langMap)) {
             if ($onlyActive) {
-                throw new Exception("No active languages");
+                throw new Error("No active languages");
             } else {
-                throw new Exception("No languages");
+                throw new Error("No languages");
             }
         }
 
@@ -456,9 +459,9 @@ class Language extends Base
 
     /**
      * Returns the name of the language with the provided langugage id
-     * Throws Exception if the language does not exist
+     * Throws Error if the language does not exist
      * @param int $langId - the id of the language
-     * @throws Exception
+     * @throws Error
      * @return string
      */
     public function getNameById(int $langId)
@@ -466,7 +469,7 @@ class Language extends Base
         $info = $this->getById($langId);
 
         if (empty($info)) {
-            throw new Exception("This language does not exist");
+            throw new Error("This language does not exist");
         }
 
         return $info['name'];
@@ -474,9 +477,9 @@ class Language extends Base
 
     /**
      * Returns the native name of the language with the provided langugage id
-     * Throws Exception if the language does not exist
+     * Throws Error if the language does not exist
      * @param int $langId - the id of the language
-     * @throws Exception
+     * @throws Error
      * @return string
      */
     public function getNativeNameById(int $langId)
@@ -484,7 +487,7 @@ class Language extends Base
         $info = $this->getById($langId);
 
         if (empty($info)) {
-            throw new Exception("This language does not exist");
+            throw new Error("This language does not exist");
         }
 
         return $info['native_name'];
@@ -492,9 +495,9 @@ class Language extends Base
 
     /**
      * Returns the short of the language with the provided langugage id
-     * Throws Exception if the language does not exist
+     * Throws Error if the language does not exist
      * @param int $langId - the id of the language
-     * @throws Exception
+     * @throws Error
      * @return string
      */
     public function getShortById(int $langId)
@@ -502,7 +505,7 @@ class Language extends Base
         $info = $this->getById($langId);
 
         if (empty($info)) {
-            throw new Exception("This language does not exist");
+            throw new Error("This language does not exist");
         }
 
         return $info['short'];
@@ -510,9 +513,9 @@ class Language extends Base
 
     /**
      * Returns the id of the language with the provided langugage name or short
-     * Throws Exception if the language does not exist
+     * Throws Error if the language does not exist
      * @param string $language - the name or short of the language
-     * @throws Exception
+     * @throws Error
      * @return int
      */
     public function getIdByName(string $language)
@@ -528,7 +531,7 @@ class Language extends Base
         $this->translateResult = true;
 
         if (empty($info)) {
-            throw new Exception("This language does not exist");
+            throw new Error("This language does not exist");
         }
 
         $info = current($info);

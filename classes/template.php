@@ -25,17 +25,17 @@ class Template
      * Creates a new instance of the Tempalte class
      * It will require a file from the templates directory and initialize it
      * You can use the methods of the file as templates to output HTML
-     * It will throw Exception if an invalid template name is provided or the file does not exist
+     * It will throw Error if an invalid template name is provided or the file does not exist
      * @param string $templateName - the name of the template; the file that contains it must be lowercase the same string
      * @param array $data - optional data for the template instance
-     * @throws Exception
+     * @throws Error
      */
     public function __construct(string $templateName, array $data = null)
     {
         global $Core;
 
         if (empty($templateName)) {
-            throw new Exception("Template name cannot be empty");
+            throw new Error("Template name cannot be empty");
         }
 
         $this->templateName = mb_strtolower($templateName);
@@ -45,30 +45,30 @@ class Template
             $this->className = ucfirst("{$this->templateName}Templates");
 
             if (!class_exists($this->className)) {
-                throw new Exception("Wrong class name in {$this->templateName}.php! It must be '{$this->className}'!");
+                throw new Error("Wrong class name in {$this->templateName}.php! It must be '{$this->className}'!");
             }
 
             $this->instance = new $this->className($data);
         } else {
-            throw new Exception("Template file {$this->templateName}.php does not exist! Please create it in the 'templates' folder");
+            throw new Error("Template file {$this->templateName}.php does not exist! Please create it in the 'templates' folder");
         }
     }
 
     /**
      * Executes a method of the template class. It will output all HTML from it.
-     * It will throw Exception if an invalid method name is provided
+     * It will throw Error if an invalid method name is provided
      * @param string $methodName - the name of the method
      * @param array $data - optional data for the method
-     * @throws Exception
+     * @throws Error
      */
     public function drawHtml(string $methodName, array $data = null)
     {
         if (empty($methodName)) {
-            throw new Exception("Method name must not be empty!");
+            throw new Error("Method name must not be empty!");
         }
 
         if (!in_array($methodName, get_class_methods($this->className))) {
-            throw new Exception("Method '$methodName' does not exist! It must be a public method of the {$this->className} class!");
+            throw new Error("Method '$methodName' does not exist! It must be a public method of the {$this->className} class!");
         }
 
         $this->instance->$methodName($data);

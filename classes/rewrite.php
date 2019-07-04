@@ -143,6 +143,7 @@ class Rewrite
     /**
      * Allows to dump the output of the current controller as JSON
      * It allows additional files to be loaded before the controller using the $Core->jsonAdditionalFiles
+     * @throws Error
      */
     public function controllerAsJson()
     {
@@ -156,7 +157,7 @@ class Rewrite
         $jsonAdditionalFiles = $Core->jsonAdditionalFiles;
 
         if (!is_array($jsonAdditionalFiles)) {
-            throw new Exception("jsonAdditionalFiles must be an array");
+            throw new Error("jsonAdditionalFiles must be an array");
         }
 
         foreach ($jsonAdditionalFiles as $kRequired => $requiredFile) {
@@ -171,7 +172,7 @@ class Rewrite
             if (is_file($req)) {
                 require_once ($req);
             } else {
-                throw new Exception('Required file: '.$req.' does not exists');
+                throw new Error('Required file: '.$req.' does not exists');
             }
         }
 

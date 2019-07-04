@@ -7,14 +7,20 @@ class Messages extends Base
     public    $parentField          = 'user_id';
     public    $link                 = '/messages/messages';
 
+    /**
+     * @throws Error
+     */
     public function __construct(){
         global $Core;
 
         if(!$Core->userModel){
-            throw new Exception("User model is not set");
+            throw new Error("User model is not set");
         }
     }
 
+    /**
+     * @throws Error
+     */
     public function controlMessages(){
         global $Core;
 
@@ -27,14 +33,14 @@ class Messages extends Base
             $Core->db->query("UPDATE `{$Core->dbName}`.`{$this->tableName}` SET `seen` = 1 WHERE `user_id` = ".$Core->{$Core->userModel}->id." AND `id` = {$_REQUEST['seen']}");
         }elseif(isset($_REQUEST['delete'])){
             if(!is_numeric($_REQUEST['delete'])){
-                throw new Exception('Invalid message id');
+                throw new Error('Invalid message id');
             }
             //delete message
             $this->deleteMessage($_REQUEST['delete']);
         }else{
             //draw messages if new message is present
             if(!isset($_REQUEST['count']) || !is_numeric($_REQUEST['count'])){
-                throw new Exception('Provide messages count');
+                throw new Error('Provide messages count');
             }
 
             $_REQUEST['count'] = $Core->db->escape($_REQUEST['count']);
@@ -61,9 +67,9 @@ class Messages extends Base
 
     public function getMessages($userId, $limit = false, $type = false){
         global $Core;
-        
+
         $additional = " $this->parentField = $userId";
-        
+
         if($type){
             if(!is_array($type)){
                 $additional .= '`type` = '.$type;
@@ -73,7 +79,7 @@ class Messages extends Base
         }
 
         $this->messages = $this->getAll($limit, $additional);
-        
+
         return $this->messages;
     }
 

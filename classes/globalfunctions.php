@@ -59,7 +59,7 @@ class GlobalFunctions
         $er = curl_error($ch);
         curl_close($ch);
         if ($er) {
-            throw new Exception($er);
+            throw new Error($er);
         }
 
         return $r;
@@ -180,7 +180,7 @@ class GlobalFunctions
             $mail->Host       = $Core->mailConfig['Host'];
             $mail->Port       = $Core->mailConfig['Port'];;
         } else {
-            throw new Exception('Set core $mailConfig variable');
+            throw new Error('Set core $mailConfig variable');
         }
 
         if ($isHTML) {
@@ -214,7 +214,7 @@ class GlobalFunctions
 
         if (!$mail->send()) {
             if ($isAdnmin) {
-                throw new Exception($mail->ErrorInfo);
+                throw new Error($mail->ErrorInfo);
             } else {
                 throw new BaseException($Core->generalErrorText);
             }
@@ -601,7 +601,7 @@ class GlobalFunctions
     {
         global $Core;
         if (empty($processName)) {
-            throw new Exception('Provide a process name');
+            throw new Error('Provide a process name');
         }
 
         exec("ps ax | grep '$processName'",$res);
@@ -613,7 +613,7 @@ class GlobalFunctions
     {
         global $Core;
         if (empty($processName)) {
-            throw new Exception('Provide a process name');
+            throw new Error('Provide a process name');
         }
 
         exec("ps ax | grep '$processName'",$res);

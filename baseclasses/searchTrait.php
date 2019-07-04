@@ -13,21 +13,21 @@ trait SearchTrait
 
     /**
      * Builds the WHERE clause for the search query, using LIKE.
-     * Requires the searchByField to be set, throws Exception if it doesn't.
+     * Requires the searchByField to be set, throws Error if it doesn't.
      * Supports left, right and full searches.
      * Allows the $additional condition to start with OR/AND. If it doesn't, it will apply it with AND.
      * @param string $phrase - the phrase to search for
      * @param int $searchType - the search type (0, 1 or 2)
      * @param string $additional - where clause additional conditions (optional)
      * @return string
-     * @throws Exception
+     * @throws Error
      */
     private function buildSearchQueryWhereClause(string $phrase, int $searchType, string $additional = null)
     {
         global $Core;
 
         if (empty($this->searchByField)) {
-            throw new Exception("To use the search function, set a search by field first!");
+            throw new Error("To use the search function, set a search by field first!");
         }
 
         $phrase = $Core->db->real_escape_string($phrase);
@@ -41,7 +41,7 @@ trait SearchTrait
         } else if ($searchType === SEARCH_TYPE_FULL) {
             $query .= "%{$phrase}%";
         } else {
-            throw new Exception("Invalid search type");
+            throw new Error("Invalid search type");
         }
 
         $query .= "' ";
@@ -94,16 +94,16 @@ trait SearchTrait
 
     /**
      * Sets the name of the field from the table of the model, used to carry on the searches
-     * The field must exist in the table of the model, otherwize it will throw Exception
+     * The field must exist in the table of the model, otherwize it will throw Error
      * @param string $searchByFieldName - the name of the field to search in
-     * @throws Exception
+     * @throws Error
      */
     public final function setSearchByField(string $searchByFieldName)
     {
         $this->checkTableFields();
 
         if (!array_key_exists($searchByFieldName, $this->tableFields->getFields())) {
-            throw new Exception("The field `$searchByFieldName` does not exist in table `{$this->tableName}`");
+            throw new Error("The field `$searchByFieldName` does not exist in table `{$this->tableName}`");
         }
 
         $this->searchByField = $searchByFieldName;

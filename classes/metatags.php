@@ -66,16 +66,16 @@ class MetaTags
 
     /**
      * Sets the meta property value
-     * Throws exception if the property does not exist
+     * Throws Error if the property does not exist
      * @param string $property - the name of the propery
      * @param string $value - the new value
-     * @throws Exception
+     * @throws Error
      */
     public function __set(string $property, string $value)
     {
         $property = mb_strtolower($property);
         if (!array_key_exists($property, get_object_vars($this))) {
-            throw new Exception("This variable ({$property}) does not exist!");
+            throw new Error("This variable ({$property}) does not exist!");
         }
 
         $this->$property = $value;

@@ -46,37 +46,37 @@ trait UsersConfirmRegistrationWithEmail
 
     /**
      * Makes sure that the database and the models are set up properly, to use user registration confirmation with email
-     * @throws Exception
+     * @throws Error
      */
     private function validateConfirmRegistrationWithEmailConfiguration()
     {
         if (empty($this->usersRegistrationConfirmationTableName)) {
-            throw new Exception("Registration is not possible, without setting the usersRegistrationConfirmationTableName");
+            throw new Error("Registration is not possible, without setting the usersRegistrationConfirmationTableName");
         }
 
         if (empty($this->usersRegistrationConfrimationControlField)) {
-            throw new Exception("Registration is not possible, without setting the usersRegistrationConfrimationControlField");
+            throw new Error("Registration is not possible, without setting the usersRegistrationConfrimationControlField");
         }
 
         $usersRegistrationConfirmationTable = new BaseTableFields($this->usersRegistrationConfirmationTableName);
         $fields = $usersRegistrationConfirmationTable->getFields();
 
         if (!isset($fields['user_id']) || $fields['user_id']['type'] !== 'int' || $fields['user_id']['field_info'] !== '10 unsigned') {
-            throw new Exception(
+            throw new Error(
                 "Registration is not possible, field `user_id` ".
                 "at `{$this->usersRegistrationConfirmationTableName}` must be int 10 unsigned"
             );
         }
 
         if (!isset($fields['token']) || $fields['token']['type'] !== 'varchar' || $fields['token']['field_info'] !== '50') {
-            throw new Exception(
+            throw new Error(
                 "Registration is not possible, field `token` ".
                 "at `{$this->usersRegistrationConfirmationTableName}` must be varchar 50"
             );
         }
 
         if (!isset($fields['added']) || $fields['added']['type'] !== 'timestamp' || $fields['added']['default'] !== 'CURRENT_TIMESTAMP') {
-            throw new Exception(
+            throw new Error(
                 "Registration is not possible, field `added` ".
                 "at `{$this->usersRegistrationConfirmationTableName}` must be timestamp default CURRENT_TIMESTAMP"
             );
@@ -89,7 +89,7 @@ trait UsersConfirmRegistrationWithEmail
         $fields = $this->tableFields->getFields();
 
         if (!isset($fields[$this->usersRegistrationConfrimationControlField])) {
-            throw new Exception(
+            throw new Error(
                 "Registration is not possible, field `{$this->usersRegistrationConfrimationControlField}` ".
                 "must be present at `{$this->tableName}`"
             );
@@ -100,7 +100,7 @@ trait UsersConfirmRegistrationWithEmail
             $fields[$this->usersRegistrationConfrimationControlField]['field_info'] !== '1 unsigned' ||
             $fields[$this->usersRegistrationConfrimationControlField]['default'] !== '0'
         ) {
-            throw new Exception(
+            throw new Error(
                 "Registration is not possible, field `{$this->usersRegistrationConfrimationControlField}` ".
                 "at `{$this->tableName}` must be tinyint 1, default 0"
             );

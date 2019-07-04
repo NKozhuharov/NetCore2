@@ -111,15 +111,15 @@ class ContactUs extends Base
 
     /**
      * Checks if subject field exists in the model's table; if it exists the the subject will be considered string
-     * Throws Exception if subject_id and subject are both set
-     * @throws Exception
+     * Throws Error if subject_id and subject are both set
+     * @throws Error
      */
     private function subjectIsString()
     {
         $fields = $this->tableFields->getFields();
 
         if (isset($fields[self::SUBJECT_FIELD_NAME]) && isset($fields[self::SUBJECT_ID_FIELD_NAME])) {
-            throw new Exception("Only one of the following fields is allowed ".
+            throw new Error("Only one of the following fields is allowed ".
             self::SUBJECT_FIELD_NAME." or ".self::SUBJECT_ID_FIELD_NAME);
         }
 

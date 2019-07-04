@@ -35,16 +35,16 @@ abstract class BaseQuery
 
     /**
      * Creates a new instance of the BaseQuery class
-     * Throws Exception if table name is empty
+     * Throws Error if table name is empty
      * @param string $tableName - the name for the table
-     * @throw Exception
+     * @throw Error
      */
     public function __construct(string $tableName)
     {
         global $Core;
 
         if (empty($tableName)) {
-            throw new Exception("Provide a table name!");
+            throw new Error("Provide a table name!");
         }
 
         $this->tableName = $tableName;
@@ -54,10 +54,10 @@ abstract class BaseQuery
 
     /**
      * Allows the user to get the query string
-     * Throws Exception if another property is requested
+     * Throws Error if another property is requested
      * @param string $varName - only 'qeury' is allowed
      * @return string
-     * @throws Exception
+     * @throws Error
      */
     public function __get(string $varName)
     {
@@ -68,33 +68,33 @@ abstract class BaseQuery
             return $this->query;
         }
 
-        throw new Exception("Only 'query' is allowed!");
+        throw new Error("Only 'query' is allowed!");
     }
 
     /**
      * Set the name of the table for the query
-     * Throws Exception if table name is empty
+     * Throws Error if table name is empty
      * @param string $tableName - the name for the table
-     * @throw Exception
+     * @throw Error
      */
     public function setTableName(string $tableName)
     {
         if (empty($tableName)) {
-            throw new Exception("Provide a table name!");
+            throw new Error("Provide a table name!");
         }
         $this->tableName = $tableName;
     }
 
     /**
      * Set the name of the database for the query
-     * Throws Exception if databse name is empty
+     * Throws Error if databse name is empty
      * @param string $dbName - the name for the database
-     * @throw Exception
+     * @throw Error
      */
     public function setDbName(string $dbName)
     {
         if (empty($dbName)) {
-            throw new Exception("Provide a databse name!");
+            throw new Error("Provide a database name!");
         }
         $this->dbName = $dbName;
     }

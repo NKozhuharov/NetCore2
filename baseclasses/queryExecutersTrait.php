@@ -46,10 +46,10 @@ trait QueryExecuters
     /**
      * Parses a MySQL Error, occured when using any of the delete functions
      * Looks for foreign key constraint fails and returns a human readble error with BaseException
-     * It will throw the same Exception if it wasn't parsed
+     * It will throw the same Error if it wasn't parsed
      * @param Exception $ex - an Exception thrown when executing a delete query
      * @throws BaseException
-     * @throws Exception
+     * @throws Error
      */
     protected function parseDeleteMySQLError(Exception $ex)
     {
@@ -71,14 +71,14 @@ trait QueryExecuters
             );
         }
 
-        throw new Exception($ex->getMessage());
+        throw new Error($ex->getMessage());
     }
 
     /**
      * Parses a MySQL Error, occured when using any of the insert functions
-     * It will throw the same Exception if it wasn't parsed
+     * It will throw the same Error if it wasn't parsed
      * @param Exception $ex - an Exception thrown when executing a insert query
-     * @throws Exception
+     * @throws Error
      */
     protected function parseInsertMysqlError(Exception $ex)
     {
@@ -87,14 +87,14 @@ trait QueryExecuters
         $this->parseDuplicateKeyMysqlError($message);
         $this->parseForeignKeyMysqlError($message);
 
-        throw new Exception($ex->getMessage());
+        throw new Error($ex->getMessage());
     }
 
     /**
      * Parses a MySQL Error, occured when using any of the update functions
-     * It will throw the same Exception if it wasn't parsed
+     * It will throw the same Error if it wasn't parsed
      * @param Exception $ex - an Exception thrown when executing a update query
-     * @throws Exception
+     * @throws Error
      */
     protected function parseUpdateMysqlError(Exception $ex)
     {
@@ -103,7 +103,7 @@ trait QueryExecuters
         $this->parseDuplicateKeyMysqlError($message);
         $this->parseForeignKeyMysqlError($message);
 
-        throw new Exception($ex->getMessage());
+        throw new Error($ex->getMessage());
     }
 
     /**

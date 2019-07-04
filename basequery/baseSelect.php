@@ -53,14 +53,14 @@ final class BaseSelect extends BaseQuery
 
     /**
      * It will turn on the cache for all select queries from now on
-     * It will throw Exception if the provided parameter is <= 0
+     * It will throw Error if the provided parameter is <= 0
      * @param int $cacheTime - allows to set the specific cache time (in minutes)
-     * @throws Exception
+     * @throws Error
      */
     public function turnOnCache(int $cacheTime)
     {
         if ($cacheTime <= 0) {
-            throw new Exception("Query cache time should be bigger than 0");
+            throw new Error("Query cache time should be bigger than 0");
         }
 
         $this->cacheTime = $cacheTime;

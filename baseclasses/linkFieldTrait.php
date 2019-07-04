@@ -10,21 +10,21 @@ trait LinkField
     /**
      * Ensures the linkField property is configured correctly for the model and the database table structure
      * is setup correctly
-     * Throws Exception if something is wrong
-     * @throws Exception
+     * Throws Error if something is wrong
+     * @throws Error
      */
     private function validateLinkField()
     {
         global $Core;
 
         if (empty($this->linkField)) {
-            throw new Exception("You cannot use links functions, wihout specifing the linkField");
+            throw new Error("You cannot use links functions, wihout specifing the linkField");
         }
 
         $this->checkTableFields();
 
         if ($this->tableFields->getFieldType($this->linkField) !== 'varchar') {
-            throw new Exception(
+            throw new Error(
                 "The specified linkField `{$this->linkField}` in table `{$this->tableName}`".
                 " must be type 'varchar'"
             );
@@ -34,7 +34,7 @@ trait LinkField
             $langTableFields = new BaseTableFields("{$this->tableName}_lang");
 
             if ($langTableFields->getFieldType($this->linkField) !== 'varchar') {
-                throw new Exception(
+                throw new Error(
                     "The specified linkField `{$this->linkField}` in table `{$this->tableName}_lang`".
                     " must be type 'varchar'"
                 );
@@ -49,11 +49,11 @@ trait LinkField
      * and return the result from the `_lang` table
      * If the current model does not have a controller defined in the multilanguage links table, it will
      * return only the value of the linkField from the table
-     * Throws Exception if there is another problem while getting the link
+     * Throws Error if there is another problem while getting the link
      * @param array $object - a row from the table of the model
      * @param int $languageId - get the link in this language
      * @return string
-     * @throws Exception
+     * @throws Error
      */
     private function getLinkByIdIfLinkFieldIsPresentInObject(array $object, int $lanugageId)
     {
@@ -76,11 +76,11 @@ trait LinkField
 
         try {
             return $Core->Links->getLink(mb_strtolower(get_class($this)), '/'.mb_strtolower($object[$this->linkField]), $lanugageId);
-        } catch (Exception $ex) {
+        } catch (Error $ex) {
             if (mb_strstr($ex->getMessage(), 'The following controller was not found')) {
                 return '/'.mb_strtolower($object[$this->linkField]);
             }
-            throw new Exception($ex->getMessage());
+            throw new Error($ex->getMessage());
         }
     }
 
@@ -132,11 +132,11 @@ trait LinkField
      * Uses the getLinkByIdIfLinkFieldIsPresentInObject function.
      * If the current model does not have a controller defined in the multilanguage links table, it will
      * return only the id of object.
-     * Throws Exception if there is another problem while getting the link
+     * Throws Error if there is another problem while getting the link
      * @param int $rowId - the id of the row
      * @param int $lanugageId - get the link in this language
      * @return string
-     * @throws Exception
+     * @throws Error
      */
     public function getLinkById(int $rowId, int $lanugageId)
     {
@@ -147,7 +147,7 @@ trait LinkField
         $object = $this->getByIdWithoutTranslation($rowId);
 
         if (empty($object)) {
-            throw new Exception("Cannot get link for non existing object - ".get_class($this).", $rowId");
+            throw new Error("Cannot get link for non existing object - ".get_class($this).", $rowId");
         }
 
         if (isset($object[$this->linkField])) {
@@ -156,11 +156,11 @@ trait LinkField
 
         try {
             return $Core->Links->getLink(mb_strtolower(get_class($this)), '/'.$object['id'], $lanugageId);
-        } catch (Exception $ex) {
+        } catch (Error $ex) {
             if (mb_strstr($ex->getMessage(), 'The following controller was not found')) {
                 return '/'.$object['id'];
             }
-            throw new Exception($ex->getMessage());
+            throw new Error($ex->getMessage());
         }
     }
 
@@ -173,36 +173,36 @@ trait LinkField
     public function getUniqueLink(string $string, int $objectId = null)
     {
         global $Core;
-        
+
         return $Core->GlobalFunctions->getHref($string, $this->tableName, $this->linkField, $objectId);
     }
 
     /**
      * Creates unique link by given string compared to $this->linkField in the translation table
-     * Throws Exception if either languageId or objectId is provided and the other is not
+     * Throws Error if either languageId or objectId is provided and the other is not
      * @param string $string - string by which to create the link
      * @param int $languageId - current language id when updating (optional)
      * @param int $objectId - current object id when updating (optional)
-     * @throws Exception
+     * @throws Error
      * @returns string
      */
     public function getUniqueLinkTranslation(string $string, int $languageId = null, int $objectId = null)
     {
         global $Core;
-        
+
         if (($languageId === null && $objectId !== null) || ($languageId !== null && $objectId === null)) {
-            throw new Exception("Provide both language id and object id");
+            throw new Error("Provide both language id and object id");
         }
 
         try {
             $this->tableFields = new BaseTableFields("{$this->tableName}_lang");
-        } catch (Exception $ex) {
-            throw new Exception("Table {$this->tableName}_lang does not exist in model `".get_class($this)."`");
+        } catch (Error $ex) {
+            throw new Error("Table {$this->tableName}_lang does not exist in model `".get_class($this)."`");
         }
 
         foreach ($this->translationFields as $translationField) {
             if (!array_key_exists($this->linkField, $this->tableFields->getFields())) {
-                throw new Exception("The translation field `{$this->linkField}` does not exists in table `{$this->tableName}_lang`");
+                throw new Error("The translation field `{$this->linkField}` does not exists in table `{$this->tableName}_lang`");
             }
         }
 
@@ -222,7 +222,7 @@ trait LinkField
         }
 
         $link = $Core->GlobalFunctions->getUrl($string);
-        
+
         $selector = new BaseSelect("{$this->tableName}_lang");
         $selector->setWhere($additional."`{$this->linkField}` = '{$link}'");
         $selector->setLimit(1);

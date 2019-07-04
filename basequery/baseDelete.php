@@ -15,19 +15,19 @@ final class BaseDelete extends BaseQuery
 
     /**
      * Adds the LIMIT clause to the query
-     * Throws Exception if limit is less than 0 or ofsset is set
+     * Throws Error if limit is less than 0 or ofsset is set
      * @param int $limit - how many rows to select
      * @param int $offset - how many rows to skip (forbidden in delete)
-     * @throws Exception
+     * @throws Error
      */
     public function setLimit(int $limit, int $offset = null)
     {
         if ($limit < 0) {
-            throw new Exception("Limit must be bigger than -1!");
+            throw new Error("Limit must be bigger than -1!");
         }
 
         if ($offset !== null) {
-            throw new Exception("Offset is not allowed in delete queries!");
+            throw new Error("Offset is not allowed in delete queries!");
         }
 
         $this->limit = $limit;

@@ -31,30 +31,30 @@ trait InputValidations
 
     /**
      * Validates the structure of the input array for an insert/update query
-     * It will throw Exception if the input is empty
-     * It will throw Exception if a field name is an array or object
-     * It will throw Exception if a field value is an array or object and the value is not an explode field
+     * It will throw Error if the input is empty
+     * It will throw Error if a field name is an array or object
+     * It will throw Error if a field value is an array or object and the value is not an explode field
      * @param array $input - the input for a insert/update query
-     * @throws Exception
+     * @throws Error
      */
     protected function validateInputStructure(array $input)
     {
         if (empty($input)) {
-            throw new Exception("Input cannot be empty");
+            throw new Error("Input cannot be empty");
         }
 
         foreach ($input as $fieldName => $value) {
             if (empty($fieldName)) {
-                throw new Exception("Field names cannot be empty");
+                throw new Error("Field names cannot be empty");
             }
 
             if (is_array($fieldName) || is_object($fieldName)) {
-                throw new Exception("Field names cannot be arrays or objects");
+                throw new Error("Field names cannot be arrays or objects");
             }
 
             if (is_array($value) || is_object($value)) {
                 if (!in_array($fieldName, $this->explodeFields)) {
-                    throw new Exception("{$fieldName} must not be array or object");
+                    throw new Error("{$fieldName} must not be array or object");
                 }
             }
         }
@@ -62,14 +62,14 @@ trait InputValidations
 
     /**
      * Checks insert or update query input the field 'id'
-     * Throws Exception if the field is present
+     * Throws Error if the field is present
      * @param array $input - the input of query
-     * @throws Exception
+     * @throws Error
      */
     protected function checkInputForFieldId(array $input)
     {
         if (isset($input['id'])) {
-            throw new BaseException("Field `id` is not allowed", null, get_class($this));
+            throw new Error("Field `id` is not allowed", null, get_class($this));
         }
     }
 
@@ -361,7 +361,7 @@ trait InputValidations
      * Makes sure all the parts are available and not empty
      * @param array $input - the input for a translate function
      * @param array $objectInfo - the object, which is going to be translated
-     * @throws Exception
+     * @throws Error
      * @thorws BaseException
      */
     protected function validateTranslateExplodeFields(array $input, array $objectInfo)
@@ -370,7 +370,7 @@ trait InputValidations
             foreach ($input as $fieldName => $value) {
                 if (in_array($fieldName, $this->explodeFields)) {
                     if (count($objectInfo[$fieldName]) != count ($value)) {
-                        throw new Exception("Field `{$fieldName}` does not have the same number of parts as the original object in model `".get_class($this)."`");
+                        throw new Error("Field `{$fieldName}` does not have the same number of parts as the original object in model `".get_class($this)."`");
                     }
 
                     $emptyFields = array();
@@ -398,64 +398,64 @@ trait InputValidations
 
     /**
      * Checks if the parent field in current model is set, it exists in the table of the model and the given value is valid
-     * Throws Exception if the field is not set, does not exist or it's not valid
+     * Throws Error if the field is not set, does not exist or it's not valid
      * @param int $value - the provided parent id
-     * @throws Exception
+     * @throws Error
      */
     protected function validateParentField(int $value)
     {
         if (empty($this->parentField)) {
-            throw new Exception("Set a parent field in model `".get_class($this)."`");
+            throw new Error("Set a parent field in model `".get_class($this)."`");
         }
 
         if ($value <= 0) {
-            throw new Exception("Parent id should be bigger than 0 in model `".get_class($this)."`");
+            throw new Error("Parent id should be bigger than 0 in model `".get_class($this)."`");
         }
 
         $this->checkTableFields();
 
         if (!array_key_exists($this->parentField, $this->tableFields->getFields())) {
-            throw new Exception("The field `{$this->parentField}` does not exist in table `{$this->tableName}`");
+            throw new Error("The field `{$this->parentField}` does not exist in table `{$this->tableName}`");
         }
     }
 
     /**
      * Validates the provided object id, it should be bigger than 0
-     * Throws Exception if it is not
+     * Throws Error if it is not
      * @param int $objectId - the object id to check
-     * @throws Exception
+     * @throws Error
      */
     protected function validateObjectId(int $objectId)
     {
         if ($objectId <= 0) {
-            throw new Exception("Object id must be bigger than 0 in model `".get_class($this)."`");
+            throw new Error("Object id must be bigger than 0 in model `".get_class($this)."`");
         }
     }
 
     /**
-     * Throws Exception if translationFields property is empty
-     * @throws Exception
+     * Throws Error if translationFields property is empty
+     * @throws Error
      */
     protected function checkIfTranslationFieldsAreSet()
     {
         if (empty($this->translationFields)) {
-            throw new Exception("You cannot translate an object, without any translation fields in model ".get_class($this)."`");
+            throw new Error("You cannot translate an object, without any translation fields in model ".get_class($this)."`");
         }
     }
 
     /**
      * Checks if the hidden field in current model is set and it exists in the table of the model
-     * Throws Exception if the field is not set or does not exist
-     * @throws Exception
+     * Throws Error if the field is not set or does not exist
+     * @throws Error
      */
     protected function validateHiddenField()
     {
         if (empty($this->hiddenFieldName)) {
-            throw new Exception("Set the hiddenFieldName for the model `".get_class($this)."`");
+            throw new Error("Set the hiddenFieldName for the model `".get_class($this)."`");
         }
 
         if (!array_key_exists($this->hiddenFieldName, $this->tableFields->getFields())) {
-            throw new Exception("The field `{$this->hiddenFieldName}` does not exist in table `{$this->tableName}`");
+            throw new Error("The field `{$this->hiddenFieldName}` does not exist in table `{$this->tableName}`");
         }
     }
 }

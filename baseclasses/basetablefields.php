@@ -38,7 +38,7 @@ class BaseTableFields
     public function getFieldType(string $fieldName)
     {
         if (!isset($this->tableFields[$fieldName])) {
-            throw new Exception("The field `$fieldName` does not exist in table `{$this->tableName}`");
+            throw new Error("The field `$fieldName` does not exist in table `{$this->tableName}`");
         }
 
         return $this->tableFields[$fieldName]['type'];
@@ -47,7 +47,7 @@ class BaseTableFields
     public function getFieldInfo(string $fieldName)
     {
         if (!isset($this->tableFields[$fieldName])) {
-            throw new Exception("The field `$fieldName` does not exist in table `{$this->tableName}`");
+            throw new Error("The field `$fieldName` does not exist in table `{$this->tableName}`");
         }
 
         return $this->tableFields[$fieldName]['field_info'];
@@ -74,7 +74,7 @@ class BaseTableFields
         );
 
         if (empty($columnsInfo)) {
-            throw new Exception(get_class($this).": "."Table `{$this->tableName}` does not exist!");
+            throw new Error(get_class($this).": "."Table `{$this->tableName}` does not exist!");
         }
 
         foreach ($columnsInfo as $k => $v) {

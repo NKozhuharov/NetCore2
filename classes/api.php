@@ -31,7 +31,7 @@ class API
     
     /**
      * @var bool
-     * If set to false, it will throw all Errors like BaseExceptions
+     * If set to false, it will throw all Exceptions like BaseExceptions
      */
     protected $returnErrosAsJson = true;
     
@@ -74,7 +74,7 @@ class API
      * Ouputs a JSON encoded string, conating:
      * 'error' - the text of the error message
      * 
-     * Throws BaseException if an Error is caught and returnErrosAsJson is false
+     * Throws BaseException if an Exception is caught and returnErrosAsJson is false
      * @throws BaseException
      */
     public function query()
@@ -89,7 +89,7 @@ class API
             $this->getMethodFromAction();
 
             if (empty($this->action)) {
-                throw new Error("Define action!");
+                throw new Exception("Define action!");
             }
 
             if (method_exists($this, $this->method)) {
@@ -103,9 +103,9 @@ class API
 
                 $this->returnResponse($remainingQueries);
             }
-            throw new Error("Invalid action!");
+            throw new Exception("Invalid action!");
         }
-        catch (Error $error) {
+        catch (Exception $error) {
             if ($this->returnErrosAsJson === true) {
                 header('Content-Type: application/json');
                 header("Bad Request",1,400);
@@ -129,8 +129,8 @@ class API
      * Sets the Core itemsPerPage variable, according to the 'items_per_page' or 'limit' keys in the $_REQUEST array
      * If both keys are present, the 'limit' key is considered
      * If none are present it uses the DEFAULT_ITEMS_PER_PAGE constant of the class
-     * Throws Error if the Core items per page variable is bigger than MAX_ITEMS_PER_PAGE constant
-     * @throws Error
+     * Throws Exception if the Core items per page variable is bigger than MAX_ITEMS_PER_PAGE constant
+     * @throws Exception
      */
     private function setDefaultPagination()
     {
@@ -139,7 +139,7 @@ class API
         $page = isset($_REQUEST['page']) && !empty($_REQUEST['page']) ? $_REQUEST['page'] : self::DEFAULT_PAGE;
         
         if (!is_numeric($page)) {
-            throw new Error("Invalid page!"); 
+            throw new Exception("Invalid page!"); 
         }
         
         $itemsPerPage = isset($_REQUEST['items_per_page']) && !empty($_REQUEST['items_per_page']) ? $_REQUEST['items_per_page'] : self::DEFAULT_ITEMS_PER_PAGE;
@@ -147,11 +147,11 @@ class API
         $itemsPerPage = isset($_REQUEST['limit']) && !empty($_REQUEST['limit']) ? $_REQUEST['limit'] : self::DEFAULT_ITEMS_PER_PAGE;
         
         if (!is_numeric($itemsPerPage)) {
-            throw new Error("Invalid limits!"); 
+            throw new Exception("Invalid limits!"); 
         }
         
         if ($itemsPerPage > self::MAX_ITEMS_PER_PAGE) {
-            throw new Error("Maximum ".self::MAX_ITEMS_PER_PAGE." items per page!");
+            throw new Exception("Maximum ".self::MAX_ITEMS_PER_PAGE." items per page!");
         }
         
         $Core->Rewrite->setCurrentPage($page);
@@ -201,9 +201,9 @@ class API
     
     /**
      * Manually overwrite the mathod propery of the class, using the $method parameter
-     * Throws Error if $method parameter is empty
+     * Throws Exception if $method parameter is empty
      * @param string $method the new method name
-     * @throws Error
+     * @throws Exception
      */
     public function setMethod(string $method)
     {
@@ -211,48 +211,48 @@ class API
             $this->method = $method;
         }
         else {
-            throw new Error("Method name cannot be empty!");
+            throw new Exception("Method name cannot be empty!");
         }
     }
 
     /**
      * Looks for the key 'action' in the $_REQUEST array and sets the action property of the API class to it
-     * Throws Error if the there are spaces in the key 'action' in the $_REQUEST array
-     * Throws Error if the key 'action' in the $_REQUEST array is empty
-     * Throws Error if the key 'action' in the $_REQUEST array is not defined
-     * @throws Error
+     * Throws Exception if the there are spaces in the key 'action' in the $_REQUEST array
+     * Throws Exception if the key 'action' in the $_REQUEST array is empty
+     * Throws Exception if the key 'action' in the $_REQUEST array is not defined
+     * @throws Exception
      */
     protected function getActionFromRequest()
     {
         if (isset($_REQUEST['action'])) {
             if (!empty($_REQUEST['action'])) {
                 $this->action = $_REQUEST['action'];
-                if (stristr($this->action,' ')) {
-                    throw new Error("No spaces are allowed in the action parameter!");
+                if (stristr($this->action, ' ')) {
+                    throw new Exception("No spaces are allowed in the action parameter!");
                 }
 
             }
             else {
-                throw new Error("Action is empty!");
+                throw new Exception("Action is empty!");
             }
         }
         else {
-            throw new Error("Define action!");
+            throw new Exception("Define action!");
         }
     }
 
     /**
      * Sets the Rewrite currentPage variable to the new value from the $page parameter
-     * Throws Error if the $page is less than or 0
+     * Throws Exception if the $page is less than or 0
      * @param int $page the new page number
-     * @throws Error
+     * @throws Exception
      */
     protected function setCurrentPage(int $page)
     {
         global $Core;
 
         if ($page <= 0) {
-            throw new Error("Current page must be larger than 0!");
+            throw new Exception("Current page must be larger than 0!");
         }
 
         $Core->rewrite->currentPage = $page;
@@ -260,23 +260,23 @@ class API
     
     /**
      * Sets the Core itemsPerPage variable to the new count from the $itemsPerPage parameter
-     * Throws Error if the $itemsPerPage is 0
-     * Throws Error if the Core items per page variable is bigger than MAX_ITEMS_PER_PAGE constant
+     * Throws Exception if the $itemsPerPage is 0
+     * Throws Exception if the Core items per page variable is bigger than MAX_ITEMS_PER_PAGE constant
      * @param int $itemsPerPage the new items per page count
-     * @throws Error
+     * @throws Exception
      */
     protected function setItemsPerPage(int $itemsPerPage)
     {
         global $Core;
 
         if ($itemsPerPage <= 0) {
-            throw new Error("The items per page nubmer must be larger than 0!");
+            throw new Exception("The items per page nubmer must be larger than 0!");
         }
 
         $Core->itemsPerPage = $itemsPerPage;
 
         if ($Core->itemsPerPage > self::MAX_ITEMS_PER_PAGE) {
-            throw new Error("Maximum ".self::MAX_ITEMS_PER_PAGE." items per page!");
+            throw new Exception("Maximum ".self::MAX_ITEMS_PER_PAGE." items per page!");
         }
     }
 
@@ -295,15 +295,15 @@ class API
     
     /**
      * Sets a filters with name, provided by $filterName parameter and with value - $value parameter
-     * Throws Error if the $filterName variable is empty
+     * Throws Exception if the $filterName variable is empty
      * @param string $filterName the name of the filter
      * @param $value
-     * @throws Error
+     * @throws Exception
      */
     protected function addFilter(string $filterName, $value)
     {
         if(empty($filterName)) {
-            throw new Error("You cannot add an empty filter!");
+            throw new Exception("You cannot add an empty filter!");
         }
 
         $this->filters[$filterName] = $value;
@@ -311,14 +311,14 @@ class API
     
     /**
      * Unsets the filters with name provided in $filterName variable
-     * Throws Error if the $filterName variable is empty
+     * Throws Exception if the $filterName variable is empty
      * @param string $filterName the name of the filter
-     * @throws Error
+     * @throws Exception
      */
     protected function removeFilter(string $filterName)
     {
         if(empty($filterName)) {
-            throw new Error("You cannot remove an empty filter!");
+            throw new Exception("You cannot remove an empty filter!");
         }
 
         unset($this->filters[$filterName]);
@@ -327,36 +327,36 @@ class API
     /**
      * Gets the value of the filter, specified by $filterName parameter
      * A filter could be false or empty string, so we cannot return these
-     * Throws Error if the $filterName variable is empty
-     * Throws Error if the $filterName filter is not set
+     * Throws Exception if the $filterName variable is empty
+     * Throws Exception if the $filterName filter is not set
      * @param string $filterName the name of the filter
-     * @throws Error
+     * @throws Exception
      * @return string
      */
     protected function getFilterValue(string $filterName)
     {
         if (empty($filterName)) {
-            throw new Error("Filter name cannot be empty!");
+            throw new Exception("Filter name cannot be empty!");
         }
 
         if (isset($this->filters[$filterName])) {
             return $this->filters[$filterName];
         }
         
-        throw new Error("Filter '$filterName' not set!");
+        throw new Exception("Filter '$filterName' not set!");
     }
     
     /**
      * Checks if a specific filter is set
-     * Throws Error if the $filterName variable is empty
+     * Throws Exception if the $filterName variable is empty
      * @param string $filterName the name of the filter
-     * @throws Error
+     * @throws Exception
      * @return bool
      */
     protected function filterIsset(string $filterName)
     {
         if (empty($filterName)) {
-            throw new Error("Filter name cannot be empty!");
+            throw new Exception("Filter name cannot be empty!");
         }
 
         if (isset($this->filters[$filterName])) {
@@ -378,18 +378,18 @@ class API
     /**
      * Check if all of the filters in the $requiredFilters vairable are present
      * @param array $requiredFilters the names of the filters to check
-     * @throws Error
+     * @throws Exception
      */
     protected function checkRequredFilters(array $requiredFilters)
     {
         if (!empty($requiredFilters)) {
             foreach ($requiredFilters as $filter) {
                 if (!isset($this->filters[$filter])) {
-                    throw new Error ("Filter \'$filter\' is requried!");
+                    throw new Exception ("Filter \'$filter\' is requried!");
                 }
 
                 if (empty($this->filters[$filter])) {
-                    throw new Error ("Filter \'$filter\' cannot be empty");
+                    throw new Exception ("Filter \'$filter\' cannot be empty");
                 }
             }
         }
@@ -447,17 +447,17 @@ class API
     
     /**
      * Checks if user is loged in
-     * @param bool $throwError if this is set to true, it will throw Error when the user is not logged in
-     * @throws Error
+     * @param bool $throwException if this is set to true, it will throw Exception when the user is not logged in
+     * @throws Exception
      * @return bool
      */
-    protected function checkLogin($throwError = true)
+    protected function checkLogin($throwException = true)
     {
         global $Core;
 
         if (!isset($Core->{$Core->userModel}->user->id) || $Core->{$Core->userModel}->user->id <= 0) {
-            if ($throwError) {
-                throw new Error("You have to be logged in to do that!");
+            if ($throwException) {
+                throw new Exception("You have to be logged in to do that!");
             }
             return false;
         }
@@ -499,9 +499,9 @@ class API
     
     /**
      * Check how many query attemps the user has.
-     * Throws Error if no attemps left
+     * Throws Exception if no attemps left
      * Increments the counter in the MC or creates it
-     * @throw Error
+     * @throw Exception
      * @return int
      */
     private function getRemainingQueries()
@@ -516,7 +516,7 @@ class API
                 (self::NOT_LOGGED_IN_QUERY_LIMIT - $entry['count']);
             
              if ($remaining <= 0 && !in_array($_SERVER['REMOTE_ADDR'], $this->excludedQueryLimitIps)) {
-                throw new Error("You are exceding the API query limit! Try again in 1 minute!");
+                throw new Exception("You are exceding the API query limit! Try again in 1 minute!");
              }
              
              $Core->mc->set(
