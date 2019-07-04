@@ -66,9 +66,10 @@ class Core
 
     /**
      * @var int
-     * Query cache time; set to -1 for recache
+     * Global cache time reset for all MYSQL queries no matter what
+     * It has to be set to true
      */
-    private $cacheTime = 0;
+    private $resetQueryCache = false;
 
     /**
      * @var bool
@@ -272,7 +273,7 @@ class Core
             $this->moduleDirectories[] = $moduleDirectory;
         }
 
-        $this->siteDir     = GLOBAL_PATH.PROJECT_PATH.SITE_PATH.'/';
+        $this->siteDir        = GLOBAL_PATH.PROJECT_PATH.SITE_PATH.'/';
         $this->controllersDir = $this->siteDir.'controllers/';
         $this->viewsDir       = $this->siteDir.'views/';
 

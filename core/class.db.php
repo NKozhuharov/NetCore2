@@ -126,9 +126,10 @@
         public function query($sql,$cacheTime=0,$template=false,&$store=false,$keys="id",$field=false){
             global $Core;
 
-            if($Core->cacheTime == -1){
+            if ($Core->resetQueryCache === true) {
                 $cacheTime = -1;
             }
+            
             $select=0;
 
             if(mb_substr(preg_replace('{[^a-zA-Z0-9]}','',mb_strtoupper($sql)),0,mb_strlen("SELECT"))=="SELECT")
@@ -233,7 +234,7 @@
         public function result($sql,$cacheTime=0){
             global $Core;
 
-            if($Core->cacheTime == -1){
+            if ($Core->resetQueryCache === true) {
                 $cacheTime = -1;
             }
 
