@@ -2,9 +2,9 @@
 class API
 {
     const MAX_ITEMS_PER_PAGE = 100;
-    
+
     const DEFAULT_ITEMS_PER_PAGE = 12;
-    
+
     const DEFAULT_PAGE = 1;
 
     const FORBIDDEN_FILTER_NAMES = array(
@@ -16,25 +16,25 @@ class API
         'limit',
         'page'
     );
-    
+
     const QUERY_MC_REGISTER_KEY_PREFIX = 'API_MC_REGISTER_';
-    
+
     const LOGGED_IN_QUERY_LIMIT = 7200;
-    
+
     const NOT_LOGGED_IN_QUERY_LIMIT = 7200;
-    
+
     /**
      * @var array
      * These IP addresses does not have query limits
      */
     protected $excludedQueryLimitIps = array();
-    
+
     /**
      * @var bool
      * If set to false, it will throw all Exceptions like BaseExceptions
      */
     protected $returnErrosAsJson = true;
-    
+
     /**
      * @var array
      * An array to store the filters
@@ -52,10 +52,10 @@ class API
      * Stores the method name, parsed from the action
      */
     private $method;
-    
+
     /**
      * @var array
-     * Stores the result 
+     * Stores the result
      */
     private $result = array();
 
@@ -64,7 +64,7 @@ class API
      * How many are the total results (without the pagination)
      */
     private $total = 0;
-    
+
     /**
      * Main function of the class, parses a user query.
      * To use the class (and it's children) one should call this function ONLY, the rest is done by the parameters in the $_REQUEST array
@@ -73,7 +73,7 @@ class API
      * Adds the header 'Content-Type: application/json'
      * Ouputs a JSON encoded string, conating:
      * 'error' - the text of the error message
-     * 
+     *
      * Throws BaseException if an Exception is caught and returnErrosAsJson is false
      * @throws BaseException
      */
@@ -81,7 +81,7 @@ class API
     {
         try {
             $remainingQueries = $this->getRemainingQueries();
-            
+
             $this->getFiltersFromRequest();
 
             $this->getActionFromRequest();
@@ -109,7 +109,7 @@ class API
             if ($this->returnErrosAsJson === true) {
                 header('Content-Type: application/json');
                 header("Bad Request",1,400);
-                
+
                 exit(
                     json_encode(
                         array(
@@ -137,35 +137,35 @@ class API
         global $Core;
 
         $page = isset($_REQUEST['page']) && !empty($_REQUEST['page']) ? $_REQUEST['page'] : self::DEFAULT_PAGE;
-        
+
         if (!is_numeric($page)) {
-            throw new Exception("Invalid page!"); 
+            throw new Exception("Invalid page");
         }
-        
+
         $itemsPerPage = isset($_REQUEST['items_per_page']) && !empty($_REQUEST['items_per_page']) ? $_REQUEST['items_per_page'] : self::DEFAULT_ITEMS_PER_PAGE;
-        
+
         $itemsPerPage = isset($_REQUEST['limit']) && !empty($_REQUEST['limit']) ? $_REQUEST['limit'] : self::DEFAULT_ITEMS_PER_PAGE;
-        
+
         if (!is_numeric($itemsPerPage)) {
-            throw new Exception("Invalid limits!"); 
+            throw new Exception("Invalid limits");
         }
-        
+
         if ($itemsPerPage > self::MAX_ITEMS_PER_PAGE) {
-            throw new Exception("Maximum ##".self::MAX_ITEMS_PER_PAGE."## items per page!");
+            throw new Exception("Maximum ##".self::MAX_ITEMS_PER_PAGE."## items per page");
         }
-        
+
         $Core->Rewrite->setCurrentPage($page);
         $Core->setItemsPerPage($itemsPerPage);
     }
-    
+
     /**
      * The output function of the API class
      * Adds the header 'Content-Type: application/json'
      * Outputs json formatted result, containing:
-     * 'info' => an array of objects, requested from the API, limited by the Core variable itemsPerPage 
+     * 'info' => an array of objects, requested from the API, limited by the Core variable itemsPerPage
      * 'total' => the number of total results for the request
      * 'page' => the current page number of the pagination; uses the currentPage variable of the Rewrite class
-     * 'limit' => the limit of the objects in the 'info' key; uses the Core variable itemsPerPage 
+     * 'limit' => the limit of the objects in the 'info' key; uses the Core variable itemsPerPage
      * 'remaining_queries' => the number of remainign queries for the user's IP address
      */
     private function returnResponse(int $remainingQueries)
@@ -186,7 +186,7 @@ class API
             )
         );
     }
-    
+
     /**
      * Set the mathod propery of the class, using the action property
      */
@@ -198,7 +198,7 @@ class API
             $this->method .= ucfirst($actionParts[$i]);
         }
     }
-    
+
     /**
      * Manually overwrite the mathod propery of the class, using the $method parameter
      * Throws Exception if $method parameter is empty
@@ -252,12 +252,12 @@ class API
         global $Core;
 
         if ($page <= 0) {
-            throw new Exception("Current page must be larger than 0");
+            throw new Exception("Current page must be bigger than 0");
         }
 
         $Core->rewrite->currentPage = $page;
     }
-    
+
     /**
      * Sets the Core itemsPerPage variable to the new count from the $itemsPerPage parameter
      * Throws Exception if the $itemsPerPage is 0
@@ -270,7 +270,7 @@ class API
         global $Core;
 
         if ($itemsPerPage <= 0) {
-            throw new Exception("The items per page nubmer must be larger than 0");
+            throw new Exception("The items per page nubmer must be bigger than 0");
         }
 
         $Core->itemsPerPage = $itemsPerPage;
@@ -292,7 +292,7 @@ class API
             }
         }
     }
-    
+
     /**
      * Sets a filters with name, provided by $filterName parameter and with value - $value parameter
      * Throws Exception if the $filterName variable is empty
@@ -308,7 +308,7 @@ class API
 
         $this->filters[$filterName] = $value;
     }
-    
+
     /**
      * Unsets the filters with name provided in $filterName variable
      * Throws Exception if the $filterName variable is empty
@@ -342,10 +342,10 @@ class API
         if (isset($this->filters[$filterName])) {
             return $this->filters[$filterName];
         }
-        
-        throw new Exception("Filter ##`{$filterName}`## not set");
+
+        throw new Exception("Filter ##`{$filterName}`## is not set");
     }
-    
+
     /**
      * Checks if a specific filter is set
      * Throws Exception if the $filterName variable is empty
@@ -365,7 +365,7 @@ class API
 
         return false;
     }
-    
+
     /**
      * Gets the list of all filters in the request
      * @return array
@@ -374,7 +374,7 @@ class API
     {
         return $this->filters;
     }
-    
+
     /**
      * Check if all of the filters in the $requiredFilters vairable are present
      * @param array $requiredFilters the names of the filters to check
@@ -394,7 +394,7 @@ class API
             }
         }
     }
-    
+
     /**
      * Sets a result row for the API response
      * @param $value the new value for the result
@@ -409,7 +409,7 @@ class API
             $this->result[$key] = $value;
         }
     }
-    
+
     /**
      * Sets the result for the API response
      * @param $value the new results value
@@ -418,7 +418,7 @@ class API
     {
         $this->result = $value;
     }
-    
+
     /**
      * Gets the API results
      * @return array
@@ -426,7 +426,7 @@ class API
     protected function getResult(){
         return $this->result;
     }
-    
+
     /**
      * Sets the total results for the API response
      * @param int $total the new total value
@@ -435,7 +435,7 @@ class API
     {
         $this->total = $total;
     }
-    
+
     /**
      * Gets the total results
      * @return int
@@ -444,7 +444,7 @@ class API
     {
         return $this->total;
     }
-    
+
     /**
      * Checks if user is loged in
      * @param bool $throwException if this is set to true, it will throw Exception when the user is not logged in
@@ -463,7 +463,7 @@ class API
         }
         return true;
     }
-    
+
     /**
      * Reads the memcache entry, which indicates the remainig query limit for a speicif IP address
      * @return string
@@ -471,16 +471,16 @@ class API
     private function getQueryLimitFromQueryRegister()
     {
         global $Core;
-        
+
         $entry = $Core->mc->get(self::QUERY_MC_REGISTER_KEY_PREFIX.md5($_SERVER['REMOTE_ADDR']));
-        
+
         if (empty($entry)) {
             return '';
         }
-        
+
         return json_decode($entry,true);
     }
-    
+
     /**
      * Gets the JSON ecnoded object to put in memcache
      * @param int $count the number of queries remaining
@@ -496,7 +496,7 @@ class API
             )
         );
     }
-    
+
     /**
      * Check how many query attemps the user has
      * Throws Exception if no attemps left
@@ -507,24 +507,24 @@ class API
     private function getRemainingQueries()
     {
         global $Core;
-        
-        $entry = $this->getQueryLimitFromQueryRegister(); 
-        
+
+        $entry = $this->getQueryLimitFromQueryRegister();
+
         if (!empty($entry)) {
-             $remaining = ($this->checkLogin(false)) ? 
-                (self::LOGGED_IN_QUERY_LIMIT - $entry['count']) : 
+             $remaining = ($this->checkLogin(false)) ?
+                (self::LOGGED_IN_QUERY_LIMIT - $entry['count']) :
                 (self::NOT_LOGGED_IN_QUERY_LIMIT - $entry['count']);
-            
+
              if ($remaining <= 0 && !in_array($_SERVER['REMOTE_ADDR'], $this->excludedQueryLimitIps)) {
                 throw new Exception("You are exceding the API query limit");
              }
-             
+
              $Core->mc->set(
                 self::QUERY_MC_REGISTER_KEY_PREFIX.md5($_SERVER['REMOTE_ADDR']),
                 $this->getQueryRegistryObject($entry['count'] + 1, $entry['time']),
                 time() - $entry['time']
              );
-            
+
             return $remaining;
         }
         else {
@@ -533,7 +533,7 @@ class API
                 $this->getQueryRegistryObject(1, time()),
                 60
             );
-            
+
             return ($this->checkLogin(false)) ? (self::LOGGED_IN_QUERY_LIMIT - 1) : (self::NOT_LOGGED_IN_QUERY_LIMIT - 1);
         }
     }

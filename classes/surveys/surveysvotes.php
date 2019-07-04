@@ -17,18 +17,18 @@ final class SurveysVotes extends Base
     
     /**
      * Returns the user IP from the request
-     * Throws Exception if the IP is invalid
+     * Throws Error if the IP is invalid
      * @return string
-     * @throws Exception
+     * @throws Error
      */
     private function getUserIp()
     {
         if (empty($_SERVER['REMOTE_ADDR'])) {
-            throw new Exception("The user has no IP address");
+            throw new Error("The user has no IP address");
         }
         
         if (!filter_var($_SERVER['REMOTE_ADDR'], FILTER_VALIDATE_IP)) {
-            throw new Exception("Invalid IP address");
+            throw new Error("Invalid IP address");
         }
         
         return $_SERVER['REMOTE_ADDR'];
@@ -48,7 +48,6 @@ final class SurveysVotes extends Base
      * @param array $input - it must contain the field names => values
      * @param int $flag - used for insert ignore and insert on duplicate key update queries
      * @return int
-     * @throws Exception
      */
     public function insert(array $input, int $flag = null)
     {

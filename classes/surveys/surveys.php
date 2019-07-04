@@ -7,7 +7,7 @@
  * It can also be used directly, without extending it, using the default configuration.
  * Create the tables from the 'surveys.sql'.
  * Drop `surveys_lang`/`surveys_questions_lang`/`surveys_answers_lang` table if it is not used.
- * 
+ *
  */
 class Surveys extends Base
 {
@@ -17,34 +17,34 @@ class Surveys extends Base
      * @var bool
      */
     protected $allowMultilanguage = true;
-    
+
     /**
      * How many seconds between votes for a single user
      * @var int
      */
     protected $voteInteraval = 3600;
-    
+
     /**
      * Creates a new instance of Surveys class
      */
     public function __construct()
     {
         global $Core;
-        
+
         if ($Core->SurveysModuleName === false) {
             $Core->SurveysModuleName = 'Surveys';
         }
-        
+
         $this->tableName       = 'surveys';
         $this->hiddenFieldName = 'expired';
-        
+
         if ($this->allowMultilanguage) {
             $this->translationFields = array('title', 'link');
         } else {
             $this->translateResult = false;
         }
     }
-    
+
     /**
      * Are translations allowed for surveys
      * @return bool
@@ -53,7 +53,7 @@ class Surveys extends Base
     {
         return $this->allowMultilanguage;
     }
-    
+
     /**
      * Gets how much time has to pass in order for a user to vote on a survey again
      * @return int
@@ -62,7 +62,7 @@ class Surveys extends Base
     {
         return $this->voteInteraval;
     }
-    
+
     /**
      * Gets the questions to the provided survey from the db and assigns them to it under key 'questions'
      * @param array $survey - the survey to add the questions to
@@ -71,14 +71,14 @@ class Surveys extends Base
     private function addQuestionsToSurvey(array $survey)
     {
         global $Core;
-        
+
         if (!empty($survey)){
             $survey['questions'] = $Core->SurveysQuestions->getByParentId($survey['id'], false);
         }
-        
+
         return $survey;
     }
-    
+
     /**
      * Override the method to add the questions to the surveys
      * @param int $limit - the limit override
@@ -94,7 +94,7 @@ class Surveys extends Base
                 $surveys[$surveyKey] = $this->addQuestionsToSurvey($survey);
             }
         }
-        
+
         return $surveys;
     }
     /**
@@ -107,7 +107,7 @@ class Surveys extends Base
     {
         return $this->addQuestionsToSurvey(parent::getById($rowId));
     }
-    
+
     /**
      * Ensures the structure of the array for inserting or updating a survey is correct
      * @param array $input - a survey to insert/update
@@ -116,26 +116,26 @@ class Surveys extends Base
     private function ensureInputHasQuestionsAndAnswers(array $input)
     {
         if (!isset($input['questions']) || empty($input['questions']) || !is_array($input['questions'])) {
-            throw new Exception("Provide questions for the survey!");
+            throw new Exception("Provide questions for the survey");
         }
-        
+
         foreach ($input['questions'] as $question) {
             if (!is_array($question)) {
-                throw new Exception("Each question should be an array!");
+                throw new Exception("Each question should be an array");
             }
-            
+
             if (!isset($question['answers']) || empty($question['answers']) || !is_array($question['answers'])) {
-                throw new Exception("Provide answers for the questions!");
+                throw new Exception("Provide answers for the questions");
             }
-            
+
             foreach ($question['answers'] as $answer) {
                 if (!is_array($answer)) {
-                    throw new Exception("Each answer should be an array!");
+                    throw new Exception("Each answer should be an array");
                 }
             }
         }
     }
-    
+
     /**
      * Checks for duplicated questions and duplicated answers of the same question.
      * Used for insert and update
@@ -150,19 +150,19 @@ class Surveys extends Base
                 $questionTitles[] = $question['question'];
             } else {
                 throw new BaseException(
-                    "The following %%surveysquestion%% already exists %%{$question['question']}%%", 
+                    "The following %%surveys question%% already exists %%{$question['question']}%%",
                     array(),
                     get_class($this)
                 );
             }
-            
+
             $answers = array();
             foreach ($question['answers'] as $answer) {
                 if (!in_array($answer['answer'], $answers)) {
                     $answers[] = $answer['answer'];
                 } else {
                     throw new BaseException(
-                        "The following %%surveysanswer%% already exists %%{$answer['answer']}%%",
+                        "The following %%surveys answer%% already exists %%{$answer['answer']}%%",
                         array(),
                         get_class($this)
                     );
@@ -170,7 +170,7 @@ class Surveys extends Base
             }
         }
     }
-    
+
     /**
      * Override the base function to add automatic generation of links;
      * It will exptect the input to contain key questions, which contains key answers, corresponding to the questions
@@ -186,34 +186,34 @@ class Surveys extends Base
     public function insert(array $input, int $flag = null)
     {
         global $Core;
-        
+
         $this->ensureInputHasQuestionsAndAnswers($input);
-        
+
         $this->ensureSurveyQuestionsAndAnswersAreUnique($input['questions']);
-        
+
         $questions = $input['questions'];
         unset($input['questions']);
-        
+
         if (!isset($input['link']) || empty($input['link'])) {
             $input['link'] = $Core->GlobalFunctions->getHref($input['title'], $this->tableName, $this->linkField);
         }
-        
+
         $surveyId = parent::insert($input, $flag);
-        
+
         try {
             foreach ($questions as $question) {
                 $question['object_id'] = $surveyId;
-                
+
                 $answers = $question['answers'];
                 unset($question['answers']);
-                
+
                 $qeustionId = $Core->SurveysQuestions->insert($question);
-                
+
                 foreach ($answers as $answer) {
                     $answer['object_id'] = $qeustionId;
                     $Core->SurveysAnswers->insert($answer);
                 }
-                
+
                 unset($answers, $qeustionId);
             }
         } catch (Exception $ex) {
@@ -226,61 +226,61 @@ class Surveys extends Base
             $this->deleteById($surveyId);
             throw new Error($ex->getMessage());
         }
-    
+
         return $surveyId;
     }
-    
+
     /**
      * Override the base function to add automatic generation of links
      * Expects the input to contain an 'questions' key, which has to be array, containing an 'answers' key.
      * Validates the structure of the $input array.
      * Translates the entire survey, along with the questions and their answers.
      * All questions and answers MUST contain an 'id' key
-     * Throws Exception if tranlations are not allowed.
+     * Throws Error if tranlations are not allowed.
      * @param int $objectId - the id of the row where the translated object is
      * @param int $languageId - the language id to translate to
      * @param array $input - the translated object data
      * @return int
-     * @throws Exception
+     * @throws Error
      */
     public function translate(int $objectId, int $languageId, array $input)
     {
         global $Core;
-        
+
         if ($this->allowMultilanguage === false) {
-            throw new Exception("Translation is not allowed");
+            throw new Error("Translation is not allowed");
         }
-        
+
         $this->ensureInputHasQuestionsAndAnswers($input);
-        
+
         $questions = $input['questions'];
         unset($input['questions'], $input['id'], $input['user_id'], $input['published_on'], $input['expires_on']);
         unset($input['expired'], $input['added']);
-        
+
         if (!isset($input['link']) || empty($input['link'])) {
             $input['link'] = $Core->GlobalFunctions->getHref($input['title'], "{$this->tableName}_lang", $this->linkField);
         }
-        
+
         foreach ($questions as $question) {
             $answers = $question['answers'];
             unset($question['answers']);
-            
+
             foreach ($answers as $answer) {
                 $answerId = $answer['id'];
                 unset($answer['id'],$answer['order'],$answer['votes']);
                 $Core->SurveysAnswers->translate($answerId, $languageId, $answer);
                 unset($answerId);
             }
-            
+
             $questionId = $question['id'];
             unset($question['id'],$question['order']);
             $Core->SurveysQuestions->translate($questionId, $languageId, $question);
             unset($questionId);
         }
-        
+
         return parent::translate($objectId, $languageId, $input);
     }
-    
+
     /**
      * Override the function to forbid it
      * @param int $objectId - the id of the row to be updated
@@ -292,7 +292,7 @@ class Surveys extends Base
     {
         throw new Error("Basic update is forbidden");
     }
-    
+
     /**
      * Override the function to forbid it
      * @param string $additional - the where clause override
@@ -302,7 +302,7 @@ class Surveys extends Base
     {
         throw new Error("Basic update is forbidden");
     }
-    
+
     /**
      * Removes all qeustions, which are removed from the user, when updating a survey
      * @param array $existingSurvey - the body of the survey, which is being updated
@@ -311,7 +311,7 @@ class Surveys extends Base
     private function onUpdateDeleteRemovedQuestions(array $existingSurvey, array $questions)
     {
         global $Core;
-        
+
         foreach ($existingSurvey['questions'] as $existingQuestion) {
             $found = false;
             foreach ($questions as $question) {
@@ -320,13 +320,13 @@ class Surveys extends Base
                     break;
                 }
             }
-            
+
             if ($found === false) {
                 $Core->SurveysQuestions->deleteById($existingQuestion['id']);
             }
         }
     }
-    
+
     /**
      * Removes all answers from a question, which are removed from the user, when updating a survey
      * @param array $existingSurvey - the body of the survey, which is being updated
@@ -335,29 +335,29 @@ class Surveys extends Base
     private function onUpdateDeleteRemovedQuestionAnswers(array $existingSurvey, array $question)
     {
         global $Core;
-        
+
         foreach ($existingSurvey['questions'] as $existingQuestion) {
             if ($existingQuestion['id'] == $question['id']) {
                 $existingAnswers = $existingQuestion['answers'];
-            }   
+            }
         }
-        
+
         foreach ($existingAnswers as $existingAnswer) {
             $found = false;
-            
+
             foreach ($question['answers'] as $answer) {
                 if (isset($answer['id']) && !empty($answer['id']) && $existingAnswer['id'] == $answer['id']) {
                     $found = true;
                     break;
                 }
             }
-            
+
             if ($found === false) {
                 $Core->SurveysAnswers->deleteById($existingAnswer['id']);
             }
         }
     }
-    
+
     /**
      * Updates or inserts the answers of an existing qeustion
      * @param array $question - the body of the question
@@ -365,11 +365,11 @@ class Surveys extends Base
     private function onUpdateInsertOrUpdateQuestionAnswers(array $question)
     {
         global $Core;
-        
+
         foreach ($question['answers'] as $answer) {
             if (isset($answer['id']) && !empty($answer['id'])) {
                 $Core->SurveysAnswers->updateById(
-                    $answer['id'], 
+                    $answer['id'],
                     array(
                         'answer' => $answer['answer'],
                         'order'  => $answer['order'],
@@ -379,9 +379,9 @@ class Surveys extends Base
                 $answer['object_id'] = $question['id'];
                 $Core->SurveysAnswers->insert($answer);
             }
-        }   
+        }
     }
-    
+
     /**
      * Updates existing qeustion and it's answers
      * @param array $existingSurvey - the body of the survey, which is being updated
@@ -390,11 +390,11 @@ class Surveys extends Base
     private function onUpdateUpdateExistingQuestion(array $existingSurvey, array $question)
     {
         global $Core;
-        
+
         $this->onUpdateDeleteRemovedQuestionAnswers($existingSurvey, $question);
-        
+
         $this->onUpdateInsertOrUpdateQuestionAnswers($question);
-        
+
         $Core->SurveysQuestions->updateById(
             $question['id'],
             array(
@@ -403,7 +403,7 @@ class Surveys extends Base
             )
         );
     }
-    
+
     /**
      * Inserts a new qeustion and it's answers
      * @param array $question - the body of the question
@@ -412,10 +412,10 @@ class Surveys extends Base
     private function onUpdateInsertNewQuestion(array $question, int $surveyId)
     {
         global $Core;
-        
+
         $answers = $question['answers'];
         unset($question['answers']);
-        
+
         $question['object_id'] = $surveyId;
         $questionId = $Core->SurveysQuestions->insert($question);
         foreach ($answers as $answer) {
@@ -423,18 +423,18 @@ class Surveys extends Base
             $Core->SurveysAnswers->insert($answer);
         }
     }
-    
+
     /**
      * Override the base function to add automatic generation of links.
      * Expects the input to contain an 'questions' key, which has to be array, containing an 'answers' key.
-     * Validates the structure of the $input array, then checks for duplicated names of questions and 
+     * Validates the structure of the $input array, then checks for duplicated names of questions and
      * answers of the same question.
      * Questions and answers, provided without the 'id' key will be considered new and will be inserted.
      * Existing questions and answers which are not provided with their corresponding 'id's will be deleted.
      * It will update the existing survey.
      * Ignores the additional parameter.
      * Returns 1 if the survey is updated
-     * 
+     *
      * @param int $objectId - the id of the row to be updated
      * @param array $input - it must contain the field names => values
      * @param string $additional - ignored
@@ -444,21 +444,21 @@ class Surveys extends Base
     public function updateById(int $objectId, array $input, string $additional = null)
     {
         global $Core;
-        
+
         $this->translateResult = false;
         $existingSurvey = $this->getById($objectId);
-        
+
         if (!empty($existingSurvey['published_on'])) {
-            throw new Exception("Cannot update published surveys!");
+            throw new Exception("Cannot update published surveys");
         }
-        
+
         $this->ensureInputHasQuestionsAndAnswers($input);
-        
+
         $this->ensureSurveyQuestionsAndAnswersAreUnique($input['questions']);
-        
+
         $questions = $input['questions'];
         unset($input['questions']);
-        
+
         if (!isset($input['link']) || empty($input['link'])) {
             if ($input['title'] === $existingSurvey['title']) {
                 $input['link'] = $existingSurvey['link'];
@@ -466,9 +466,9 @@ class Surveys extends Base
                 $input['link'] = $Core->GlobalFunctions->getHref($input['title'], $this->tableName, $this->linkField);
             }
         }
-        
+
         $this->onUpdateDeleteRemovedQuestions($existingSurvey, $questions);
-        
+
         foreach ($questions as $question) {
             if (isset($question['id']) && !empty($question['id'])) {
                 $this->onUpdateUpdateExistingQuestion($existingSurvey, $question);
@@ -476,10 +476,10 @@ class Surveys extends Base
                 $this->onUpdateInsertNewQuestion($question, $objectId);
             }
         }
-        
+
         return parent::updateById($objectId, $input);
     }
-    
+
     /**
      * Override the function to forbid deletion
      * Returns the number of deleted rows
@@ -509,11 +509,11 @@ class Surveys extends Base
     {
         $survey = $this->getById($rowId);
         if (!empty($survey['published_on'])) {
-            throw new Exception("Cannot delete published surveys!");
+            throw new Exception("Cannot delete published surveys");
         }
         return parent::deleteById($rowId);
     }
-    
+
     /**
      * Checks if the survey with the provided id exists
      * Throws Exception if it doesn't
@@ -523,12 +523,12 @@ class Surveys extends Base
     private function ensureSurveyExists(int $objectId)
     {
         $survey = $this->getById($objectId);
-        
+
         if (empty($survey)) {
             throw new Exception("This survey does not exist");
         }
     }
-    
+
     /**
      * Sets the survey with the provided id to expired
      * @param int $objectId - the id of the survey
@@ -536,10 +536,10 @@ class Surveys extends Base
     public function setToExpired(int $objectId)
     {
         $this->ensureSurveyExists($objectId);
-        
+
         $this->updateById($objectId, array('expired' => 1));
     }
-    
+
     /**
      * Publishes the survey with the provided id
      * @param int $objectId - the id of the survey
@@ -547,12 +547,12 @@ class Surveys extends Base
     public function publish(int $objectId)
     {
         global $Core;
-        
+
         $this->ensureSurveyExists($objectId);
-        
+
         $this->updateById($objectId, array('published_on' => $Core->GlobalFunctions->formatMysqlTime(time(), true)));
     }
-    
+
     /**
      * Searches for surveys, which have the `expire_on` column set to a certain value;
      * If any of them surpases the current time, it will mark that survey as expired.
@@ -561,7 +561,7 @@ class Surveys extends Base
     {
         $this->returnTimestamps = true;
         $surveys = $this->getAll(null, " `expired` = 0 AND `expires_on` IS NOT NULL");
-        
+
         if (!empty($surveys)) {
             foreach ($surveys as $survey) {
                 if ($survey['expires_on_timestamp'] <= time()) {
@@ -570,13 +570,13 @@ class Surveys extends Base
             }
         }
     }
-    
+
     /**
      * Records votes for a survey, with the provided answer ids
      * Every answer should have his unique question, and all the questions have to belong to a single survey
      * Throws Error if the provided answer ids are invalid
      * Returns the survey, which was voted for
-     * 
+     *
      * @param array $answerIds - the id's of the answers to vote for
      * @return array
      * @throws Error
@@ -584,22 +584,22 @@ class Surveys extends Base
     public function vote(array $answerIds)
     {
         global $Core;
-        
+
         if (empty($answerIds)) {
             throw new Error("Provide at least one answer");
         }
-        
+
         if ($this->allowMultilanguage === true) {
             $Core->SurveysAnswers->turnOffTranslation();
             $Core->SurveysQuestions->turnOffTranslation();
         }
-        
+
         $answers = $Core->SurveysAnswers->getAll(false, "`id` IN (".implode(',', $answerIds).")");
-        
+
         if (empty($answers)) {
             throw new Error("One or more answers does not exist");
         }
-        
+
         $questionIds = array();
         foreach ($answers as $answer) {
             if (in_array($answer['object_id'], $questionIds)) {
@@ -607,11 +607,11 @@ class Surveys extends Base
             }
             $questionIds[] = $answer['object_id'];
         }
-        
+
         $questions = $Core->SurveysQuestions->getAll(false, "`id` IN (".implode(',', $questionIds).")");
-        
+
         $surveyId = 0;
-        
+
         foreach ($questions as $question) {
             if ($surveyId === 0) {
                 $surveyId = $question['object_id'];
@@ -619,9 +619,9 @@ class Surveys extends Base
                 throw new Error("All questions must belong to a single survey");
             }
         }
-        
+
         $Core->SurveysVotes->checkVotingRights($surveyId);
-        
+
         foreach($answerIds as $answerId) {
             $Core->SurveysVotes->insert(
                 array(
@@ -630,9 +630,9 @@ class Surveys extends Base
                 )
             );
         }
-        
+
         $Core->SurveysAnswers->recordVotes($answerIds);
-        
+
         return $this->getById($surveyId);
     }
 }
