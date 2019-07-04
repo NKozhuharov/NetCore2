@@ -44,7 +44,7 @@ abstract class BaseQuery
         global $Core;
 
         if (empty($tableName)) {
-            throw new Error("Provide a table name!");
+            throw new Error("Provide a table name");
         }
 
         $this->tableName = $tableName;
@@ -68,7 +68,7 @@ abstract class BaseQuery
             return $this->query;
         }
 
-        throw new Error("Only 'query' is allowed!");
+        throw new Error("Only 'query' is allowed");
     }
 
     /**
@@ -80,7 +80,7 @@ abstract class BaseQuery
     public function setTableName(string $tableName)
     {
         if (empty($tableName)) {
-            throw new Error("Provide a table name!");
+            throw new Error("Provide a table name");
         }
         $this->tableName = $tableName;
     }
@@ -94,7 +94,7 @@ abstract class BaseQuery
     public function setDbName(string $dbName)
     {
         if (empty($dbName)) {
-            throw new Error("Provide a database name!");
+            throw new Error("Provide a database name");
         }
         $this->dbName = $dbName;
     }

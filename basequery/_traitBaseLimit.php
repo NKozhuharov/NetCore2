@@ -17,13 +17,13 @@ trait BaseLimit
     public function setLimit(int $limit, int $offset = null)
     {
         if ($limit < 0) {
-            throw new Error("Limit must be bigger than -1!");
+            throw new Error("Limit must be bigger than -1");
         }
 
         $this->limit = $limit;
         if ($offset !== null) {
             if ($offset < 0) {
-                throw new Error("Offset must be bigger than -1!");
+                throw new Error("Offset must be bigger than -1");
             }
             $this->limit .= ', '.$offset;
         }

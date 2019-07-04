@@ -65,7 +65,7 @@ class RESTAPI extends Base
         global $Core;
         
         if (empty($_POST)) {
-            throw new Exception("Cannot insert/update an empty object!");
+            throw new Exception("Cannot insert or update an empty object");
         }
         
         if (isset($Core->Rewrite->urlBreakdown[1]) && !empty($Core->Rewrite->urlBreakdown[1])) {
@@ -145,7 +145,7 @@ class RESTAPI extends Base
         }
             
         if ($Core->Language->isActiveLanguage($languageId) === false) {
-            throw new Exception("Language `{$_GET['lang']}` is not allowed!");
+            throw new Exception("Language ##`{$_GET['lang']}`## is not allowed");
         }
         
         $this->translate($objectId, $languageId, $Core->db->escape($_POST));
@@ -261,7 +261,7 @@ class RESTAPI extends Base
                 try {
                     $this->tableFields->getFieldType(str_replace('-', '', $field));
                 } catch (Exception $ex) {
-                    throw new Exception("Cannot sort by `{$field}`");
+                    throw new Exception("Cannot sort by ##`{$field}`##");
                 }
                 
                 if (strstr($field, '-')) {
@@ -310,7 +310,7 @@ class RESTAPI extends Base
                 try {
                     $fieldType = $this->tableFields->getFieldType(str_replace('-', '', $fieldName));
                 } catch (Exception $ex) {
-                    throw new Exception("Cannot search by `{$fieldName}`");
+                    throw new Exception("Cannot search by ##`{$fieldName}`##");
                 }
                 
                 $value = $Core->db->real_escape_string($value);
@@ -346,7 +346,7 @@ class RESTAPI extends Base
         $page = isset($_REQUEST['page']) && !empty($_REQUEST['page']) ? $_REQUEST['page'] : self::DEFAULT_PAGE;
         
         if (!is_numeric($page)) {
-            throw new Exception("Invalid page!"); 
+            throw new Exception("Invalid page"); 
         }
         
         if (isset($_REQUEST['items_per_page']) && !empty($_REQUEST['items_per_page'])) {
@@ -358,11 +358,11 @@ class RESTAPI extends Base
         }
         
         if (!is_numeric($itemsPerPage) || empty($itemsPerPage)) {
-            throw new Exception("Invalid limits!"); 
+            throw new Exception("Invalid limits"); 
         }
         
         if ($itemsPerPage > self::MAX_ITEMS_PER_PAGE) {
-            throw new Exception("Maximum ".self::MAX_ITEMS_PER_PAGE." items per page!");
+            throw new Exception("Maximum ##".self::MAX_ITEMS_PER_PAGE."## items per page");
         }
         
         $Core->Rewrite->setCurrentPage($page);
@@ -383,7 +383,7 @@ class RESTAPI extends Base
             $method = $this->getRequestMethod();
             
             if (!empty($this->allowedRequestMethods) && !in_array($method, $this->allowedRequestMethods)) {
-                throw new UnauthorizedException("Unauthorized!");
+                throw new UnauthorizedException("Unauthorized");
             }
             
             switch ($method) {

@@ -82,7 +82,7 @@ final class BaseSelect extends BaseQuery
     public function setGlobalTemplate(string $globalTemplate)
     {
         if (!method_exists('GlobalTemplates', $globalTemplate)) {
-            throw new Exception("{$globalTemplate} is not a name of a global template!");
+            throw new Error("'{$globalTemplate}' is not a name of a global template");
         }
         $this->globalTemplate = $globalTemplate;
     }

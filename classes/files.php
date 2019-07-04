@@ -139,10 +139,13 @@ class Files extends Base
 
     /**
      * Uploads an array of files
-     * Throws Exception if something is wrong the inputted files, or the upload fails
+     * Throws Exception if something is wrong the inputted files
+     * Throws Error if the upload fails
      * @param array $files - an array with files to upload
      * @param bool $insertInDb - if this is false, it will not insert a row in the database
      * @return array
+     * @throws Exception
+     * @throws Error
      */
     public function addFiles(array $files, bool $insertInDb = null)
     {
@@ -152,9 +155,9 @@ class Files extends Base
 
         foreach ($files as $file) {
             if (empty($file)) {
-                throw new Exception('Please provide a valid file');
+                throw new Exception('Provide a valid file');
             } elseif ($file['error']) {
-                throw new Exception($this->codeToMessage($file['error']));
+                throw new Error($this->codeToMessage($file['error']));
             }
 
             $file['hash'] = $this->getFileHash($file);
@@ -179,7 +182,7 @@ class Files extends Base
                     $return[] = $inputArr;
                 }
             } else {
-                throw new Exception('Error occured. Please try again and if the problem persits contact support');
+                throw new Exception($Core->generalErrorText);
             }
         }
         return $return;

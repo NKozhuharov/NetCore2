@@ -89,7 +89,7 @@ class API
             $this->getMethodFromAction();
 
             if (empty($this->action)) {
-                throw new Exception("Define action!");
+                throw new Exception("Define action");
             }
 
             if (method_exists($this, $this->method)) {
@@ -103,7 +103,7 @@ class API
 
                 $this->returnResponse($remainingQueries);
             }
-            throw new Exception("Invalid action!");
+            throw new Exception("Invalid action");
         }
         catch (Exception $error) {
             if ($this->returnErrosAsJson === true) {
@@ -151,7 +151,7 @@ class API
         }
         
         if ($itemsPerPage > self::MAX_ITEMS_PER_PAGE) {
-            throw new Exception("Maximum ".self::MAX_ITEMS_PER_PAGE." items per page!");
+            throw new Exception("Maximum ##".self::MAX_ITEMS_PER_PAGE."## items per page!");
         }
         
         $Core->Rewrite->setCurrentPage($page);
@@ -211,7 +211,7 @@ class API
             $this->method = $method;
         }
         else {
-            throw new Exception("Method name cannot be empty!");
+            throw new Exception("Method name cannot be empty");
         }
     }
 
@@ -228,16 +228,16 @@ class API
             if (!empty($_REQUEST['action'])) {
                 $this->action = $_REQUEST['action'];
                 if (stristr($this->action, ' ')) {
-                    throw new Exception("No spaces are allowed in the action parameter!");
+                    throw new Exception("No spaces are allowed in the action parameter");
                 }
 
             }
             else {
-                throw new Exception("Action is empty!");
+                throw new Exception("Action is empty");
             }
         }
         else {
-            throw new Exception("Define action!");
+            throw new Exception("Define action");
         }
     }
 
@@ -252,7 +252,7 @@ class API
         global $Core;
 
         if ($page <= 0) {
-            throw new Exception("Current page must be larger than 0!");
+            throw new Exception("Current page must be larger than 0");
         }
 
         $Core->rewrite->currentPage = $page;
@@ -270,13 +270,13 @@ class API
         global $Core;
 
         if ($itemsPerPage <= 0) {
-            throw new Exception("The items per page nubmer must be larger than 0!");
+            throw new Exception("The items per page nubmer must be larger than 0");
         }
 
         $Core->itemsPerPage = $itemsPerPage;
 
         if ($Core->itemsPerPage > self::MAX_ITEMS_PER_PAGE) {
-            throw new Exception("Maximum ".self::MAX_ITEMS_PER_PAGE." items per page!");
+            throw new Exception("Maximum ##".self::MAX_ITEMS_PER_PAGE."## items per page");
         }
     }
 
@@ -303,7 +303,7 @@ class API
     protected function addFilter(string $filterName, $value)
     {
         if(empty($filterName)) {
-            throw new Exception("You cannot add an empty filter!");
+            throw new Exception("You cannot add an empty filter");
         }
 
         $this->filters[$filterName] = $value;
@@ -318,7 +318,7 @@ class API
     protected function removeFilter(string $filterName)
     {
         if(empty($filterName)) {
-            throw new Exception("You cannot remove an empty filter!");
+            throw new Exception("You cannot remove an empty filter");
         }
 
         unset($this->filters[$filterName]);
@@ -336,14 +336,14 @@ class API
     protected function getFilterValue(string $filterName)
     {
         if (empty($filterName)) {
-            throw new Exception("Filter name cannot be empty!");
+            throw new Exception("Filter name cannot be empty");
         }
 
         if (isset($this->filters[$filterName])) {
             return $this->filters[$filterName];
         }
         
-        throw new Exception("Filter '$filterName' not set!");
+        throw new Exception("Filter ##`{$filterName}`## not set");
     }
     
     /**
@@ -356,7 +356,7 @@ class API
     protected function filterIsset(string $filterName)
     {
         if (empty($filterName)) {
-            throw new Exception("Filter name cannot be empty!");
+            throw new Exception("Filter name cannot be empty");
         }
 
         if (isset($this->filters[$filterName])) {
@@ -385,11 +385,11 @@ class API
         if (!empty($requiredFilters)) {
             foreach ($requiredFilters as $filter) {
                 if (!isset($this->filters[$filter])) {
-                    throw new Exception ("Filter \'$filter\' is requried!");
+                    throw new Exception ("Filter ##`{$filter}`## is requried");
                 }
 
                 if (empty($this->filters[$filter])) {
-                    throw new Exception ("Filter \'$filter\' cannot be empty");
+                    throw new Exception ("Filter ##`{$filter}`## cannot be empty");
                 }
             }
         }
@@ -457,7 +457,7 @@ class API
 
         if (!isset($Core->{$Core->userModel}->user->id) || $Core->{$Core->userModel}->user->id <= 0) {
             if ($throwException) {
-                throw new Exception("You have to be logged in to do that!");
+                throw new Exception("You have to be logged in to do that");
             }
             return false;
         }
@@ -498,7 +498,7 @@ class API
     }
     
     /**
-     * Check how many query attemps the user has.
+     * Check how many query attemps the user has
      * Throws Exception if no attemps left
      * Increments the counter in the MC or creates it
      * @throw Exception
@@ -516,7 +516,7 @@ class API
                 (self::NOT_LOGGED_IN_QUERY_LIMIT - $entry['count']);
             
              if ($remaining <= 0 && !in_array($_SERVER['REMOTE_ADDR'], $this->excludedQueryLimitIps)) {
-                throw new Exception("You are exceding the API query limit! Try again in 1 minute!");
+                throw new Exception("You are exceding the API query limit");
              }
              
              $Core->mc->set(

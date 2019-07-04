@@ -286,22 +286,21 @@ class Surveys extends Base
      * @param int $objectId - the id of the row to be updated
      * @param array $input - it must contain the field names => values
      * @param string $additional - the where clause override
-     * @throws Exception
+     * @throws Error
      */
     public function update(array $input, string $additional)
     {
-        throw new Exception("Basic update is forbidden");
+        throw new Error("Basic update is forbidden");
     }
     
     /**
      * Override the function to forbid it
      * @param string $additional - the where clause override
-     * @throws Exception
-     * @return int
+     * @throws Error
      */
     public function updateAll(array $input)
     {
-        throw new Exception("Basic update is forbidden");
+        throw new Error("Basic update is forbidden");
     }
     
     /**
@@ -485,26 +484,26 @@ class Surveys extends Base
      * Override the function to forbid deletion
      * Returns the number of deleted rows
      * @param string $additional - the where clause override
-     * @throws Exception
+     * @throws Error
      */
     public function delete(string $additional)
     {
-        throw new Exception("Delete is forbidden");
+        throw new Error("Delete is forbidden");
     }
 
     /**
      * Override the function to forbid deletion
-     * @throws Exception
+     * @throws Error
      */
     public function deleteAll()
     {
-        throw new Exception("Delete is forbidden");
+        throw new Error("Delete is forbidden");
     }
 
     /**
      * Override the function to forbid deletion
      * @param int $id - the id of the row
-     * @throws Exception
+     * @throws Error
      */
     public function deleteById(int $rowId)
     {
@@ -575,19 +574,19 @@ class Surveys extends Base
     /**
      * Records votes for a survey, with the provided answer ids
      * Every answer should have his unique question, and all the questions have to belong to a single survey
-     * Throws Exception if the provided answer ids are invalid
+     * Throws Error if the provided answer ids are invalid
      * Returns the survey, which was voted for
      * 
      * @param array $answerIds - the id's of the answers to vote for
      * @return array
-     * @throws Exception
+     * @throws Error
      */
     public function vote(array $answerIds)
     {
         global $Core;
         
         if (empty($answerIds)) {
-            throw new Exception("Provide at least one answer");
+            throw new Error("Provide at least one answer");
         }
         
         if ($this->allowMultilanguage === true) {
@@ -598,13 +597,13 @@ class Surveys extends Base
         $answers = $Core->SurveysAnswers->getAll(false, "`id` IN (".implode(',', $answerIds).")");
         
         if (empty($answers)) {
-            throw new Exception("One or more answers does not exist");
+            throw new Error("One or more answers does not exist");
         }
         
         $questionIds = array();
         foreach ($answers as $answer) {
             if (in_array($answer['object_id'], $questionIds)) {
-                throw new Exception("One question can have only one answer");
+                throw new Error("One question can have only one answer");
             }
             $questionIds[] = $answer['object_id'];
         }
@@ -617,7 +616,7 @@ class Surveys extends Base
             if ($surveyId === 0) {
                 $surveyId = $question['object_id'];
             } elseif ($surveyId !== $question['object_id']) {
-                throw new Exception("All questions must belong to a single survey");
+                throw new Error("All questions must belong to a single survey");
             }
         }
         

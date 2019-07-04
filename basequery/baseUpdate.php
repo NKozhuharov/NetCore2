@@ -25,11 +25,11 @@ final class BaseUpdate extends BaseQuery
     public function setLimit(int $limit, int $offset = null)
     {
         if ($limit < 0) {
-            throw new Error("Limit must be bigger than -1!");
+            throw new Error("Limit must be bigger than -1");
         }
 
         if ($offset !== null) {
-            throw new Error("Offset is not allowed in update queries!");
+            throw new Error("Offset is not allowed in update queries");
         }
 
         $this->limit = $limit;
