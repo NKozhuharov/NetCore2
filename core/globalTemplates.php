@@ -3,11 +3,11 @@ class GlobalTemplates
 {
     public static function multyQuery
     (
-        array $input, 
-        $queryType, 
-        $TABLE_SCHEMA, 
-        $TABLE_NAME, 
-        $unset = false, 
+        array $input,
+        $queryType,
+        $TABLE_SCHEMA,
+        $TABLE_NAME,
+        $unset = false,
         $updateKey = false,
         $updateKeyVal = false
     ) {
@@ -21,9 +21,9 @@ class GlobalTemplates
         }
 
         $queryType = mb_strtoupper($queryType);
-        
+
         if ($queryType != 'INSERT' && $queryType != 'UPDATE') {
-            throw new Error("Query type must be INSERT or UPDATE.");
+            throw new Error("Query type must be INSERT or UPDATE");
         }
 
         if ($unset) {
@@ -35,7 +35,7 @@ class GlobalTemplates
                 unset($input[$unset]);
             }
         }
-        
+
         $input = $db->escape($input);
 
         if ($queryType == "INSERT") {
@@ -71,7 +71,7 @@ class GlobalTemplates
 
             $kv = mb_substr($kv, 0, -2);
             if (!$kv) {
-                throw new Exception("Nothing to update.");
+                throw new Exception("Nothing to update");
             }
 
             $sqlStr = "$queryType `$TABLE_SCHEMA`.`$TABLE_NAME` SET $kv WHERE `$updateKey` = '$updateKeyVal'";
@@ -98,7 +98,7 @@ class GlobalTemplates
             } else {
                 $searchitemkey = $searchitemkeys;
             }
-            
+
             foreach ($searchitemkey as $c => $k) {
                 if ($c == 0) {
                     $store[$row[$k]] = $row;
@@ -121,14 +121,14 @@ class GlobalTemplates
         if ($field === false) {
             throw new Error("Array Single Field function requires the last parameter!");
         }
-        
+
         if ($searchitemkeys !== false && $searchitemkeys !== 'false') {
             if (!is_array($searchitemkeys)) {
                 $searchitemkey[0] = $searchitemkeys;
             } else {
                 $searchitemkey = $searchitemkeys;
             }
-            
+
             foreach ($searchitemkey as $c => $k) {
                 if ($c == 0) {
                     $store[$row[$k]] = ($field != false ? $row[$field] : $row);
@@ -146,14 +146,14 @@ class GlobalTemplates
         if (!is_array($field) || empty($field) || count($field) < 2) {
             throw new Error("Array Single Priority field param is invalid!");
         }
-        
+
         if ($searchitemkeys !== false) {
             if (!is_array($searchitemkeys)) {
                 $searchitemkey[0] = $searchitemkeys;
             } else {
                 $searchitemkey = $searchitemkeys;
             }
-            
+
             foreach ($searchitemkey as $c => $k) {
                 foreach ($field as $p) {
                     if (!empty($row[$p])) {
@@ -162,7 +162,7 @@ class GlobalTemplates
                         } else {
                             $store[$row[$k]] = &$store[$row[$searchitemkey[0]]];
                         }
-                        
+
                         break;
                     }
                 }
@@ -177,7 +177,7 @@ class GlobalTemplates
         if (!is_string($store)) {
             $store = '';
         }
-        
+
         foreach ($row as $v) {
             $store .= $v;
             break;
@@ -189,7 +189,7 @@ class GlobalTemplates
         if (!is_string($store)) {
             $store = '';
         }
-        
+
         foreach ($row as $v) {
             $store .= $v . $separator;
             break;
