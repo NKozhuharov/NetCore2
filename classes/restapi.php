@@ -383,7 +383,7 @@ class RESTAPI extends Base
             $method = $this->getRequestMethod();
             
             if (!empty($this->allowedRequestMethods) && !in_array($method, $this->allowedRequestMethods)) {
-                throw new ForbiddenException("Forbidden");
+                throw new UnauthorizedException("Unauthorized!");
             }
             
             switch ($method) {
@@ -403,7 +403,7 @@ class RESTAPI extends Base
             }
             
             $Core->RestAPIResult->showResult($this->result, $this->total);
-        } catch (ForbiddenException $ex) {
+        } catch (UnauthorizedException $ex) {
             $Core->RestAPIResult->showError($ex->getMessage(), $ex->getData());
         } catch (BaseException $ex) {
             $this->showHeaderBadRequest();

@@ -148,11 +148,11 @@ try {
     }
 
     die;
-} catch (ForbiddenException $e) {
+} catch (UnauthorizedException $e) {
     ob_end_clean();
 
     if (isset($Core) && is_object($Core->exceptionhandler)) {
-        $Core->exceptionhandler->ForbiddenException($e);
+        $Core->exceptionhandler->UnauthorizedException($e);
     } else {
         header('HTTP/1.1 500 Internal Server Error', true, 500);
 

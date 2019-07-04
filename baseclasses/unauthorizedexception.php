@@ -1,8 +1,8 @@
 <?php
-class ForbiddenException extends BaseException
+class UnauthorizedException extends BaseException
 {
     /**
-     * Create a new instance of the ForbiddenException class
+     * Create a new instance of the UnauthorizedException class
      * It will change the response header to 401
      * @param string $message - the exception message
      * @param array $data - additional data for the exception

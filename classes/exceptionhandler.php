@@ -183,10 +183,10 @@ class ExceptionHandler
     }
 
     /**
-     * Handle a ForbiddenException throwable
-     * @param ForbiddenException $exception
+     * Handle a UnauthorizedException throwable
+     * @param UnauthorizedException $exception
      */
-    public function ForbiddenException(ForbiddenException $exception)
+    public function UnauthorizedException(UnauthorizedException $exception)
     {
         header('HTTP/1.1 401 Unauthorized', true, 401);
 
