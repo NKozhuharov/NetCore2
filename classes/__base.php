@@ -1,5 +1,4 @@
 <?php
-
 define ("INSERT_IGNORE", 0);
 define ("INSERT_ON_DUPLICATE_KEY_UPDATE", 1);
 //TO DO
@@ -119,7 +118,7 @@ class Base
         }
 
         if (empty($this->tableFields)) {
-            $this->tableFields = new BaseTableFields($this->tableName);
+            $this->tableFields = new BaseTableFields($this->tableName, $this->queryCacheTime);
         }
     }
 
@@ -144,7 +143,7 @@ class Base
         }
 
         $this->tableName = $name;
-        $this->tableFields = new BaseTableFields($this->tableName);
+        $this->tableFields = new BaseTableFields($this->tableName, $this->queryCacheTime);
     }
 
     /**
@@ -1139,7 +1138,7 @@ class Base
         $currentTableFields = $this->tableFields;
 
         try {
-            $this->tableFields = new BaseTableFields("{$this->tableName}_lang");
+            $this->tableFields = new BaseTableFields("{$this->tableName}_lang", $this->queryCacheTime);
         } catch (Error $ex) {
             throw new Error("Table {$this->tableName}_lang does not exist in model `".get_class($this)."`");
         }

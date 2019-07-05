@@ -31,7 +31,7 @@ trait LinkField
         }
 
         if ($Core->multiLanguageLinks === true) {
-            $langTableFields = new BaseTableFields("{$this->tableName}_lang");
+            $langTableFields = new BaseTableFields("{$this->tableName}_lang", $this->queryCacheTime);
 
             if ($langTableFields->getFieldType($this->linkField) !== 'varchar') {
                 throw new Error(
@@ -178,7 +178,7 @@ trait LinkField
     }
 
     /**
-     * Creates unique link by given string compared to $this->linkField in the translation table
+     * Creates unique link by a given string, compared to $this->linkField in the translation table
      * Throws Error if either languageId or objectId is provided and the other is not
      * @param string $string - string by which to create the link
      * @param int $languageId - current language id when updating (optional)
@@ -195,7 +195,7 @@ trait LinkField
         }
 
         try {
-            $this->tableFields = new BaseTableFields("{$this->tableName}_lang");
+            $this->tableFields = new BaseTableFields("{$this->tableName}_lang", $this->queryCacheTime);
         } catch (Error $ex) {
             throw new Error("Table {$this->tableName}_lang does not exist in model `".get_class($this)."`");
         }
@@ -221,7 +221,8 @@ trait LinkField
             AND ";
         }
 
-        $link = $Core->GlobalFunctions->getUrl($string);
+        $link = $Core->GlobalFunctions->replaceSpecialCharactersInString($string);
+        $link = mb_substr($link, 0, 200);
 
         $selector = new BaseSelect("{$this->tableName}_lang");
         $selector->setWhere($additional."`{$this->linkField}` = '{$link}'");

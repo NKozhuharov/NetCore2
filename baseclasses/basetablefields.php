@@ -1,18 +1,45 @@
 <?php
 class BaseTableFields
 {
-    const CACHE_TIME = 60;
-
+    /**
+     * The name of the table
+     * @var string
+     */
     protected $tableName;
-    protected $tableFields;
+    
+    /**
+     * Contains all the table fields
+     * @var array
+     */
+     protected $tableFields;
+    
+    /**
+     * Contains all the required table fields
+     * @var array
+     */
     protected $requiredFields;
+    
+    /**
+     * How long should the table information be cached
+     * @var int
+     */
+    protected $cacheTime = 60;
 
-    public function __construct(string $tableName)
+    /**
+     * Creates a new intance of BaseTableFields
+     * @param string $tableName - the name of the bale
+     * @param int $cacheTime - how much time should the cache of the table info persist
+     */
+    public function __construct(string $tableName, int $cacheTime = null)
     {
         global $Core;
 
         $this->tableName = $tableName;
         $this->getTableInfo($Core->clientIsDeveloper());
+        
+        if ($cacheTime !== null) {
+            $this->cacheTime = $cacheTime;
+        }
     }
 
     //get a list of the table fields
@@ -70,7 +97,7 @@ class BaseTableFields
                 `table_schema` = '{$Core->dbName}'
             AND
                 `table_name` = '{$this->tableName}'"
-            ,$noCache ? 0 : self::CACHE_TIME, 'fillArray', $columnsInfo, 'column_temp_id'
+            ,$noCache ? 0 : $this->cacheTime, 'fillArray', $columnsInfo, 'column_temp_id'
         );
 
         if (empty($columnsInfo)) {
