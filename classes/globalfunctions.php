@@ -71,11 +71,11 @@ class GlobalFunctions
      * @param string $string - string by which to create the link
      * @return string
      */
-    public function getUrl($string)
+    public function getUrl(string $string, int $limit = 200, string $replaceWith = '-')
     {
         $string = trim(preg_replace('~\P{Xan}++~u', ' ', $string));
-        $string = preg_replace("~\s+~", '-', mb_strtolower($string));
-        $string = mb_substr($string, 0, 200);
+        $string = preg_replace("~\s+~", $replaceWith, mb_strtolower($string));
+        $string = mb_substr($string, 0, $limit);
         $string = mb_strtolower($string);
 
         return $string;
