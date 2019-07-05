@@ -309,7 +309,11 @@ class Images extends Base
                 $hasWatermark = 0;
             }
 
-            $this->name = $Core->globalfunctions->getHref($Core->globalfunctions->getUrl($this->name), $this->tableName, $this->imageNameField);
+            $this->name = $Core->globalfunctions->getHref(
+                $this->name, 
+                $this->tableName, 
+                $this->imageNameField
+            );
             //Keep original witout watermark
             $this->insertImage($Core->imagesStorage.$addOrgFolder.$folderNumber.'/', $this->orgMd5, 1, $hasWatermark);
         } else {

@@ -6,6 +6,7 @@ class GlobalFunctions
      * Puts '...' at the end
      * @param string $text
      * @param int $symbols
+     * @return string
      */
     public function cutText(string $text, int $symbols = 250)
     {
@@ -66,30 +67,38 @@ class GlobalFunctions
     }
 
     /**
-     * Creates a link from the provided string. Replaces all special characters and spaces with dashes (-)
-     *
+     * Replaces all special characters and spaces in a string with the provided symbol
      * @param string $string - string by which to create the link
+     * @param string $replaceWith - with what to replace the special characters
      * @return string
      */
-    public function getUrl(string $string, int $limit = 200, string $replaceWith = '-')
+    public function replaceSpecialCharactersInString(string $string, string $replaceWith = '-')
     {
-        $string = trim(preg_replace('~\P{Xan}++~u', ' ', $string));
-        $string = preg_replace("~\s+~", $replaceWith, mb_strtolower($string));
-        $string = mb_substr($string, 0, $limit);
         $string = mb_strtolower($string);
-
-        return $string;
+        $string = preg_replace('~\P{Xan}++~u', ' ', $string);
+        $string = preg_replace("~\s+~", ' ', $string);
+        
+        return preg_replace("~\s+~", $replaceWith, trim($string));
     }
-
-    public function getHref($title, $table, $field, $id = false)
+    
+    /**
+     * Creates an unique link from the provided string
+     * @param string $string - the string to create a link from
+     * @param string $table - the name of the table to check for duplicate links
+     * @param string $field - the name of the field in the table
+     * @param int $id - the id ot the object. Use when updating
+     * @param int $limit - how many symbols to cut the link to
+     * @return string
+     */
+    public function getHref(string $string, string $table, string $field, int $id = null, int $limit = 200)
     {
         global $Core;
 
-        $url = $this->getUrl($title);
-        $url = $Core->db->escape(mb_substr($url, 0, 200));
+        $url = $this->replaceSpecialCharactersInString($string);
+        $url = $Core->db->escape(mb_substr($url, 0, $limit));
         $and = '';
 
-        if ($id && is_numeric($id)) {
+        if ($id !== null && is_numeric($id)) {
             $and = " `id` != '$id' AND ";
         }
 
@@ -104,6 +113,7 @@ class GlobalFunctions
                 $url .= '-'.$count;
             }
         }
+        
         return $url;
     }
 

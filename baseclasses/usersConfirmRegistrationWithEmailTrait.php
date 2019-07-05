@@ -58,7 +58,7 @@ trait UsersConfirmRegistrationWithEmail
             throw new Error("Registration is not possible, without setting the usersRegistrationConfrimationControlField");
         }
 
-        $usersRegistrationConfirmationTable = new BaseTableFields($this->usersRegistrationConfirmationTableName);
+        $usersRegistrationConfirmationTable = new BaseTableFields($this->usersRegistrationConfirmationTableName, $this->queryCacheTime);
         $fields = $usersRegistrationConfirmationTable->getFields();
 
         if (!isset($fields['user_id']) || $fields['user_id']['type'] !== 'int' || $fields['user_id']['field_info'] !== '10 unsigned') {

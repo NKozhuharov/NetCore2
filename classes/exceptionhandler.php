@@ -66,8 +66,7 @@ class ExceptionHandler
             ) {
                 if ($Core->allowMultylanguage) {
                     $messagePart = mb_strtolower($messagePart);
-                    $messagePart = $Core->GlobalFunctions->getUrl($messagePart, 10000, '_');
-                    $messagePart = trim($messagePart, ' _');
+                    $messagePart = $Core->GlobalFunctions->replaceSpecialCharactersInString($messagePart, '_');
                     $translation .= $Core->Language->{$messagePart}.' ';
                 } else{
                     $translation .= $messagePart.' ';
