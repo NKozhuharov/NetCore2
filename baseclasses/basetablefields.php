@@ -41,8 +41,11 @@ class BaseTableFields
             $this->cacheTime = $cacheTime;
         }
     }
-
-    //get a list of the table fields
+    
+    /**
+     * Get a list of the table fields and their description
+     * @return array
+     */
     public function getFields()
     {
         if (empty($this->tableFields)) {
@@ -52,7 +55,10 @@ class BaseTableFields
         return $this->tableFields;
     }
 
-    //get a list of the required fields
+    /**
+     * Get a list of the required table fields and their description
+     * @return array
+     */
     public function getRequiredFields()
     {
         if (empty($this->tableFields)) {
@@ -61,7 +67,12 @@ class BaseTableFields
 
         return $this->requiredFields;
     }
-
+    
+    /**
+     * Gets the type of the provided field
+     * @param string $fieldName - the name of the field
+     * @return string
+     */
     public function getFieldType(string $fieldName)
     {
         if (!isset($this->tableFields[$fieldName])) {
@@ -70,7 +81,12 @@ class BaseTableFields
 
         return $this->tableFields[$fieldName]['type'];
     }
-
+    
+    /**
+     * Gets the info array of the provided field
+     * @param string $fieldName - the name of the field
+     * @return array
+     */
     public function getFieldInfo(string $fieldName)
     {
         if (!isset($this->tableFields[$fieldName])) {
@@ -79,7 +95,12 @@ class BaseTableFields
 
         return $this->tableFields[$fieldName]['field_info'];
     }
-
+    
+    /**
+     * Gets information for the table fields of the instance.
+     * Fills the tableFields and requiredFields arrays.
+     * @param bool $noCache - ignore the cache of the instance or not
+     */
     private function getTableInfo(bool $noCache = null)
     {
         global $Core;
