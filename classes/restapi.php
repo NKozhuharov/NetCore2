@@ -19,6 +19,10 @@ class RESTAPI extends Base
      */
     private $total;
     
+    /**
+     * The allowed request methods for this model
+     * @var array
+     */
     protected $allowedRequestMethods = array(
         'GET',
         'POST',
