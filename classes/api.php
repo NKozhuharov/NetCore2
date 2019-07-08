@@ -270,7 +270,7 @@ class API
         global $Core;
 
         if ($itemsPerPage <= 0) {
-            throw new Exception("The items per page nubmer must be bigger than 0");
+            throw new Exception("The items per page count must be bigger than 0");
         }
 
         $Core->itemsPerPage = $itemsPerPage;
