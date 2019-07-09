@@ -257,7 +257,6 @@ CREATE TABLE `phrases`  (
   `phrase` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   `en` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
   `bg` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
-  `tr` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `phrase`(`phrase`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
@@ -271,7 +270,6 @@ CREATE TABLE `phrases_platform`  (
   `phrase` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   `en` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
   `bg` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
-  `tr` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `phrase`(`phrase`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 56 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
@@ -279,57 +277,98 @@ CREATE TABLE `phrases_platform`  (
 -- ----------------------------
 -- Records of phrases_platform
 -- ----------------------------
-INSERT INTO `phrases_platform` VALUES (1, 'copy_link', 'Copy link', 'Копирай линка', NULL);
-INSERT INTO `phrases_platform` VALUES (2, 'download', 'Download', 'Свали', NULL);
-INSERT INTO `phrases_platform` VALUES (3, 'delete', 'Delete', 'Изтрий', NULL);
-INSERT INTO `phrases_platform` VALUES (4, 'unlock', 'Unlock', 'Отключи', NULL);
-INSERT INTO `phrases_platform` VALUES (5, 'lock', 'Lock', 'Заключи', NULL);
-INSERT INTO `phrases_platform` VALUES (6, 'copied', 'Copied', 'Копирано', NULL);
-INSERT INTO `phrases_platform` VALUES (7, 'the_following_fields_must_not_be_empty', 'The following fields must not be empty', 'Следните полета не трябва да са празни', NULL);
-INSERT INTO `phrases_platform` VALUES (8, 'is_required', 'Is required', 'Е задължително', NULL);
-INSERT INTO `phrases_platform` VALUES (9, 'the_following_fields_does_not_exist', 'The following fields does not exist', 'Следните полета не съществуват', NULL);
-INSERT INTO `phrases_platform` VALUES (10, 'saved', 'Saved', 'Запаметено', NULL);
-INSERT INTO `phrases_platform` VALUES (11, 'deleted', 'Deleted', 'Изтрито', NULL);
-INSERT INTO `phrases_platform` VALUES (12, 'add_category', 'Add category', 'Добавете категория', NULL);
-INSERT INTO `phrases_platform` VALUES (13, 'add_news', 'Add news', 'Добавете новина', NULL);
-INSERT INTO `phrases_platform` VALUES (14, 'add_administrator', 'Add administrator', 'Добавете администратор', NULL);
-INSERT INTO `phrases_platform` VALUES (15, 'you_cannot_delete_from', 'You cannot delete from', 'Не може да триете от', NULL);
-INSERT INTO `phrases_platform` VALUES (17, 'if_there_are', 'if there are', 'ако има свързани', NULL);
-INSERT INTO `phrases_platform` VALUES (18, 'attached_to_it', 'attached to it', 'свързани с него', NULL);
-INSERT INTO `phrases_platform` VALUES (19, 'level', 'Level', 'Ниво', NULL);
-INSERT INTO `phrases_platform` VALUES (20, 'names', 'Names', 'Имена', NULL);
-INSERT INTO `phrases_platform` VALUES (21, 'names_latin', 'Names in Latin', 'Имена на Латиница', NULL);
-INSERT INTO `phrases_platform` VALUES (22, 'search', 'Search', 'Търси', NULL);
-INSERT INTO `phrases_platform` VALUES (23, 'searching', 'Searching', 'Търсене', NULL);
-INSERT INTO `phrases_platform` VALUES (24, 'user_added', 'User added', 'Потребителят е добавен', NULL);
-INSERT INTO `phrases_platform` VALUES (25, 'adminuser', 'Administrators', 'Администратори', NULL);
-INSERT INTO `phrases_platform` VALUES (26, 'access_levels', 'Access levels', 'Нива на достъп', NULL);
-INSERT INTO `phrases_platform` VALUES (27, 'access_level', 'Access level', 'Ниво на достъп', NULL);
-INSERT INTO `phrases_platform` VALUES (28, 'add_access_level', 'Add access level', 'Добавете ниво на достъп', NULL);
-INSERT INTO `phrases_platform` VALUES (29, 'role', 'Role', 'Роля', NULL);
-INSERT INTO `phrases_platform` VALUES (30, 'access_levels_note', 'The lower the level, the higher the access. DO NOT use `0`.', 'Колкото е по-ниско нивото, толкова по-висок е достъпът. НE използвайте `0`.', NULL);
-INSERT INTO `phrases_platform` VALUES (31, 'note', 'Note', 'Забележка', NULL);
-INSERT INTO `phrases_platform` VALUES (32, 'must_be_a_number', 'Мust be a number', 'Трябва да е число', NULL);
-INSERT INTO `phrases_platform` VALUES (35, 'should_be_between', 'Should be between', 'Трябва да е между', NULL);
-INSERT INTO `phrases_platform` VALUES (37, 'and', 'and', 'и', NULL);
-INSERT INTO `phrases_platform` VALUES (38, 'must_not_be_longer_than', 'Must not be longer than', 'Не трябва да е по дълго от', NULL);
-INSERT INTO `phrases_platform` VALUES (39, 'sybmols', 'sybmols', 'символа', NULL);
-INSERT INTO `phrases_platform` VALUES (40, 'tags', 'Tags', 'Тагове', NULL);
-INSERT INTO `phrases_platform` VALUES (41, 'tag', 'Tag', 'Таг', NULL);
-INSERT INTO `phrases_platform` VALUES (42, 'add_tag', 'Add tag', 'Добавете таг', NULL);
-INSERT INTO `phrases_platform` VALUES (43, 'is_requried_for_language', 'Is required for language', 'Е задължително за език', NULL);
-INSERT INTO `phrases_platform` VALUES (44, 'turkish', 'Turkish', 'Турски', NULL);
-INSERT INTO `phrases_platform` VALUES (45, 'the_following_fields_are_required', 'The following fields are required', 'Следните полета са задължителни', NULL);
-INSERT INTO `phrases_platform` VALUES (46, 'the_following', 'The following', ' ', NULL);
-INSERT INTO `phrases_platform` VALUES (47, 'alredy_exists', 'already exists', 'вече съществува', NULL);
-INSERT INTO `phrases_platform` VALUES (48, 'update', 'Update', 'Обнови', NULL);
-INSERT INTO `phrases_platform` VALUES (49, 'actions', 'Actions', 'Действия', NULL);
-INSERT INTO `phrases_platform` VALUES (50, 'profile', 'Profile', 'Профил', NULL);
-INSERT INTO `phrases_platform` VALUES (51, 'rotate_right', 'Rotate right', 'Завърти на дясно', NULL);
-INSERT INTO `phrases_platform` VALUES (52, 'rotate_left', 'Rotate left', 'Завърти на ляво', NULL);
-INSERT INTO `phrases_platform` VALUES (53, 'browse', 'Browse', 'Избери', NULL);
-INSERT INTO `phrases_platform` VALUES (54, 'messages', 'Messages', 'Съобщения', NULL);
-INSERT INTO `phrases_platform` VALUES (55, 'requests', 'Requests', 'Заявки', NULL);
+INSERT INTO `phrases_platform` VALUES (1, 'is_not_a_valid_link', 'is not a valid link', 'не е валиден линк');
+INSERT INTO `phrases_platform` VALUES (2, 'is_not_valid_image', 'is not valid image', 'не е валидно изображение');
+INSERT INTO `phrases_platform` VALUES (3, 'image_is_empty', 'Image is empty', 'Изображението е празно');
+INSERT INTO `phrases_platform` VALUES (4, 'the_file', 'The file', 'Файлът');
+INSERT INTO `phrases_platform` VALUES (5, 'image_must_not_be_bigger_than', 'Image must not be bigger than', 'Изображението не трябва да е по-голямо от');
+INSERT INTO `phrases_platform` VALUES (6, 'the_following_fields_are_not_valid', 'The following fields are not valid', 'Следните полета са невалидни');
+INSERT INTO `phrases_platform` VALUES (7, 'enter_email', 'Enter email', 'Въведете имейл');
+INSERT INTO `phrases_platform` VALUES (8, 'enter_username', 'Enter username', 'Въведете потребителско име');
+INSERT INTO `phrases_platform` VALUES (9, 'enter_password', 'Enter password', 'Въведете парола');
+INSERT INTO `phrases_platform` VALUES (10, 'email_addres_or_password_is_invalid', 'Email addres or password is invalid', 'Имейлът или паролата са невалидни');
+INSERT INTO `phrases_platform` VALUES (11, 'username_or_password_is_invalid', 'Username or password is invalid', 'Потребителското име или паролата са невалидни');
+INSERT INTO `phrases_platform` VALUES (12, 'the_following_fields_are_required', 'The following fields are required', 'Следните полета са задължителни');
+INSERT INTO `phrases_platform` VALUES (13, 'the_following_fields_must_not_be_empty', 'The following fields must not be empty', 'Следните полета не трябва да са празни');
+INSERT INTO `phrases_platform` VALUES (14, 'you_cannot_delete_from', 'You cannot delete from', 'Не можете да изтривате от');
+INSERT INTO `phrases_platform` VALUES (15, 'if_there_are', 'if there are', 'ако има свързани');
+INSERT INTO `phrases_platform` VALUES (16, 'attached_to_it', 'attached to it', 'свързани с него');
+INSERT INTO `phrases_platform` VALUES (17, 'the_following', 'The following', 'Следните');
+INSERT INTO `phrases_platform` VALUES (18, 'already_exists', 'already exists', 'вече съществува');
+INSERT INTO `phrases_platform` VALUES (19, 'this', 'This', 'Това');
+INSERT INTO `phrases_platform` VALUES (20, 'does_not_exist', 'does not exist', 'не съществува');
+INSERT INTO `phrases_platform` VALUES (21, 'is_not_allowed', 'is not allowed', 'не е позволено');
+INSERT INTO `phrases_platform` VALUES (22, 'the_following_fields_does_not_exist', 'The following fields does not exist', 'Следните полета не съществуват');
+INSERT INTO `phrases_platform` VALUES (23, 'this_email_is_already_taken', 'This email is already taken', 'Този имейл вече е зает');
+INSERT INTO `phrases_platform` VALUES (24, 'provide_a_token', 'Provide a token', 'Въведете токен');
+INSERT INTO `phrases_platform` VALUES (25, 'invalid_token', 'Invalid token', 'Невалиден токен');
+INSERT INTO `phrases_platform` VALUES (26, 'this_email_does_not_exist', 'This email does not exist', 'Този имейл не съществува');
+INSERT INTO `phrases_platform` VALUES (27, 'sorry,_there_has_been_some_kind_of_an_error_with_your_request._please_try_again_later.', 'Sorry, there has been some kind of an error with your request. Please try again later.', 'Съжаляваме, възникна някаква грешка с вашата заявка. Моля опитайте пак по-късно.');
+INSERT INTO `phrases_platform` VALUES (28, 'phone_is_not_valid', 'Phone is not valid', 'Телефонът не е валиден');
+INSERT INTO `phrases_platform` VALUES (29, 'name_is_not_valid', 'Name is not valid', 'Името не е валидно');
+INSERT INTO `phrases_platform` VALUES (30, 'is_not_valid', 'is not valid', 'не е валидно');
+INSERT INTO `phrases_platform` VALUES (31, 'image', 'image', 'изображение');
+INSERT INTO `phrases_platform` VALUES (32, 'file_not_found', 'File not found', 'Файлът не е намерен');
+INSERT INTO `phrases_platform` VALUES (33, 'nothing_to_update', 'Nothing to update', 'Няма какво да се актуализира');
+INSERT INTO `phrases_platform` VALUES (34, 'invalid_hash', 'Invalid hash', 'Невалиден хаш');
+INSERT INTO `phrases_platform` VALUES (35, 'invalid_file_source', 'Invalid file source', 'Невалиден файлов източник');
+INSERT INTO `phrases_platform` VALUES (36, 'provide_a_valid_file', 'Provide a valid file', 'Въведете валиден фаил');
+INSERT INTO `phrases_platform` VALUES (37, 'provide_email', 'Provide email', 'Въведете имейл');
+INSERT INTO `phrases_platform` VALUES (38, 'email_is_not_valid', 'Email is not valid', 'Имейлът не е валиден');
+INSERT INTO `phrases_platform` VALUES (39, 'password_must_contain_a_symbol', 'Password must contain a symbol', 'Паролата трябва да съдържа символ');
+INSERT INTO `phrases_platform` VALUES (40, 'password_must_contain_a_capital_letter', 'Password must contain a capital letter', 'Паролата трябва да съдържа главна буква');
+INSERT INTO `phrases_platform` VALUES (41, 'password_must_contain_a_number', 'Password must contain a number', 'Паролата трябва да съдържа число');
+INSERT INTO `phrases_platform` VALUES (42, 'password_must_be_maximum', 'Password must be maximum', 'Паролата трябва да е максимум');
+INSERT INTO `phrases_platform` VALUES (43, 'symbols', 'symbols', 'символи');
+INSERT INTO `phrases_platform` VALUES (44, 'password_must_be_minimum', 'Password must be minimum', 'Паролата трябва да е минимум');
+INSERT INTO `phrases_platform` VALUES (45, 'no_spaces_are_allowed_in_the_password', 'No spaces are allowed in the password', 'Не са разрешени интервали в паролата');
+INSERT INTO `phrases_platform` VALUES (46, 'provide_password', 'Provide password', 'Въведете парола');
+INSERT INTO `phrases_platform` VALUES (47, 'this_username_is_already_taken', 'This username is already taken', 'Това потребителско име вече е заето');
+INSERT INTO `phrases_platform` VALUES (48, 'username_must_be_maximum', 'Username must be maximum', 'Потребителското име трябва да е максимум');
+INSERT INTO `phrases_platform` VALUES (49, 'username_must_be_minimum', 'Username must be minimum', 'Потребителското име трябва да е минимум');
+INSERT INTO `phrases_platform` VALUES (50, 'no_spaces_are_allowed_in_the_username', 'No spaces are allowed in the username', 'Не са разрешени интервали в потребителското име');
+INSERT INTO `phrases_platform` VALUES (51, 'provide_username', 'Provide username', 'Въведете потребителско име');
+INSERT INTO `phrases_platform` VALUES (52, 'this_user_does_not_exist', 'This user does not exist', 'Този потребител не съществува');
+INSERT INTO `phrases_platform` VALUES (53, 'provide_a_list_with_ids', 'Provide a list with ids', 'Въведете списък с ID-та');
+INSERT INTO `phrases_platform` VALUES (54, 'cannot_sort_by', 'Cannot sort by', 'Не може да сортирате по');
+INSERT INTO `phrases_platform` VALUES (55, 'cannot_search_by', 'Cannot search by', 'Не може да търсите по');
+INSERT INTO `phrases_platform` VALUES (56, 'invalid_page', 'Invalid page', 'Невалидна страница');
+INSERT INTO `phrases_platform` VALUES (57, 'invalid_limits', 'Invalid limits', 'Невалидни лимити');
+INSERT INTO `phrases_platform` VALUES (58, 'maximum', 'Maximum', 'Максимум');
+INSERT INTO `phrases_platform` VALUES (59, 'items_per_page', 'items per page', 'елементи на страница');
+INSERT INTO `phrases_platform` VALUES (60, 'you_cannot_vote_again_yet', 'You cannot vote again yet', 'Още не можете да гласувате отново');
+INSERT INTO `phrases_platform` VALUES (61, 'invalid_ip_address', 'Invalid IP address', 'Невалиден IP адрес');
+INSERT INTO `phrases_platform` VALUES (62, 'the_user_has_no_ip_address', 'The user has no IP address', 'Потребителят няма IP адрес');
+INSERT INTO `phrases_platform` VALUES (63, 'all_questions_must_belong_to_a_single_survey', 'All questions must belong to a single survey', 'Всички въпроси трябва да принадлежат към една анкета');
+INSERT INTO `phrases_platform` VALUES (64, 'one_question_can_have_only_one_answer', 'One question can have only one answer', 'Един въпрос може да има само един отговор');
+INSERT INTO `phrases_platform` VALUES (65, 'one_or_more_answers_does_not_exist', 'One or more answers does not exist', 'Един или повече отговори не съществуват');
+INSERT INTO `phrases_platform` VALUES (66, 'provide_at_least_one_answer', 'Provide at least one answer', 'Въведете поне един отговор');
+INSERT INTO `phrases_platform` VALUES (67, 'this_survey_does_not_exist', 'This survey does not exist', 'Тази анкета не съществува');
+INSERT INTO `phrases_platform` VALUES (68, 'cannot_delete_published_surveys', 'Cannot delete published surveys', 'Не може да изтриете публикувана анкета');
+INSERT INTO `phrases_platform` VALUES (69, 'cannot_update_published_surveys', 'Cannot update published surveys', 'Не може да актуализирате публикувани анкети');
+INSERT INTO `phrases_platform` VALUES (70, 'surveys_question', 'surveys question', 'въпроси на анкета');
+INSERT INTO `phrases_platform` VALUES (71, 'surveys_answer', 'surveys answer', 'отговор на анкети');
+INSERT INTO `phrases_platform` VALUES (72, 'each_answer_should_be_an_array', 'Each answer should be an array', 'Всеки отговор трябва да бъде масив');
+INSERT INTO `phrases_platform` VALUES (73, 'provide_answers_for_the_questions', 'Provide answers for the questions', 'Въведете отговори на въпросите');
+INSERT INTO `phrases_platform` VALUES (74, 'each_question_should_be_an_array', 'Each question should be an array', 'Всеки въпрос трябва да бъде масив');
+INSERT INTO `phrases_platform` VALUES (75, 'provide_questions_for_the_survey', 'Provide questions for the survey', 'Въведете въпроси за анкетата');
+INSERT INTO `phrases_platform` VALUES (76, 'invalid_action', 'Invalid action', 'Невалидно действие');
+INSERT INTO `phrases_platform` VALUES (77, 'define_action', 'Define action', 'Дефинирайте действие');
+INSERT INTO `phrases_platform` VALUES (78, 'no_spaces_are_allowed_in_the_action_parameter', 'No spaces are allowed in the action parameter', 'Не са разрешени интервали в параметъра за действие');
+INSERT INTO `phrases_platform` VALUES (79, 'action_is_empty', 'Action is empty', 'Действието е празно');
+INSERT INTO `phrases_platform` VALUES (80, 'current_page_must_be_bigger_than_0', 'Current page must be bigger than 0', 'Текущатат страница трябва да е по-голяма от 0');
+INSERT INTO `phrases_platform` VALUES (81, 'the_items_per_page_count_must_be_bigger_than_0', 'The items per page count must be bigger than 0', 'Броят на елементите на страница трябва да е по-голям от 0');
+INSERT INTO `phrases_platform` VALUES (82, 'you_cannot_add_an_empty_filter', 'You cannot add an empty filter', 'Не можете да добавите празен филтър');
+INSERT INTO `phrases_platform` VALUES (83, 'you_cannot_remove_an_empty_filter', 'You cannot remove an empty filter', 'Не можете да премахнете празен филтър');
+INSERT INTO `phrases_platform` VALUES (84, 'filter_name_cannot_be_empty', 'Filter name cannot be empty', 'Името на филтъра не може да бъде празно');
+INSERT INTO `phrases_platform` VALUES (85, 'is_not_set', 'is not set', 'не съществува');
+INSERT INTO `phrases_platform` VALUES (86, 'filter', 'Filter', 'Филтър');
+INSERT INTO `phrases_platform` VALUES (87, 'you_have_to_be_logged_in_to_do_that', 'You have to be logged in to do that', 'Трябва да сте влезли, за да направите това');
+INSERT INTO `phrases_platform` VALUES (88, 'you_are_exceding_the_api_query_limit', 'You are exceding the API query limit', 'Превишавате API лимита за заявки');
+INSERT INTO `phrases_platform` VALUES (89, 'cannot_translate_to_the_default_language', 'Cannot translate to the default language', 'Не може превеждате към езика по подразбиране');
+INSERT INTO `phrases_platform` VALUES (90, 'language', 'Language', 'Език');
+INSERT INTO `phrases_platform` VALUES (91, 'provide_an_object_id', 'Provide an object id', 'Въведете ID на обекта');
+INSERT INTO `phrases_platform` VALUES (92, 'cannot_insert_or_update_an_empty_object', 'Cannot insert or update an empty object', 'Не може да добавите или актуализирате празен обект');
 
 -- ----------------------------
 -- Table structure for phrases_text
@@ -340,7 +379,6 @@ CREATE TABLE `phrases_text`  (
   `phrase` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   `en` text CHARACTER SET utf8 COLLATE utf8_general_ci NULL,
   `bg` text CHARACTER SET utf8 COLLATE utf8_general_ci NULL,
-  `tr` text CHARACTER SET utf8 COLLATE utf8_general_ci NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `phrase`(`phrase`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
