@@ -94,17 +94,17 @@ class Language extends Base
 
         if (isset($this->phrases[$phrase])) {
             return $this->phrases[$phrase];
-        } elseif (isset($this->phrasesPlatform[$phrase])) {
-            return $this->phrasesPlatform[$phrase];
         } elseif (isset($this->phrasesText[$phrase])) {
             return $this->phrasesText[$phrase];
-        }
+        } elseif (isset($this->phrasesPlatform[$phrase])) {
+            return $this->phrasesPlatform[$phrase];
+        } 
         return $phrase;
     }
 
     /**
      * Gets an array, containing all phrases from the database.
-     * Priority of tables: phrases => phrases_platform => phrases_text
+     * Priority of tables: phrases => phrases_text => phrases_platform 
      * @return array
      */
     public function getPhrasesArray()
@@ -113,9 +113,9 @@ class Language extends Base
             $this->getPhrases();
         }
 
-        $phrases = $this->phrasesText;
+        $phrases = $this->phrasesPlatform;
 
-        foreach ($this->phrasesPlatform as $phrase => $translation) {
+        foreach ($this->phrasesText as $phrase => $translation) {
             $phrases[$phrase] = $translation;
         }
 
