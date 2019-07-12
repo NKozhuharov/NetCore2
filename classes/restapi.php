@@ -381,6 +381,16 @@ class RESTAPI extends Base
      */
     public function __construct()
     {   
+        $this->initAPI();
+    }
+    
+    /**
+     * It will parse the request, considering which type it is (GET, POST, DELETE, PUT or PATCH).
+     * The result is JSON encoded array.
+     * Handles any exceptions, thrown during the parsing.
+     */
+    protected function initAPI()
+    {
         global $Core;
         
         try {
