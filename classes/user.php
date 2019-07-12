@@ -450,7 +450,7 @@ class User extends Base
     {
         global $Core;
 
-        if (empty($id)) {
+        if (empty($userId)) {
             throw new Error("Provide user id");
         }
 
