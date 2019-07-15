@@ -1093,8 +1093,8 @@ class Base
      * @param int $objectId - the id of the row where the translated object is
      * @param int $languageId - the language id to translate to
      * @param array $input - the translated object data
-     * @return int
      * @throws Error
+     * @return int
      */
     public function translate(int $objectId, int $languageId, array $input)
     {
