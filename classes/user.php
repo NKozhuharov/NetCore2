@@ -23,7 +23,7 @@ class User extends Base
      * @var array
      * The user data is stored here
      */
-    private $data;
+    protected $data;
 
     /**
      * @var int
@@ -182,7 +182,7 @@ class User extends Base
     /**
      * Records the current user data in memcache using the session key
      */
-    private function setSessionInMemcache()
+    protected function setSessionInMemcache()
     {
         global $Core;
 
