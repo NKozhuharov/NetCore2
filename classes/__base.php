@@ -643,11 +643,9 @@ class Base
         $selector = new BaseSelect($this->tableName);
 
         $selector->addField("COUNT(*)", 'ct');
-
-        if (!empty($additional)) {
-            $selector->setWhere($additional);
-        }
-
+    
+        $selector->setWhere($this->getSelectQueryWhereClause($additional));
+    
         $selector->setCacheTime($this->queryCacheTime);
         $selector->setGlobalTemplate('fetch_assoc');
 
