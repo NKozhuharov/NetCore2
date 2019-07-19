@@ -305,6 +305,8 @@ class Base
      */
     protected function getSelectQueryWhereClause(string $additional = null)
     {
+        $this->checkTableFields();
+
         $where = array();
 
         if (array_key_exists($this->hiddenFieldName, $this->tableFields->getFields()) && !$this->showHiddenRows) {
@@ -643,9 +645,9 @@ class Base
         $selector = new BaseSelect($this->tableName);
 
         $selector->addField("COUNT(*)", 'ct');
-    
+
         $selector->setWhere($this->getSelectQueryWhereClause($additional));
-    
+
         $selector->setCacheTime($this->queryCacheTime);
         $selector->setGlobalTemplate('fetch_assoc');
 
