@@ -444,7 +444,7 @@ class Core
 
         return false;
     }
-    
+
     /**
      * Requires all parent classes (if any) of the provided class
      * @param string $className - the name of the class
@@ -452,12 +452,12 @@ class Core
     private function requireParentClasses(string $className)
     {
         $parents = array();
-        
+
         while (isset($this->classesRequriementTree[$className])) {
             $parents[] = $this->classesRequriementTree[$className];
             $className = $this->classesRequriementTree[$className];
         }
-        
+
         if (!empty($parents)) {
             foreach (array_reverse($parents) as $parent) {
                 $this->initModel($parent, false);

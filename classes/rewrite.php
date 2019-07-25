@@ -113,9 +113,9 @@ class Rewrite
         }
 
         $this->controllerPath = '/'.$path;
-
+        
         $this->controller = $Core->Links->parseLink($path);
-        $this->view = $Core->Links->parseLink($path);
+        $this->view = $this->controller;
     }
 
     /**
