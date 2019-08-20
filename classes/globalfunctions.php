@@ -77,10 +77,10 @@ class GlobalFunctions
         $string = mb_strtolower($string);
         $string = preg_replace('~\P{Xan}++~u', ' ', $string);
         $string = preg_replace("~\s+~", ' ', $string);
-        
+
         return preg_replace("~\s+~", $replaceWith, trim($string));
     }
-    
+
     /**
      * Creates an unique link from the provided string
      * @param string $string - the string to create a link from
@@ -113,7 +113,7 @@ class GlobalFunctions
                 $url .= '-'.$count;
             }
         }
-        
+
         return $url;
     }
 
@@ -633,6 +633,10 @@ class GlobalFunctions
 
     public function reArrangeRequestFiles($files)
     {
+        if(!is_array($files['name'])) {
+            return array($files);
+        }
+
         $file_array = array();
         $file_count = count($files['name']);
         $file_keys = array_keys($files);

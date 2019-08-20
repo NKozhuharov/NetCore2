@@ -98,13 +98,13 @@ class Language extends Base
             return $this->phrasesText[$phrase];
         } elseif (isset($this->phrasesPlatform[$phrase])) {
             return $this->phrasesPlatform[$phrase];
-        } 
+        }
         return $phrase;
     }
 
     /**
      * Gets an array, containing all phrases from the database.
-     * Priority of tables: phrases => phrases_text => phrases_platform 
+     * Priority of tables: phrases => phrases_text => phrases_platform
      * @return array
      */
     public function getPhrasesArray()

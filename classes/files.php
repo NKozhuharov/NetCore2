@@ -151,6 +151,10 @@ class Files extends Base
     {
         global $Core;
 
+        if (empty($files)) {
+            throw new Exception('Provide a valid file');
+        }
+
         $files = $Core->GlobalFunctions->reArrangeRequestFiles($files);
 
         foreach ($files as $file) {
