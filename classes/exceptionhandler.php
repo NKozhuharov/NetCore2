@@ -64,7 +64,7 @@ class ExceptionHandler
                     mb_strlen(self::DONT_TRANSLATE_DELIMITER)
                 ) !== self::DONT_TRANSLATE_DELIMITER
             ) {
-                if ($Core->allowMultylanguage) {
+                if ($Core->allowMultilanguage) {
                     $messagePart = mb_strtolower($messagePart);
                     $messagePart = $Core->GlobalFunctions->replaceSpecialCharactersInString($messagePart, '_');
                     $translation .= $Core->Language->{$messagePart}.' ';

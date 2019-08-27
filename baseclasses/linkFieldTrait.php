@@ -68,7 +68,7 @@ trait LinkField
             $translatedObject = $this->getTranslation($object, $lanugageId);
 
             if($object[$this->linkField] === $translatedObject[$this->linkField]){
-                return false;
+                return '';
             }
 
             $object = $translatedObject;
