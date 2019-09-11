@@ -113,7 +113,7 @@ class Rewrite
         }
 
         $this->controllerPath = '/'.$path;
-        
+
         $this->controller = $Core->Links->parseLink($path);
         $this->view = $this->controller;
     }
@@ -233,13 +233,13 @@ class Rewrite
 
         ob_start();
             if (!$Core->ajax) {
-                require_once $Core->siteDir.'/includes/header.php';
+                require_once $Core->siteDir.'includes/header.php';
             }
 
             echo $page;
 
             if (!$Core->ajax) {
-                require_once $Core->siteDir.'/includes/footer.php';
+                require_once $Core->siteDir.'includes/footer.php';
             }
             $page = ob_get_contents();
         ob_end_clean();
