@@ -11,6 +11,19 @@
 class News extends Base
 {
     /**
+     * The name of the table. THIS IS REQUIRED!!!
+     * @var string
+     */
+    protected $tableName = 'news';
+
+    /**
+     * Allows the user to set a default ordering for the select queries
+     * This is the order type
+     * @var string
+     */
+    protected $orderByType  = self::ORDER_DESC;
+
+    /**
      * Shows if tags are allowed
      * Requires the `tags` table from the Tags module
      * @var bool
@@ -37,17 +50,23 @@ class News extends Base
     protected $allowMultilanguage = true;
 
     /**
+     * The table fields to search in if a phrase to search by is present
+     * @var array
+     */
+    protected $searchFields = array('title', 'short_description', 'description');
+
+     /**
+     * Fields in the table, which has translations in the {table}_lang
+     * @var array
+     */
+    protected $translationFields = array('title', 'description', 'short_description', 'link');
+
+    /**
      * Creates a new instance of News class
      */
     public function __construct()
     {
-        $this->tableName    = 'news';
-        $this->orderByField = 'added';
-        $this->orderByType  = self::ORDER_DESC;
-
-        if ($this->allowMultilanguage) {
-            $this->translationFields = array('title', 'description', 'short_description', 'link');
-        } else {
+        if (!$this->allowMultilanguage) {
             $this->translateResult = false;
         }
     }
@@ -61,7 +80,7 @@ class News extends Base
     {
         if ($this->allowTags) {
             $selector->addField(
-                "(SELECT GROUP_CONCAT(`tag_id` ORDER BY `id`) FROM `{$this->tagsTableName}` WHERE `news_id` = `news`.`id`)",
+                "(SELECT GROUP_CONCAT(`tag_id` ORDER BY `id`) FROM `{$this->tagsTableName}` WHERE `news_id` = `{$this->tagsTableName}`.`id`)",
                 'tags'
             );
         }
@@ -76,8 +95,8 @@ class News extends Base
     public function getByIdSelectHook(BaseSelect $selector)
     {
         if ($this->allowTags) {
-            $selector->addField("
-                (SELECT GROUP_CONCAT(`tag_id` ORDER BY `id`) FROM `{$this->tagsTableName}` WHERE `news_id` = `news`.`id`)",
+            $selector->addField(
+                "(SELECT GROUP_CONCAT(`tag_id` ORDER BY `id`) FROM `{$this->tagsTableName}` WHERE `news_id` = `{$this->tagsTableName}`.`id`)",
                 'tags'
             );
         }
@@ -255,15 +274,20 @@ class News extends Base
 
         if ($phrase !== null && !empty($phrase)) {
             $phrase = $Core->db->real_escape_string($phrase);
-            $wherePhrase  = "`{$this->tableName}`.`title` LIKE '%$phrase%'";
-		    $wherePhrase .= " OR `{$this->tableName}`.`short_description` LIKE '%$phrase%'";
-            $wherePhrase .= " OR `{$this->tableName}`.`description` LIKE '%$phrase%'";
+
+            $wherePhrase = '';
+
+            foreach ($this->searchFields as $searchField) {
+                $wherePhrase .= " OR `{$this->tableName}`.`{$searchField}` LIKE '%$phrase%'";
+            }
 
             if ($this->allowMultilanguage) {
-                $wherePhrase .= " OR `{$this->tableName}_lang`.`title` LIKE '%$phrase%'";
-        		$wherePhrase .= " OR `{$this->tableName}_lang`.`short_description` LIKE '%$phrase%'";
-        		$wherePhrase .= " OR `{$this->tableName}_lang`.`description` LIKE '%$phrase%'";
+                foreach ($this->searchFields as $searchField) {
+                    $wherePhrase .= " OR `{$this->tableName}_lang`.`{$searchField}` LIKE '%$phrase%'";
+                }
             }
+
+            $wherePhrase = substr($wherePhrase, 4);
 
             return $wherePhrase;
         }
