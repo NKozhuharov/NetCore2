@@ -115,7 +115,7 @@ class News extends Base
     {
         global $Core;
 
-        if (!isset($input['link']) || empty($input['link'])) {
+        if ($this->linkField && (!isset($input['link']) || empty($input['link']))) {
             $input['link'] = $Core->GlobalFunctions->getHref($input['title'], $this->tableName, $this->linkField);
         }
 
