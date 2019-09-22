@@ -80,7 +80,7 @@ class News extends Base
     {
         if ($this->allowTags) {
             $selector->addField(
-                "(SELECT GROUP_CONCAT(`tag_id` ORDER BY `id`) FROM `{$this->tagsTableName}` WHERE `news_id` = `{$this->tagsTableName}`.`id`)",
+                "(SELECT GROUP_CONCAT(`tag_id` ORDER BY `id`) FROM `{$this->tagsTableName}` WHERE `news_id` = `{$this->tableName}`.`id`)",
                 'tags'
             );
         }
@@ -96,7 +96,7 @@ class News extends Base
     {
         if ($this->allowTags) {
             $selector->addField(
-                "(SELECT GROUP_CONCAT(`tag_id` ORDER BY `id`) FROM `{$this->tagsTableName}` WHERE `news_id` = `{$this->tagsTableName}`.`id`)",
+                "(SELECT GROUP_CONCAT(`tag_id` ORDER BY `id`) FROM `{$this->tagsTableName}` WHERE `news_id` = `{$this->tableName}`.`id`)",
                 'tags'
             );
         }
