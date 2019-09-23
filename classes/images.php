@@ -58,6 +58,14 @@ class Images extends Base
 
     /**
      * @var bool
+     * Param when uploading images.
+     * If set to true it will return full image info
+     * $showResponse won't matter
+     */
+    protected $returnFullImageInfo = false;
+
+    /**
+     * @var bool
      * If set to true it will allow uploading duplicated images otherwise it will use already inserted image
      * Not recommended to be set to true
      */
@@ -181,6 +189,10 @@ class Images extends Base
                 $this->orgMd5 = md5($this->imagick->__toString());
 
                 $response[] = $this->upload();
+            }
+
+            if ($this->returnFullImageInfo) {
+                return $response;
             }
 
             if (count($response) == 1) {
@@ -310,14 +322,22 @@ class Images extends Base
             }
 
             $this->name = $Core->globalfunctions->getHref(
-                $this->name, 
-                $this->tableName, 
+                $this->name,
+                $this->tableName,
                 $this->imageNameField
             );
             //Keep original witout watermark
-            $this->insertImage($Core->imagesStorage.$addOrgFolder.$folderNumber.'/', $this->orgMd5, 1, $hasWatermark);
+            $data = $this->insertImage($Core->imagesStorage.$addOrgFolder.$folderNumber.'/', $this->orgMd5, 1, $hasWatermark);
+
+            if ($this->returnFullImageInfo) {
+                return $data;
+            }
         } else {
-            $this->name = $exists;
+            $this->name = $exists['name'];
+
+            if ($this->returnFullImageInfo) {
+                return $exists;
+            }
         }
 
         return $Core->imagesStorage.$addOrgFolder.$folderNumber.'/'.$this->name.'.'.$this->imageFormat;
@@ -455,15 +475,21 @@ class Images extends Base
             $fileLocation = str_ireplace($Core->imagesDir, '', $Core->imagesWebDir.$fileLocation);
         }
 
-        $this->insert(
-            array(
-                'name'      => $this->name,
-                'hash'      => $md5,
-                'src'       => $fileLocation,
-                'org'       => $isOrg,
-                'watermark' => $watermark,
-            )
+        $data = array(
+            'name'      => $this->name,
+            'hash'      => $md5,
+            'src'       => $fileLocation,
+            'org'       => $isOrg,
+            'watermark' => $watermark,
         );
+
+        $id = $this->insert($data);
+
+        if ($this->returnFullImageInfo) {
+            $data['id'] = $id;
+
+            return $data;
+        }
 
         return $fileLocation;
     }
@@ -863,7 +889,7 @@ class Images extends Base
     private function isExistingImage(string $md5)
     {
         if ($res = $this->getAll(0, "`hash` = '{$md5}'")) {
-            return current($res)['name'];
+            return current($res);
         }
 
         return '';
@@ -891,9 +917,29 @@ class Images extends Base
     public function getSrcById(int $id)
     {
         if ($res = $this->getById($id)) {
-            $res['src'];
+            return $res['src'];
         }
 
         return '';
+    }
+
+    /**
+     * Deletes the image file and data in the database by given id
+     * @param int id - the image id in the database
+     * @return bool
+     */
+    public function deleteImage(int $id)
+    {
+        if ($res = $this->getById($id)) {
+            $this->deleteById($id);
+
+            if (is_file($res['src'])) {
+                unlink($res['src']);
+            }
+
+            return true;
+        }
+
+        return false;
     }
 }
