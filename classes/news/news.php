@@ -116,7 +116,9 @@ class News extends Base
         global $Core;
 
         if ($this->linkField && (!isset($input['link']) || empty($input['link']))) {
-            $input['link'] = $Core->GlobalFunctions->getHref($input['title'], $this->tableName, $this->linkField);
+            if (isset($input['title']) && !empty($input['title'])) {
+                $input['link'] = $Core->GlobalFunctions->getHref($input['title'], $this->tableName, $this->linkField);
+            }
         }
 
         return parent::insert($input, $flag);
@@ -134,8 +136,10 @@ class News extends Base
     {
         global $Core;
 
-        if (!isset($input['link']) || empty($input['link'])) {
-            $input['link'] = $Core->GlobalFunctions->getHref($input['title'], "{$this->tableName}_lang", $this->linkField);
+        if ($this->linkField && (!isset($input['link']) || empty($input['link']))) {
+            if (isset($input['title']) && !empty($input['title'])) {
+                $input['link'] = $Core->GlobalFunctions->getHref($input['title'], "{$this->tableName}_lang", $this->linkField);
+            }
         }
 
         return parent::translate($objectId, $languageId, $input);
