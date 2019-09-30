@@ -62,6 +62,18 @@ class News extends Base
     protected $translationFields = array('title', 'description', 'short_description', 'link');
 
     /**
+     * Fields in the child tables, which has news_id
+     * @var string
+     */
+    protected $newsField = 'news_id';
+
+    /**
+     * Fields in the child tables, which has tag_id
+     * @var string
+     */
+    protected $tagsField = 'tag_id';
+
+    /**
      * Creates a new instance of News class
      */
     public function __construct()
@@ -80,7 +92,7 @@ class News extends Base
     {
         if ($this->allowTags) {
             $selector->addField(
-                "(SELECT GROUP_CONCAT(`tag_id` ORDER BY `id`) FROM `{$this->tagsTableName}` WHERE `news_id` = `{$this->tableName}`.`id`)",
+                "(SELECT GROUP_CONCAT(`{$this->tagsField}` ORDER BY `id`) FROM `{$this->tagsTableName}` WHERE `{$this->newsField}` = `{$this->tableName}`.`id`)",
                 'tags'
             );
         }
@@ -96,7 +108,7 @@ class News extends Base
     {
         if ($this->allowTags) {
             $selector->addField(
-                "(SELECT GROUP_CONCAT(`tag_id` ORDER BY `id`) FROM `{$this->tagsTableName}` WHERE `news_id` = `{$this->tableName}`.`id`)",
+                "(SELECT GROUP_CONCAT(`{$this->tagsField}` ORDER BY `id`) FROM `{$this->tagsTableName}` WHERE `{$this->newsField}` = `{$this->tableName}`.`id`)",
                 'tags'
             );
         }
@@ -115,10 +127,13 @@ class News extends Base
     {
         global $Core;
 
-        if ($this->linkField && (!isset($input['link']) || empty($input['link']))) {
-            if (isset($input['title']) && !empty($input['title'])) {
-                $input['link'] = $Core->GlobalFunctions->getHref($input['title'], $this->tableName, $this->linkField);
-            }
+        if (
+            $this->linkField
+            && (!isset($input['link']) || empty($input['link']))
+            && isset($input['title'])
+            && !empty($input['title'])
+        ) {
+            $input['link'] = $Core->GlobalFunctions->getHref($input['title'], $this->tableName, $this->linkField);
         }
 
         return parent::insert($input, $flag);
@@ -136,10 +151,13 @@ class News extends Base
     {
         global $Core;
 
-        if ($this->linkField && (!isset($input['link']) || empty($input['link']))) {
-            if (isset($input['title']) && !empty($input['title'])) {
-                $input['link'] = $Core->GlobalFunctions->getHref($input['title'], "{$this->tableName}_lang", $this->linkField);
-            }
+        if (
+            $this->linkField
+            && (!isset($input['link']) || empty($input['link']))
+            && isset($input['title'])
+            && !empty($input['title'])
+        ) {
+            $input['link'] = $Core->GlobalFunctions->getHref($input['title'], "{$this->tableName}_lang", $this->linkField);
         }
 
         return parent::translate($objectId, $languageId, $input);
@@ -157,10 +175,13 @@ class News extends Base
     {
         global $Core;
 
-        if ($this->linkField && (!isset($input['link']) || empty($input['link']))) {
-            if (isset($input['title']) && !empty($input['title'])) {
-                $input['link'] = $Core->GlobalFunctions->getHref($input['title'], $this->tableName, $this->linkField);
-            }
+        if (
+            $this->linkField
+            && (!isset($input['link']) || empty($input['link']))
+            && isset($input['title'])
+            && !empty($input['title'])
+        ) {
+            $input['link'] = $Core->GlobalFunctions->getHref($input['title'], $this->tableName, $this->linkField);
         }
 
         return parent::updateById($objectId, $input, $additional);
@@ -189,7 +210,7 @@ class News extends Base
      * @return string
      * @throws Error
      */
-    private function getLanguageSearchPart(int $languageId = null)
+    protected function getLanguageSearchPart(int $languageId = null)
     {
         if ($languageId !== null) {
             if ($this->allowMultilanguage === false) {
@@ -202,7 +223,7 @@ class News extends Base
                 throw new Error("Language cannot be empty");
             }
 
-            return "`{$this->tableName}_lang`.`lang_id` = $languageId";
+            return "`{$this->tableName}_lang`.`lang_id` = {$languageId}";
         }
 
         return '';
@@ -216,7 +237,7 @@ class News extends Base
      * @return string
      * @throws Error
      */
-    private function getCategorySearchPart(int $categoryId = null)
+    protected function getCategorySearchPart(int $categoryId = null)
     {
         if ($categoryId !== null) {
             if ($this->allowCategories === false) {
@@ -229,7 +250,7 @@ class News extends Base
                 throw new Error("Category cannot be empty");
             }
 
-            return "`{$this->tableName}`.`category_id` = $categoryId";
+            return "`{$this->tableName}`.`category_id` = {$categoryId}";
         }
 
         return '';
@@ -243,7 +264,7 @@ class News extends Base
      * @return string
      * @throws Error
      */
-    private function getTagSearchPart(int $tagId = null)
+    protected function getTagSearchPart(int $tagId = null)
     {
         if ($tagId != null) {
             if ($this->allowTags === false) {
@@ -260,9 +281,10 @@ class News extends Base
 
             if (!empty($newsIds)) {
                 $newsIds = implode(', ', $newsIds);
-                return "`{$this->tableName}`.`id` IN ($newsIds)";
+                return "`{$this->tableName}`.`id` IN ({$newsIds})";
+            } else {
+                return "`{$this->tableName}`.`id` = 0";
             }
-
         }
 
         return '';
@@ -274,7 +296,7 @@ class News extends Base
      * @param string $phrase - a phrase to search by
      * @return string
      */
-    private function getPhraseSearchPart(string $phrase = null)
+    protected function getPhraseSearchPart(string $phrase = null)
     {
         global $Core;
 
@@ -309,21 +331,15 @@ class News extends Base
      * @param int $tagId - the id of a tag to search by
      * @return string
      */
-    private function getSearchQueryWhere(string $phrase = null, int $languageId = null, int $categoryId = null, int $tagId = null)
+    protected function getSearchQueryWhere(string $phrase = null, int $languageId = null, int $categoryId = null, int $tagId = null)
     {
         $where = array();
 
-        $where[] = $this->getLanguageSearchPart($languageId);
-
         $where[] = $this->getCategorySearchPart($categoryId);
 
-        $tagsWhere = $this->getTagSearchPart($tagId);
-        if (empty($tagsWhere) && !empty($tagId)) {
-            return array();
-        }
-        $where[] = $tagsWhere;
-        unset($tagsWhere);
+        $where[] = $this->getTagSearchPart($tagId);
 
+        $where[] = $this->getLanguageSearchPart($languageId);
 
         $where[] = $this->getPhraseSearchPart($phrase);
 
@@ -397,12 +413,13 @@ class News extends Base
      * @param int $languageId - the id of the language
      * @return array
      */
-    private function getNewsIdsByLangId(int $languageId)
+    protected function getNewsIdsByLangId(int $languageId)
     {
         $selector = new BaseSelect("{$this->tableName}_lang");
         $selector->addField("object_id");
         $selector->setWhere("`lang_id` = $languageId");
         $newsIds = $selector->execute();
+
         if (!empty($newsIds)) {
             return array_column($newsIds, 'object_id');
         }
@@ -417,14 +434,15 @@ class News extends Base
      * @param int $tagId - the id of a tag
      * @return array
      */
-    private function getNewsIdsByTagId(int $tagId)
+    protected function getNewsIdsByTagId(int $tagId)
     {
         $selector = new BaseSelect($this->tagsTableName);
-        $selector->addField("news_id");
-        $selector->setWhere("`tag_id` = $tagId");
+        $selector->addField($this->newsField);
+        $selector->setWhere("`{$this->tagsField}` = {$tagId}");
         $newsIds = $selector->execute();
+
         if (!empty($newsIds)) {
-            return array_column($newsIds, 'news_id');
+            return array_column($newsIds, $this->newsField);
         }
 
         return array();
@@ -455,8 +473,8 @@ class News extends Base
             }
 
             $inserter = new BaseInsert($this->tagsTableName);
-            $inserter->addField('news_id', $objectId);
-            $inserter->addField('tag_id', $tagId);
+            $inserter->addField($this->newsField, $objectId);
+            $inserter->addField($this->tagsField, $tagId);
             $inserter->execute();
             unset($inserter);
         }
@@ -475,7 +493,7 @@ class News extends Base
         }
 
         $deleter = new BaseDelete($this->tagsTableName);
-        $deleter->setWhere("`news_id` = $objectId");
+        $deleter->setWhere("`{$this->newsField}` = {$objectId}");
         $deleter->execute();
     }
 }

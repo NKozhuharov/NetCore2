@@ -15,7 +15,7 @@ trait BaseWhere
     {
         $this->where = trim($where);
     }
-    
+
     /**
      * Gets the current WHERE clause of the query
      * @return string
