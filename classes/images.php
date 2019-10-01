@@ -156,6 +156,12 @@ class Images extends Base
     protected $imagick = false;
 
     /**
+     * @var bool
+     * Flag to insert uploaded image info in DB or not
+     */
+    protected $insertToDB = true;
+
+    /**
      * Creates a new instance of the Images class
      * @return array|string(JSON)
      */
@@ -483,11 +489,11 @@ class Images extends Base
             'watermark' => $watermark,
         );
 
-        $id = $this->insert($data);
+        if ($this->insertToDB) {
+            $data['id'] = $this->insert($data);
+        }
 
         if ($this->returnFullImageInfo) {
-            $data['id'] = $id;
-
             return $data;
         }
 
