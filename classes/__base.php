@@ -179,15 +179,15 @@ class Base
         $fieldsToCheck = array_keys($this->tableFields->getFields());
 
         if ($this->returnTimestamps === true) {
-            foreach ($this->tableFields->getFields() as $field => $fieldDescription) {
+            foreach ($this->tableFields->getFields() as $fieldName => $fieldDescription) {
                 if (in_array($fieldDescription['type'], array('timestamp', 'datetime'))) {
-                    $fieldsToCheck[] = "{$field}_timestamp";
+                    $fieldsToCheck[] = "{$fieldName}_timestamp";
                 }
             }
         }
 
-        if (!in_array($field, $fieldsToCheck)) {
-            throw new Error("The field `$field` does not exist in table `{$this->tableName}`");
+        if (!in_array($fieldName, $fieldsToCheck)) {
+            throw new Error("The field `$fieldName` does not exist in table `{$this->tableName}`");
         }
 
         $this->orderByField = $field;
