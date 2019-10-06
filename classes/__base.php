@@ -186,7 +186,7 @@ class Base
             }
         }
 
-        if (!in_array($fieldName, $fieldsToCheck)) {
+        if (!in_array($field, $fieldsToCheck)) {
             throw new Error("The field `$fieldName` does not exist in table `{$this->tableName}`");
         }
 
