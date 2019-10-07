@@ -187,7 +187,7 @@ class Base
         }
 
         if (!in_array($field, $fieldsToCheck)) {
-            throw new Error("The field `$fieldName` does not exist in table `{$this->tableName}`");
+            throw new Error("The field `$field` does not exist in table `{$this->tableName}`");
         }
 
         $this->orderByField = $field;
