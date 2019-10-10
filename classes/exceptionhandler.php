@@ -172,7 +172,7 @@ class ExceptionHandler
                     echo '<br>';
 
                     if (!is_numeric($fieldName)) {
-                        $this->translateMessage($fieldName).' - ';
+                        echo $this->translateMessage($fieldName).' - ';
                     }
 
                     echo $this->translateMessage($message);
