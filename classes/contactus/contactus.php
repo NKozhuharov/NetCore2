@@ -125,9 +125,9 @@ class ContactUs extends Base
 
         if (isset($fields[self::SUBJECT_FIELD_NAME])) {
             $this->subjectIsString = true;
+        } else {
+            $this->subjectIsString = false;
         }
-
-        $this->subjectIsString = false;
     }
 
     /**
