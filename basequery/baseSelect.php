@@ -123,9 +123,6 @@ final class BaseSelect extends BaseQuery
     {
         global $Core;
 
-        $field = $Core->db->escape($field);
-        $alias = $Core->db->escape($alias);
-
         if (empty($tableName)) {
             $tableName = $this->tableName;
         }

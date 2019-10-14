@@ -10,9 +10,10 @@ class Base
     use QueryExecuters;
     use SearchTrait;
 
-    const ORDER_ASC   = 'ASC';
-    const ORDER_DESC  = 'DESC';
-    const ORDER_FIELD = 'FIELD';
+    const ORDER_ASC       = 'ASC';
+    const ORDER_DESC      = 'DESC';
+    const ORDER_FIELD     = 'FIELD';
+    const TIMESTAMP_LOCAL = 'LOCAL';
 
     //main variables
     /**
@@ -56,7 +57,7 @@ class Base
 
     /**
      * @var bool
-     * Allows the user to select all timestamp fields as UNIX_TIMESTAMPs
+     * Allows the user to select all datetime and timestamp fields as UNIX_TIMESTAMP or lOCAL timestamp
      */
     protected $returnTimestamps = false;
 
@@ -166,8 +167,11 @@ class Base
 
     /**
      * Set the order by field to a new value.
-     * Ensures the field exists in the table; if returnTimestamps is true, it will also consider '_timestamp' fields
-     * as existing.
+     * Ensures the field exists in the table;
+     * If returnTimestamps is true, it will also return timestamp and datetime fields
+     * as 'field_timestamp' in UNIX timestamp and consider them as existing.
+     * If returnTimestamps is TIMESTAMP_LOCAL, it will also return timestamp and datetime fields
+     * as 'field_timestamp' in LOCAL timestamp and consider them as existing.
      * Throws Error if the provided field does not exist in the table
      * @param string $field - the name of the new field
      * @throws Error
@@ -178,7 +182,7 @@ class Base
 
         $fieldsToCheck = array_keys($this->tableFields->getFields());
 
-        if ($this->returnTimestamps === true) {
+        if ($this->returnTimestamps === true || $this->returnTimestamps === self::TIMESTAMP_LOCAL) {
             foreach ($this->tableFields->getFields() as $fieldName => $fieldDescription) {
                 if (in_array($fieldDescription['type'], array('timestamp', 'datetime'))) {
                     $fieldsToCheck[] = "{$fieldName}_timestamp";
@@ -272,7 +276,7 @@ class Base
 
         $selector->addField('*');
 
-        if ($this->returnTimestamps === true) {
+        if ($this->returnTimestamps === true || $this->returnTimestamps === self::TIMESTAMP_LOCAL) {
             $selector = $this->addTimestampFieldsToGetQuery($selector);
         }
 
@@ -289,7 +293,11 @@ class Base
     {
         foreach ($this->tableFields->getFields() as $field => $fieldDescription) {
             if (in_array($fieldDescription['type'], array('timestamp', 'datetime'))) {
-                $selector->addField("UNIX_TIMESTAMP(`{$field}`)", "{$field}_timestamp");
+                if ($this->returnTimestamps === true) {
+                    $selector->addField("UNIX_TIMESTAMP(`{$field}`)", "{$field}_timestamp");
+                } else {
+                    $selector->addField("UNIX_TIMESTAMP(CONVERT_TZ(`{$field}`, '+00:00', 'SYSTEM'))", "{$field}_timestamp");
+                }
             }
         }
 
