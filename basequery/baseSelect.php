@@ -118,10 +118,16 @@ final class BaseSelect extends BaseQuery
      * @param string $field - the name of the field
      * @param string $alias - the "AS" alias for the field
      * @param string $tableName - the name of the table, from which to select the field
+     * @param bool $doNotEscape - set to true to skip escaping of the field and alias
      */
-    public function addField(string $field, string $alias = null, string $tableName = null)
+    public function addField(string $field, string $alias = null, string $tableName = null, bool $doNotEscape = false)
     {
         global $Core;
+
+        if ($doNotEscape !== true) {
+            $field = $Core->db->escape($field);
+            $alias = $Core->db->escape($alias);
+        }
 
         if (empty($tableName)) {
             $tableName = $this->tableName;

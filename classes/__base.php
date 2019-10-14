@@ -296,7 +296,12 @@ class Base
                 if ($this->returnTimestamps === true) {
                     $selector->addField("UNIX_TIMESTAMP(`{$field}`)", "{$field}_timestamp");
                 } else {
-                    $selector->addField("UNIX_TIMESTAMP(CONVERT_TZ(`{$field}`, '+00:00', 'SYSTEM'))", "{$field}_timestamp");
+                    $selector->addField(
+                        "UNIX_TIMESTAMP(CONVERT_TZ(`{$field}`, '+00:00', 'SYSTEM'))",
+                        "{$field}_timestamp",
+                        null,
+                        true
+                    );
                 }
             }
         }
