@@ -8,7 +8,7 @@ class GlobalFunctions
      * @param int $symbols
      * @return string
      */
-    public function cutText(string $text, int $symbols = 250)
+    public function cutText(string $text = null, int $symbols = 250)
     {
         if (mb_strlen(trim($text)) <= $symbols) {
             return trim($text);
