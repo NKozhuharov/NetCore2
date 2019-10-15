@@ -283,7 +283,7 @@ class GlobalFunctions
 
         //default url with page numper in GET parameter(page=)
         if (!$url) {
-            $url = $Core->rewrite->URL.((preg_replace("~(&|\?|)(page=)(\d+|)~", "", http_build_query($_GET))) ? '?'.(preg_replace("~(&|\?|)(page=)(\d+|)~", "", http_build_query($_GET))).'&page=' : '?page=');
+            $url = $Core->rewrite->url.((preg_replace("~(&|\?|)(page=)(\d+|)~", "", http_build_query($_GET))) ? '?'.(preg_replace("~(&|\?|)(page=)(\d+|)~", "", http_build_query($_GET))).'&page=' : '?page=');
         }
 
         $pagesCount = ceil($resultsCount / $Core->itemsPerPage);
@@ -304,7 +304,7 @@ class GlobalFunctions
         }elseif (!$showFirstPage && mb_substr($url, -1, 1) == '/') {
             $firstUrl = mb_substr($url, 0, -1);
         }elseif (!$showFirstPage) {
-            $firstUrl = $Core->rewrite->URL.((preg_replace("~(&|\?|)(page=)(\d+|)~", "", http_build_query($_GET))) ? '?'.(preg_replace("~(&|\?|)(page=)(\d+|)~", "", http_build_query($_GET))) : '');
+            $firstUrl = $Core->rewrite->url.((preg_replace("~(&|\?|)(page=)(\d+|)~", "", http_build_query($_GET))) ? '?'.(preg_replace("~(&|\?|)(page=)(\d+|)~", "", http_build_query($_GET))) : '');
         } else {
             $firstUrl = $url.'1';
         }
