@@ -181,7 +181,7 @@ class News extends Base
             && isset($input['title'])
             && !empty($input['title'])
         ) {
-            $input['link'] = $Core->GlobalFunctions->getHref($input['title'], $this->tableName, $this->linkField);
+            $input['link'] = $Core->GlobalFunctions->getHref($input['title'], $this->tableName, $this->linkField, $objectId);
         }
 
         return parent::updateById($objectId, $input, $additional);
