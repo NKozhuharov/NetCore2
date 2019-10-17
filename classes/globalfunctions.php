@@ -174,24 +174,44 @@ class GlobalFunctions
         return $results;
     }
 
-    //sends email; requires PHPMailer library to work!
-    public function sendEmail($from = false, $fromName = false, $subject = false, $addAddress = false, $body = false, $isHTML = false, $attachment = false, $isAdnmin = false)
+    /**
+     * Sends email
+     * Requires PHPMailer library to work!
+     * @param $fromEmail - email of the sender
+     * @param $fromName - name of the sender
+     * @param $subject - email subject
+     * @param string or array $addAddress - recipient/s email
+     * @param string $body - email content
+     * @param string $isHTML - should the email body be considered as HTML
+     * @param string or array $attachment - file/s to be attached
+     * @param bool $isAdnmin - if true shows real error if occurs
+     * @throws BaseException if an error occurs
+     * @throws Error if an error occurs and $isAdnmin = true
+     * @return bool
+     */
+    public function sendEmail(
+        string $fromEmail  = '',
+        string $fromName   = '',
+        string $subject    = '',
+               $recipient  = false, //string or array
+        string $body       = '',
+        bool   $isHTML     = false,
+               $attachment = false, //string or array
+        bool   $isAdnmin     = false
+    )
     {
         global $Core;
+
         require_once(GLOBAL_PATH.'platform/external/PHPMailer-master/PHPMailerAutoload.php');
+
         $mail = new PHPMailer;
         $mail->isSMTP();
-
-        if (isset($Core->mailConfig) && $Core->mailConfig) {
-            $mail->SMTPAuth   = true;
-            $mail->SMTPSecure = $Core->mailConfig['SMTPSecure'];
-            $mail->Username   = $Core->mailConfig['Username'];
-            $mail->Password   = $Core->mailConfig['Password'];
-            $mail->Host       = $Core->mailConfig['Host'];
-            $mail->Port       = $Core->mailConfig['Port'];;
-        } else {
-            throw new Error('Set core $mailConfig variable');
-        }
+        $mail->SMTPAuth   = true;
+        $mail->SMTPSecure = $Core->mailConfig['SMTPSecure'];
+        $mail->Username   = $Core->mailConfig['Username'];
+        $mail->Password   = $Core->mailConfig['Password'];
+        $mail->Host       = $Core->mailConfig['Host'];
+        $mail->Port       = $Core->mailConfig['Port'];
 
         if ($isHTML) {
             $mail->isHTML(true);
@@ -209,17 +229,17 @@ class GlobalFunctions
             $mail->AddAttachment($attachment);
         }
 
-        if (is_array($addAddress)) {
-            foreach ($addAddress as $adr) {
+        if (is_array($recipient)) {
+            foreach ($recipient as $adr) {
                 $mail->addAddress($adr);
             }
         } else {
-            $mail->addAddress($addAddress);
+            $mail->addAddress($recipient);
         }
 
         $mail->CharSet = "UTF-8";
         $mail->Subject = $subject;
-        $mail->From = $from;
+        $mail->From = $fromEmail;
         $mail->FromName = $fromName;
 
         if (!$mail->send()) {
@@ -229,6 +249,8 @@ class GlobalFunctions
                 throw new BaseException($Core->generalErrorText);
             }
         }
+
+        return true;
     }
 
     //pagination function
