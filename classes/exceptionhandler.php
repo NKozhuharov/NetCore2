@@ -237,7 +237,7 @@ class ExceptionHandler
 
         if ($data) {
             if (!empty($data)) {
-                echo ':';
+                echo ':<br>';
 
                 foreach ($data as $fieldName => $message) {
                     echo '<br>';
