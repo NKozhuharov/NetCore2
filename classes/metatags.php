@@ -21,6 +21,12 @@ class MetaTags
 
     /**
      * @var string
+     * The meta $image
+     */
+    private $image;
+
+    /**
+     * @var string
      * The meta open graph title
      */
     private $og_title;

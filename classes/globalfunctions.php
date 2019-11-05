@@ -10,7 +10,9 @@ class GlobalFunctions
      */
     public function cutText(string $text = null, int $symbols = 250)
     {
-        if (mb_strlen(trim($text)) <= $symbols) {
+        $text = trim($text);
+
+        if (mb_strlen($text) <= $symbols) {
             return trim($text);
         }
 
@@ -33,7 +35,7 @@ class GlobalFunctions
             $lastSymbol = mb_substr($text, -1);
         }
 
-        while (!ctype_alnum($lastSymbol) && !in_array($lastSymbol, $endSymbols) && !empty($lastSymbol)) {
+        while (!preg_match_all('~[\p{L}\p{Nl}\p{Nd}]~u', $lastSymbol) && !in_array($lastSymbol, $endSymbols) && !empty($lastSymbol)) {
             $text = mb_substr($text, 0, mb_strlen($text) - 1);
             $lastSymbol = mb_substr($text, -1);
         }
